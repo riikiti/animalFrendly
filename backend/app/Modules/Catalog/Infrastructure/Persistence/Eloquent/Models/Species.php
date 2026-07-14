@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models;
 
+use Database\Factories\Catalog\SpeciesFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class Species extends Model
 {
+    /** @use HasFactory<SpeciesFactory> */
+    use HasFactory;
+
     public $timestamps = false;
 
     protected $table = 'species';
@@ -30,5 +35,10 @@ final class Species extends Model
     public function breeds(): HasMany
     {
         return $this->hasMany(Breed::class);
+    }
+
+    protected static function newFactory(): SpeciesFactory
+    {
+        return SpeciesFactory::new();
     }
 }

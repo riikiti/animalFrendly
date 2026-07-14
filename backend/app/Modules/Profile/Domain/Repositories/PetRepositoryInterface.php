@@ -19,4 +19,13 @@ interface PetRepositoryInterface
      * @return list<Pet>
      */
     public function findByOwner(Id $ownerId): array;
+
+    /**
+     * Активные анкеты не указанного владельца и не из списка исключений — используется
+     * лентой подбора модуля Matching (см. docs/plan/07-flow-matching-shelter.md).
+     *
+     * @param  list<Id>  $excludeIds
+     * @return list<Pet>
+     */
+    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $limit): array;
 }

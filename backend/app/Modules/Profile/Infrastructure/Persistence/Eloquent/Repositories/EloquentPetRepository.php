@@ -57,6 +57,23 @@ final class EloquentPetRepository implements PetRepositoryInterface
         );
     }
 
+    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $limit): array
+    {
+        $excludeIdStrings = array_map(static fn (Id $id): string => $id->toString(), $excludeIds);
+
+        return array_values(
+            EloquentPet::query()
+                ->where('status', 'active')
+                ->where('owner_id', '!=', $excludeOwnerId->toString())
+                ->when($excludeIdStrings !== [], fn ($query) => $query->whereNotIn('id', $excludeIdStrings))
+                ->orderByDesc('created_at')
+                ->limit($limit)
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentPet $model): DomainPet
     {
         return DomainPet::reconstitute(

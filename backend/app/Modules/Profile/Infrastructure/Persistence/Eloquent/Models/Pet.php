@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models;
 
+use Database\Factories\Profile\PetFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Pet extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<PetFactory> */
+    use HasFactory, SoftDeletes;
 
     public $incrementing = false;
 
@@ -34,4 +37,9 @@ final class Pet extends Model
         'birthdate' => 'date',
         'is_vaccinated' => 'boolean',
     ];
+
+    protected static function newFactory(): PetFactory
+    {
+        return PetFactory::new();
+    }
 }
