@@ -11,6 +11,7 @@ use App\Modules\Payment\Application\Contracts\YookassaClientInterface;
 use App\Modules\Payment\Domain\Repositories\PaymentRepositoryInterface;
 use App\Modules\Payment\Domain\Repositories\PayoutRepositoryInterface;
 use App\Modules\Payment\Infrastructure\Adapters\YookassaPaymentGateway;
+use App\Modules\Payment\Infrastructure\External\NullYookassaClient;
 use App\Modules\Payment\Infrastructure\External\YookassaClient;
 use App\Modules\Payment\Infrastructure\Listeners\DispatchPayoutOnOrderCompleted;
 use App\Modules\Payment\Infrastructure\Listeners\DispatchRefundOnOrderRefunded;
@@ -25,7 +26,12 @@ final class PaymentServiceProvider extends ServiceProvider
     {
         $this->app->bind(PaymentRepositoryInterface::class, EloquentPaymentRepository::class);
         $this->app->bind(PayoutRepositoryInterface::class, EloquentPayoutRepository::class);
-        $this->app->bind(YookassaClientInterface::class, YookassaClient::class);
+        // Без реальных ключей (локальная разработка, E2E) — безопасный фоллбэк без сети,
+        // тот же принцип, что MAIL_MAILER=log. См. NullYookassaClient.
+        $this->app->bind(
+            YookassaClientInterface::class,
+            empty(config('yookassa.shop_id')) ? NullYookassaClient::class : YookassaClient::class,
+        );
 
         // Единственное место, где Payment "знает" про Marketplace — байндинг чужого
         // Application-контракта на свою реализацию, см. docs/rules/01-backend.md.
