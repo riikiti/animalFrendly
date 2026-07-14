@@ -29,6 +29,7 @@
 - [`plan/10-integrations.md`](./plan/10-integrations.md) — внешние сервисы и переменные `.env`
 - [`plan/11-non-functional.md`](./plan/11-non-functional.md) — безопасность, 152-ФЗ, масштабируемость
 - [`plan/12-infrastructure.md`](./plan/12-infrastructure.md) — контейнеризация, приоритет Kubernetes, единый бэкенд/БД для сайта и мобилки
+- [`plan/13-logging.md`](./plan/13-logging.md) — формат логов, корреляция запросов, что запрещено логировать
 
 ## Связанные документы
 

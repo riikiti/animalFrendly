@@ -9,3 +9,4 @@
 - [`deploy/03-vps-guide.md`](./deploy/03-vps-guide.md) — пошаговый гайд разворачивания на голом VPS (k3s — приоритетный вариант, Docker Compose — упрощённый)
 - [`deploy/04-operations.md`](./deploy/04-operations.md) — бэкапы, миграции в проде, мониторинг, обновления и откат
 - [`deploy/05-cicd.md`](./deploy/05-cicd.md) — GitHub Actions: тесты, линтеры, сборка образов, деплой (настраивается **после** основного кода)
+- [`deploy/06-logging.md`](./deploy/06-logging.md) — сбор логов (Grafana Loki + Promtail), retention, алерты
