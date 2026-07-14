@@ -4,6 +4,12 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      // pinia@4.0.0's package.json "exports" map omits a "types" condition —
+      // resolve its declarations explicitly until that's fixed upstream.
+      "pinia": ["./node_modules/pinia/dist/pinia.d.ts"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,
