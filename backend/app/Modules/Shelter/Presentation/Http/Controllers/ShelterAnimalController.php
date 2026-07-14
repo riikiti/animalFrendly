@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Shelter\Presentation\Http\Controllers;
 
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as IdentityUser;
+use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
 use App\Modules\Shelter\Application\Commands\PublishShelterAnimal\PublishShelterAnimalCommand;
 use App\Modules\Shelter\Application\Commands\PublishShelterAnimal\PublishShelterAnimalHandler;
 use App\Modules\Shelter\Application\Queries\ListAvailableShelterAnimals\ListAvailableShelterAnimalsHandler;
+use App\Modules\Shelter\Domain\Entities\ShelterAnimal;
 use App\Modules\Shelter\Domain\Exceptions\NotShelterOwnerException;
 use App\Modules\Shelter\Domain\Exceptions\ShelterNotFoundException;
 use App\Modules\Shelter\Domain\Exceptions\ShelterNotVerifiedException;
@@ -18,9 +20,17 @@ use Illuminate\Http\Request;
 
 final class ShelterAnimalController
 {
-    public function index(ListAvailableShelterAnimalsHandler $handler): JsonResponse
+    public function index(ListAvailableShelterAnimalsHandler $handler, PetRepositoryInterface $pets): JsonResponse
     {
-        return response()->json(['data' => ShelterAnimalResource::collection($handler->handle())]);
+        $data = array_map(
+            static fn (ShelterAnimal $animal) => new ShelterAnimalResource([
+                'animal' => $animal,
+                'pet' => $pets->findById($animal->petId()),
+            ]),
+            $handler->handle(),
+        );
+
+        return response()->json(['data' => $data]);
     }
 
     public function store(
@@ -48,7 +58,9 @@ final class ShelterAnimalController
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return response()->json(['data' => new ShelterAnimalResource($shelterAnimal)], 201);
+        return response()->json([
+            'data' => new ShelterAnimalResource(['animal' => $shelterAnimal, 'pet' => null]),
+        ], 201);
     }
 
     private function authenticatedUserId(Request $request): string

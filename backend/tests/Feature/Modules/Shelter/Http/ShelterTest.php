@@ -62,7 +62,11 @@ it('publishes an animal once the shelter is verified and lists it as available',
     $response = $this->getJson('/api/v1/shelter-animals');
 
     $response->assertOk();
-    expect(collect($response->json('data'))->pluck('id'))->toContain($shelterAnimalId);
+    $listed = collect($response->json('data'))->firstWhere('id', $shelterAnimalId);
+
+    expect($listed)->not->toBeNull()
+        ->and($listed['pet']['name'])->toBe('Рыжик')
+        ->and($listed['pet']['species_id'])->toBe($dog->id);
 });
 
 it('runs the full adoption flow: request → approve → reserved → conversation created', function (): void {
