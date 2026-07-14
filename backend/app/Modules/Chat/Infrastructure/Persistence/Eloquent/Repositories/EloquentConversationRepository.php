@@ -21,7 +21,8 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
         EloquentConversation::query()->updateOrCreate(
             ['id' => $conversation->id()->toString()],
             [
-                'match_id' => $conversation->matchId()->toString(),
+                'match_id' => $conversation->matchId()?->toString(),
+                'adoption_request_id' => $conversation->adoptionRequestId()?->toString(),
                 'created_at' => $conversation->createdAt(),
             ],
         );
@@ -37,6 +38,15 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
     public function findByMatchId(Id $matchId): ?DomainConversation
     {
         $model = EloquentConversation::query()->where('match_id', $matchId->toString())->first();
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
+    public function findByAdoptionRequestId(Id $adoptionRequestId): ?DomainConversation
+    {
+        $model = EloquentConversation::query()
+            ->where('adoption_request_id', $adoptionRequestId->toString())
+            ->first();
 
         return $model ? $this->toDomain($model) : null;
     }
@@ -59,11 +69,32 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
         );
     }
 
+    public function findByAdoptionRequestIds(array $adoptionRequestIds): array
+    {
+        if ($adoptionRequestIds === []) {
+            return [];
+        }
+
+        $idStrings = array_map(static fn (Id $id): string => $id->toString(), $adoptionRequestIds);
+
+        return array_values(
+            EloquentConversation::query()
+                ->whereIn('adoption_request_id', $idStrings)
+                ->orderByDesc('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentConversation $model): DomainConversation
     {
         return DomainConversation::reconstitute(
             id: Id::fromString($model->id),
-            matchId: Id::fromString($model->match_id),
+            matchId: $model->match_id !== null ? Id::fromString($model->match_id) : null,
+            adoptionRequestId: $model->adoption_request_id !== null
+                ? Id::fromString($model->adoption_request_id)
+                : null,
             createdAt: $model->created_at->toDateTimeImmutable(),
         );
     }

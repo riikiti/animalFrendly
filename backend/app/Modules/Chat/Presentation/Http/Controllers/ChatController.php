@@ -6,12 +6,15 @@ namespace App\Modules\Chat\Presentation\Http\Controllers;
 
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageCommand;
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageHandler;
+use App\Modules\Chat\Application\Queries\GetConversationForAdoptionRequest\GetConversationForAdoptionRequestHandler;
+use App\Modules\Chat\Application\Queries\GetConversationForAdoptionRequest\GetConversationForAdoptionRequestQuery;
 use App\Modules\Chat\Application\Queries\GetConversationForMatch\GetConversationForMatchHandler;
 use App\Modules\Chat\Application\Queries\GetConversationForMatch\GetConversationForMatchQuery;
 use App\Modules\Chat\Application\Queries\ListMessages\ListMessagesHandler;
 use App\Modules\Chat\Application\Queries\ListMessages\ListMessagesQuery;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsHandler;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsQuery;
+use App\Modules\Chat\Domain\Exceptions\AdoptionRequestNotFoundException;
 use App\Modules\Chat\Domain\Exceptions\ConversationAccessDeniedException;
 use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
 use App\Modules\Chat\Domain\Exceptions\MatchNotFoundException;
@@ -50,6 +53,25 @@ final class ChatController
         return response()->json(['data' => new ConversationResource($conversation)]);
     }
 
+    public function conversationForAdoptionRequest(
+        string $adoptionRequestId,
+        Request $request,
+        GetConversationForAdoptionRequestHandler $handler,
+    ): JsonResponse {
+        try {
+            $conversation = $handler->handle(new GetConversationForAdoptionRequestQuery(
+                actingUserId: $this->authenticatedUserId($request),
+                adoptionRequestId: $adoptionRequestId,
+            ));
+        } catch (AdoptionRequestNotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (ConversationAccessDeniedException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
+
+        return response()->json(['data' => new ConversationResource($conversation)]);
+    }
+
     public function messages(string $conversationId, Request $request, ListMessagesHandler $handler): JsonResponse
     {
         try {
@@ -57,7 +79,7 @@ final class ChatController
                 actingUserId: $this->authenticatedUserId($request),
                 conversationId: $conversationId,
             ));
-        } catch (ConversationNotFoundException|MatchNotFoundException $e) {
+        } catch (ConversationNotFoundException|MatchNotFoundException|AdoptionRequestNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (ConversationAccessDeniedException $e) {
             return response()->json(['message' => $e->getMessage()], 403);
@@ -77,7 +99,7 @@ final class ChatController
                 conversationId: $conversationId,
                 body: $request->string('body')->toString(),
             ));
-        } catch (ConversationNotFoundException|MatchNotFoundException $e) {
+        } catch (ConversationNotFoundException|MatchNotFoundException|AdoptionRequestNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (ConversationAccessDeniedException $e) {
             return response()->json(['message' => $e->getMessage()], 403);

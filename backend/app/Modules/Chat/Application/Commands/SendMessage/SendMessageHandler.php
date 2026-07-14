@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Chat\Application\Commands\SendMessage;
 
-use App\Modules\Chat\Application\Services\MatchParticipantGuard;
+use App\Modules\Chat\Application\Services\ConversationAccessGuard;
 use App\Modules\Chat\Domain\Entities\Message;
 use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
 use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
@@ -16,7 +16,7 @@ final class SendMessageHandler
     public function __construct(
         private readonly ConversationRepositoryInterface $conversations,
         private readonly MessageRepositoryInterface $messages,
-        private readonly MatchParticipantGuard $participantGuard,
+        private readonly ConversationAccessGuard $accessGuard,
     ) {}
 
     public function handle(SendMessageCommand $command): Message
@@ -29,7 +29,7 @@ final class SendMessageHandler
         }
 
         $actingUserId = Id::fromString($command->actingUserId);
-        $this->participantGuard->assertParticipant($conversation->matchId(), $actingUserId);
+        $this->accessGuard->assertParticipant($conversation, $actingUserId);
 
         $message = Message::send($this->messages->nextIdentity(), $conversationId, $actingUserId, $command->body);
         $this->messages->save($message);

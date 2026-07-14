@@ -5,6 +5,7 @@ use App\Modules\Chat\Infrastructure\Providers\ChatServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Matching\Infrastructure\Providers\MatchingServiceProvider;
 use App\Modules\Profile\Infrastructure\Providers\ProfileServiceProvider;
+use App\Modules\Shelter\Infrastructure\Providers\ShelterServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Shared\Infrastructure\Providers\SharedServiceProvider;
 
@@ -16,4 +17,5 @@ return [
     ProfileServiceProvider::class,
     MatchingServiceProvider::class,
     ChatServiceProvider::class,
+    ShelterServiceProvider::class,
 ];

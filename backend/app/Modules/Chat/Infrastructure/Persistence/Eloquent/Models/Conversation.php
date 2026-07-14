@@ -17,6 +17,7 @@ final class Conversation extends Model
     protected $fillable = [
         'id',
         'match_id',
+        'adoption_request_id',
         'created_at',
     ];
 

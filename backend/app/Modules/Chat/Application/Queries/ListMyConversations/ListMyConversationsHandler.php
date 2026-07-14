@@ -8,17 +8,25 @@ use App\Modules\Chat\Domain\Entities\Conversation;
 use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
 use App\Modules\Matching\Domain\Repositories\PetMatchRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Modules\Shelter\Domain\Repositories\AdoptionRequestRepositoryInterface;
+use App\Modules\Shelter\Domain\Repositories\ShelterAnimalRepositoryInterface;
+use App\Modules\Shelter\Domain\Repositories\ShelterRepositoryInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 /**
- * Композиция трёх модулей через явные Domain-контракты: мои питомцы (Profile) → их мэтчи
- * (Matching) → беседы этих мэтчей (Chat). См. docs/plan/03-architecture.md.
+ * Композиция через явные Domain-контракты нескольких модулей:
+ * — мои питомцы (Profile) → их мэтчи (Matching) → беседы этих мэтчей;
+ * — мои заявки на усыновление и заявки на животных из моих приютов (Shelter) → их беседы.
+ * См. docs/plan/03-architecture.md.
  */
 final class ListMyConversationsHandler
 {
     public function __construct(
         private readonly PetRepositoryInterface $pets,
         private readonly PetMatchRepositoryInterface $matches,
+        private readonly ShelterRepositoryInterface $shelters,
+        private readonly ShelterAnimalRepositoryInterface $shelterAnimals,
+        private readonly AdoptionRequestRepositoryInterface $adoptionRequests,
         private readonly ConversationRepositoryInterface $conversations,
     ) {}
 
@@ -27,17 +35,33 @@ final class ListMyConversationsHandler
      */
     public function handle(ListMyConversationsQuery $query): array
     {
-        $ownerId = Id::fromString($query->actingUserId);
+        $userId = Id::fromString($query->actingUserId);
 
         /** @var array<string, Id> $matchIds */
         $matchIds = [];
-
-        foreach ($this->pets->findByOwner($ownerId) as $pet) {
+        foreach ($this->pets->findByOwner($userId) as $pet) {
             foreach ($this->matches->findForPet($pet->id()) as $match) {
                 $matchIds[$match->id()->toString()] = $match->id();
             }
         }
 
-        return $this->conversations->findByMatchIds(array_values($matchIds));
+        /** @var array<string, Id> $adoptionRequestIds */
+        $adoptionRequestIds = [];
+        foreach ($this->adoptionRequests->findByRequester($userId) as $request) {
+            $adoptionRequestIds[$request->id()->toString()] = $request->id();
+        }
+
+        foreach ($this->shelters->findByOwnerUserId($userId) as $shelter) {
+            foreach ($this->shelterAnimals->findByShelter($shelter->id()) as $animal) {
+                foreach ($this->adoptionRequests->findByShelterAnimal($animal->id()) as $request) {
+                    $adoptionRequestIds[$request->id()->toString()] = $request->id();
+                }
+            }
+        }
+
+        return [
+            ...$this->conversations->findByMatchIds(array_values($matchIds)),
+            ...$this->conversations->findByAdoptionRequestIds(array_values($adoptionRequestIds)),
+        ];
     }
 }

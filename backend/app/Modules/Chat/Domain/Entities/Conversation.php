@@ -8,26 +8,35 @@ use App\Shared\Domain\ValueObjects\Id;
 use DateTimeImmutable;
 
 /**
- * На данный момент беседа привязана только к мэтчу. Когда появится модуль Shelter,
- * добавится второй источник — заявка на усыновление (см. docs/database/03-matching-chat.md,
- * ровно один из двух должен быть заполнен).
+ * Беседа привязана либо к мэтчу, либо к заявке на усыновление — ровно один из двух,
+ * см. docs/database/03-matching-chat.md.
  */
 final class Conversation
 {
     private function __construct(
         private readonly Id $id,
-        private readonly Id $matchId,
+        private readonly ?Id $matchId,
+        private readonly ?Id $adoptionRequestId,
         private readonly DateTimeImmutable $createdAt,
     ) {}
 
     public static function createForMatch(Id $id, Id $matchId): self
     {
-        return new self($id, $matchId, new DateTimeImmutable);
+        return new self($id, $matchId, null, new DateTimeImmutable);
     }
 
-    public static function reconstitute(Id $id, Id $matchId, DateTimeImmutable $createdAt): self
+    public static function createForAdoptionRequest(Id $id, Id $adoptionRequestId): self
     {
-        return new self($id, $matchId, $createdAt);
+        return new self($id, null, $adoptionRequestId, new DateTimeImmutable);
+    }
+
+    public static function reconstitute(
+        Id $id,
+        ?Id $matchId,
+        ?Id $adoptionRequestId,
+        DateTimeImmutable $createdAt,
+    ): self {
+        return new self($id, $matchId, $adoptionRequestId, $createdAt);
     }
 
     public function id(): Id
@@ -35,9 +44,14 @@ final class Conversation
         return $this->id;
     }
 
-    public function matchId(): Id
+    public function matchId(): ?Id
     {
         return $this->matchId;
+    }
+
+    public function adoptionRequestId(): ?Id
+    {
+        return $this->adoptionRequestId;
     }
 
     public function createdAt(): DateTimeImmutable

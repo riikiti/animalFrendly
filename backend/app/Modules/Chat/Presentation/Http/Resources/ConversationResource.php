@@ -23,7 +23,8 @@ final class ConversationResource extends JsonResource
 
         return [
             'id' => $conversation->id()->toString(),
-            'match_id' => $conversation->matchId()->toString(),
+            'match_id' => $conversation->matchId()?->toString(),
+            'adoption_request_id' => $conversation->adoptionRequestId()?->toString(),
             'created_at' => $conversation->createdAt()->format(DATE_ATOM),
         ];
     }

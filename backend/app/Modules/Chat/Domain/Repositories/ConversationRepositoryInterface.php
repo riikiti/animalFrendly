@@ -17,9 +17,17 @@ interface ConversationRepositoryInterface
 
     public function findByMatchId(Id $matchId): ?Conversation;
 
+    public function findByAdoptionRequestId(Id $adoptionRequestId): ?Conversation;
+
     /**
      * @param  list<Id>  $matchIds
      * @return list<Conversation>
      */
     public function findByMatchIds(array $matchIds): array;
+
+    /**
+     * @param  list<Id>  $adoptionRequestIds
+     * @return list<Conversation>
+     */
+    public function findByAdoptionRequestIds(array $adoptionRequestIds): array;
 }
