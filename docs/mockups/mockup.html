@@ -1,0 +1,705 @@
+<title>AnimalFriendly — макет экранов</title>
+<style>
+  :root {
+    --bg: #F4F6F0;
+    --surface: #FFFFFF;
+    --surface-soft: #ECEFE6;
+    --bezel: #1B231C;
+    --hairline: #E1E5D9;
+    --ink: #1B2A22;
+    --ink-soft: #5B6A57;
+    --ink-faint: #8B9A85;
+    --accent: #E29A34;
+    --accent-ink: #402A08;
+    --teal: #1F6F63;
+    --teal-soft: #DCEAE5;
+    --clay: #C1543F;
+    --clay-soft: #F5E1DC;
+    --danger: #C1543F;
+    --success: #1F6F63;
+    --radius-card: 16px;
+    --radius-phone: 34px;
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10150F;
+      --surface: #1A2118;
+      --surface-soft: #212A1E;
+      --bezel: #050704;
+      --hairline: #2C362A;
+      --ink: #ECEFE6;
+      --ink-soft: #A3AF9C;
+      --ink-faint: #6C786A;
+      --accent: #F0B65C;
+      --accent-ink: #2B1B03;
+      --teal: #56A897;
+      --teal-soft: #1D2E29;
+      --clay: #E28B77;
+      --clay-soft: #33241E;
+      --danger: #E28B77;
+      --success: #56A897;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10150F; --surface: #1A2118; --surface-soft: #212A1E; --bezel: #050704;
+    --hairline: #2C362A; --ink: #ECEFE6; --ink-soft: #A3AF9C; --ink-faint: #6C786A;
+    --accent: #F0B65C; --accent-ink: #2B1B03; --teal: #56A897; --teal-soft: #1D2E29;
+    --clay: #E28B77; --clay-soft: #33241E; --danger: #E28B77; --success: #56A897;
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F0; --surface: #FFFFFF; --surface-soft: #ECEFE6; --bezel: #1B231C;
+    --hairline: #E1E5D9; --ink: #1B2A22; --ink-soft: #5B6A57; --ink-faint: #8B9A85;
+    --accent: #E29A34; --accent-ink: #402A08; --teal: #1F6F63; --teal-soft: #DCEAE5;
+    --clay: #C1543F; --clay-soft: #F5E1DC; --danger: #C1543F; --success: #1F6F63;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .page {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--ink);
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+  }
+  .icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-filled { fill: currentColor; stroke: none; }
+
+  /* ---------- intro ---------- */
+  .intro { max-width: 760px; margin: 0 auto; text-align: left; }
+  .eyebrow {
+    font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--teal); margin: 0 0 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .eyebrow .icon { width: 16px; height: 16px; }
+  .intro h1 {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.1; margin: 0 0 16px; text-wrap: balance; color: var(--ink);
+  }
+  .intro p { font-size: 1.0625rem; line-height: 1.6; color: var(--ink-soft); max-width: 62ch; margin: 0 0 10px; }
+  .intro .doc-refs { font-size: 0.875rem; color: var(--ink-faint); margin-top: 18px; }
+  .doc-refs code { background: var(--surface-soft); padding: 2px 6px; border-radius: 5px; font-size: 0.8125rem; }
+
+  /* ---------- style tokens section ---------- */
+  .tokens {
+    max-width: 1080px; margin: 0 auto; width: 100%;
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px;
+    padding: 36px 40px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .tokens h2 { font-family: var(--font-display); font-weight: 500; font-size: 1.375rem; margin: 0; }
+  .tokens .sub { font-size: 0.875rem; color: var(--ink-faint); margin: -20px 0 0; }
+  .swatch-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+  .swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline); }
+  .swatch .fill { height: 56px; }
+  .swatch .label { padding: 8px 10px; font-size: 0.75rem; background: var(--surface); }
+  .swatch .label b { display: block; font-size: 0.8125rem; }
+  .swatch .label span { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+  .type-row { display: flex; flex-wrap: wrap; gap: 32px; align-items: baseline; padding-top: 6px; border-top: 1px solid var(--hairline); }
+  .type-sample .tag { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); display: block; margin-bottom: 6px; }
+  .type-sample.display { font-family: var(--font-display); font-size: 1.75rem; color: var(--ink); }
+  .type-sample.ui-h { font-family: var(--font-ui); font-weight: 700; font-size: 1.0625rem; }
+  .type-sample.ui-b { font-family: var(--font-ui); font-size: 0.9375rem; color: var(--ink-soft); }
+  .type-sample.ui-c { font-family: var(--font-ui); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+
+  .component-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 6px; border-top: 1px solid var(--hairline); }
+
+  /* ---------- buttons / chips shared across phones ---------- */
+  .btn {
+    font-family: var(--font-ui); font-size: 0.875rem; font-weight: 600; border: none; cursor: default;
+    border-radius: 999px; padding: 11px 20px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-teal { background: var(--teal); color: #F4F6F0; }
+  .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--hairline); }
+  .btn-ghost { background: var(--surface-soft); color: var(--ink); }
+  .btn-block { width: 100%; justify-content: center; }
+  .btn-sm { padding: 7px 14px; font-size: 0.75rem; }
+
+  .chip {
+    font-size: 0.75rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; display: inline-flex;
+    align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .chip-teal { background: var(--teal-soft); color: var(--teal); }
+  .chip-amber { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent-ink); }
+  .chip-clay { background: var(--clay-soft); color: var(--clay); }
+  .chip-neutral { background: var(--surface-soft); color: var(--ink-soft); }
+
+  /* ---------- flow sections ---------- */
+  .flow { max-width: 1280px; margin: 0 auto; width: 100%; }
+  .flow-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 22px; }
+  .flow-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 1.625rem; margin: 0; }
+  .flow-head p { color: var(--ink-faint); font-size: 0.9375rem; margin: 0; }
+  .phones {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 272px)); gap: 28px; justify-content: start;
+  }
+  .phone-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .phone-wrap figcaption { font-size: 0.8125rem; color: var(--ink-soft); max-width: 272px; line-height: 1.45; }
+  .phone-wrap figcaption b { color: var(--ink); }
+  .step-badge {
+    display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--teal); color: #fff; font-size: 0.6875rem; font-weight: 700;
+    margin-right: 6px; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- phone frame ---------- */
+  .phone { width: 272px; background: var(--bezel); border-radius: var(--radius-phone); padding: 9px; box-shadow: 0 20px 40px -18px rgba(0,0,0,0.35); }
+  .screen {
+    background: var(--surface); border-radius: 26px; overflow: hidden; height: 566px;
+    display: flex; flex-direction: column; position: relative; font-family: var(--font-ui);
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center; padding: 10px 18px 0;
+    font-size: 0.6875rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; flex-shrink: 0;
+  }
+  .statusbar .icons { display: flex; gap: 4px; align-items: center; color: var(--ink-soft); }
+  .navbar { display: flex; align-items: center; gap: 8px; padding: 10px 16px 6px; flex-shrink: 0; }
+  .navbar .icon { width: 18px; height: 18px; color: var(--ink-soft); }
+  .navbar h3 { font-size: 0.9375rem; font-weight: 700; margin: 0; flex: 1; }
+  .navbar .brand { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 1.0625rem; color: var(--ink); }
+  .navbar .brand .icon { width: 16px; height: 16px; color: var(--accent); }
+
+  .content { flex: 1; overflow: hidden; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .content.no-pad { padding: 0; gap: 0; }
+  .content.center { justify-content: center; }
+
+  .tabbar { display: flex; justify-content: space-around; align-items: center; padding: 9px 4px 12px; border-top: 1px solid var(--hairline); flex-shrink: 0; background: var(--surface); }
+  .tabbar .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint); font-size: 0.5625rem; }
+  .tabbar .tab .icon { width: 19px; height: 19px; }
+  .tabbar .tab.active { color: var(--teal); }
+
+  /* generic UI atoms inside phones */
+  .photo-panel {
+    border-radius: var(--radius-card); background: linear-gradient(155deg, var(--teal-soft), var(--surface-soft));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    color: var(--ink-faint); flex-shrink: 0;
+  }
+  .photo-panel .icon { width: 34px; height: 34px; color: var(--teal); opacity: 0.55; }
+  .photo-panel span { font-size: 0.6875rem; }
+
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-card); padding: 12px; }
+  .card-flat { background: var(--surface-soft); border-radius: var(--radius-card); padding: 12px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.6875rem; font-weight: 600; color: var(--ink-soft); }
+  .field .input { background: var(--surface-soft); border-radius: 12px; padding: 11px 13px; font-size: 0.875rem; color: var(--ink-faint); }
+
+  .avatar { border-radius: 50%; background: var(--teal-soft); display: flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; }
+  .avatar .icon { width: 55%; height: 55%; }
+
+  .row { display: flex; align-items: center; gap: 10px; }
+  .between { display: flex; align-items: center; justify-content: space-between; }
+  .stack { display: flex; flex-direction: column; gap: 3px; }
+
+  hr.hair { border: none; border-top: 1px solid var(--hairline); margin: 0; }
+
+  /* ---------- screen-specific ---------- */
+
+  /* onboarding role select */
+  .role-card { border: 1.5px solid var(--hairline); border-radius: var(--radius-card); padding: 13px; display: flex; align-items: center; gap: 12px; }
+  .role-card.selected { border-color: var(--teal); background: var(--teal-soft); }
+  .role-card .icon-wrap { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-soft); display: flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; }
+  .role-card .icon-wrap .icon { width: 18px; height: 18px; }
+  .role-card b { font-size: 0.875rem; display: block; }
+  .role-card span { font-size: 0.75rem; color: var(--ink-faint); }
+
+  .consent { display: flex; gap: 8px; font-size: 0.75rem; color: var(--ink-faint); line-height: 1.4; }
+  .consent .box { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid var(--teal); background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .consent .box .icon { width: 10px; height: 10px; }
+
+  .species-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* swipe card */
+  .swipe-card { position: relative; flex: 1; border-radius: 20px; overflow: hidden; background: linear-gradient(165deg, var(--teal-soft), var(--surface-soft)); display: flex; flex-direction: column; justify-content: flex-end; }
+  .swipe-card .pattern { position: absolute; inset: 0; opacity: 0.5; background-image: radial-gradient(circle at 20% 25%, color-mix(in srgb, var(--teal) 18%, transparent) 0, transparent 45%), radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--accent) 22%, transparent) 0, transparent 40%); }
+  .swipe-card .paw-mark { position: absolute; top: 16px; left: 16px; width: 26px; height: 26px; color: var(--teal); opacity: 0.4; }
+  .swipe-card .info { position: relative; padding: 16px; color: var(--ink); background: linear-gradient(to top, color-mix(in srgb, var(--surface) 92%, transparent) 60%, transparent); }
+  .swipe-card .info h3 { margin: 0 0 3px; font-size: 1.25rem; }
+  .swipe-card .info p { margin: 0 0 8px; font-size: 0.8125rem; color: var(--ink-soft); }
+  .swipe-actions { display: flex; justify-content: center; gap: 16px; padding: 14px 0 4px; flex-shrink: 0; }
+  .swipe-actions .circle-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px -8px rgba(0,0,0,0.25); }
+  .swipe-actions .circle-btn.dislike { background: var(--surface); color: var(--clay); border: 1.5px solid var(--clay-soft); }
+  .swipe-actions .circle-btn.like { background: var(--teal); color: #fff; width: 58px; height: 58px; }
+  .swipe-actions .circle-btn.super { background: var(--surface); color: var(--accent); border: 1.5px solid var(--hairline); }
+  .swipe-actions .icon { width: 22px; height: 22px; }
+
+  /* match modal */
+  .match-screen { background: linear-gradient(165deg, var(--teal), #16544A); color: #fff; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; border-radius: 22px; padding: 20px; }
+  .match-screen .avatars { display: flex; }
+  .match-screen .avatars .avatar { width: 76px; height: 76px; border: 3px solid #fff; background: rgba(255,255,255,0.15); color: #fff; }
+  .match-screen .avatars .avatar:last-child { margin-left: -20px; }
+  .match-screen h2 { font-family: var(--font-display); font-size: 1.75rem; margin: 4px 0 0; font-weight: 500; }
+  .match-screen p { font-size: 0.8125rem; opacity: 0.85; margin: 0; max-width: 24ch; }
+
+  /* chat */
+  .msg { max-width: 76%; padding: 9px 12px; border-radius: 16px; font-size: 0.8125rem; line-height: 1.4; }
+  .msg.in { background: var(--surface-soft); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.out { background: var(--teal); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 0.625rem; color: var(--ink-faint); margin-top: 2px; }
+  .chat-input { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface-soft); border-radius: 999px; }
+  .chat-input span { flex: 1; font-size: 0.8125rem; color: var(--ink-faint); }
+  .chat-input .send { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .chat-input .send .icon { width: 13px; height: 13px; }
+
+  /* listing / shelter cards */
+  .listing-row { display: flex; gap: 10px; align-items: center; }
+  .listing-row .thumb { width: 52px; height: 52px; border-radius: 12px; background: var(--teal-soft); display: flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; }
+  .listing-row .thumb .icon { width: 22px; height: 22px; }
+
+  .verified { display: inline-flex; align-items: center; gap: 4px; color: var(--teal); font-size: 0.75rem; font-weight: 600; }
+  .verified .icon { width: 13px; height: 13px; }
+
+  .price { font-size: 1.375rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .price-line { display: flex; justify-content: space-between; font-size: 0.8125rem; color: var(--ink-soft); }
+  .price-line b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* deal / escrow timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-step { display: flex; gap: 10px; }
+  .tl-step .dot-col { display: flex; flex-direction: column; align-items: center; }
+  .tl-step .dot { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tl-step .dot .icon { width: 11px; height: 11px; }
+  .tl-step .line { width: 2px; flex: 1; background: var(--hairline); min-height: 22px; }
+  .tl-step.done .dot { background: var(--teal); color: #fff; }
+  .tl-step.done .line { background: var(--teal); }
+  .tl-step.current .dot { background: var(--accent); color: var(--accent-ink); }
+  .tl-step.pending .dot { background: var(--surface-soft); color: var(--ink-faint); border: 1.5px solid var(--hairline); }
+  .tl-body { padding-bottom: 18px; flex: 1; }
+  .tl-body b { display: block; font-size: 0.8125rem; }
+  .tl-body span { font-size: 0.75rem; color: var(--ink-faint); }
+
+  .countdown-banner { background: var(--surface-soft); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--ink-soft); }
+  .countdown-banner .icon { width: 15px; height: 15px; color: var(--accent); flex-shrink: 0; }
+  .countdown-banner b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* subscription plans */
+  .plan-card { border-radius: var(--radius-card); border: 1.5px solid var(--hairline); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .plan-card.featured { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); position: relative; }
+  .plan-card .plan-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .plan-card .plan-name { font-weight: 700; font-size: 0.9375rem; }
+  .plan-card .plan-price { font-size: 0.8125rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .plan-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .plan-card li { display: flex; gap: 6px; font-size: 0.75rem; color: var(--ink-soft); align-items: flex-start; }
+  .plan-card li .icon { width: 13px; height: 13px; color: var(--teal); flex-shrink: 0; margin-top: 1px; }
+  .best-badge { position: absolute; top: -9px; right: 14px; background: var(--accent); color: var(--accent-ink); font-size: 0.625rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+
+  /* profile menu */
+  .menu-item { display: flex; align-items: center; gap: 11px; padding: 11px 2px; }
+  .menu-item .icon-wrap { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-soft); display: flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; }
+  .menu-item .icon-wrap .icon { width: 16px; height: 16px; }
+  .menu-item span { flex: 1; font-size: 0.8125rem; font-weight: 600; }
+  .menu-item .chev { width: 14px; height: 14px; color: var(--ink-faint); }
+  .stat-box { flex: 1; background: var(--surface-soft); border-radius: 12px; padding: 10px; text-align: center; }
+  .stat-box b { display: block; font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+  .stat-box span { font-size: 0.6875rem; color: var(--ink-faint); }
+
+  @media (max-width: 620px) {
+    .page { padding: 40px 16px 72px; }
+    .tokens { padding: 26px 20px; }
+    .phones { grid-template-columns: 1fr; justify-items: center; }
+  }
+</style>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="8" r="2.1" class="icon-filled"/><circle cx="12.5" cy="5.5" r="2.1" class="icon-filled"/><circle cx="17.5" cy="8" r="2.1" class="icon-filled"/><circle cx="19.5" cy="13.5" r="2" class="icon-filled"/><path d="M12 12.5c3 0 5.5 2.1 5.5 4.7 0 2-1.7 2.8-3.4 2.3-1.3-.4-2.8-.4-4.2 0-1.7.5-3.4-.3-3.4-2.3 0-2.6 2.5-4.7 5.5-4.7Z" class="icon-filled"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.8-9.3C.7 7.6 2.6 4 6.2 4c2 0 3.6 1.1 4.5 2.6C11.6 5.1 13.2 4 15.2 4c3.6 0 5.5 3.6 4 7.2-2.3 4.7-9.8 9.3-9.8 9.3Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6-4.5-4.1 6-.7Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.6 2.6L16.3 9"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12.5L20 4l-6.5 16-3-6.5-6.5-1Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20c1.4-3.8 4.4-5.8 7.5-5.8s6.1 2 7.5 5.8"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.6-2.5h4.8L16 7"/><circle cx="12" cy="13.5" r="3.4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5L12 4l8 7.5"/><path d="M6 10v9h12v-9"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2.3 5.3-5.3 2.3 2.3-5.3z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5Z"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.4c0 4.7-3 7.7-7 9-4-1.3-7-4.3-7-9V6.1l7-2.6Z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4.5 7l7.5 6 7.5-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10.5a6 6 0 0 1 12 0v3.5l1.5 3h-15l1.5-3v-3.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M13 5h-6v14h6"/><path d="M20 12H10m10 0l-3.5-3.5M20 12l-3.5 3.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <header class="intro">
+    <p class="eyebrow"><svg class="icon"><use href="#i-paw"/></svg>AnimalFriendly · Продуктовый макет</p>
+    <h1>Мобильный опыт — от знакомства до сделки</h1>
+    <p>Ниже — референсные экраны мобильной версии сайта и Android-приложения. Дизайн-токены
+      (цвет, типографика, компоненты) на этой странице — единственный источник правды: те же
+      значения переносятся в <code>frontend/src/shared/ui</code> (Vue3) и
+      <code>androidApp/ui/theme</code> (Compose). Экраны сгруппированы по продуктовым флоу и
+      соответствуют разделам <code>docs/plan/07–09</code>.</p>
+  </header>
+
+  <section class="tokens">
+    <div>
+      <h2>Цвет</h2>
+      <p class="sub">Тёплый янтарь — основной акцент (CTA, лайк-жесты), лесной тил — доверие/верификация (приюты, «мэтч»), глина — предупреждение и «дизлайк».</p>
+    </div>
+    <div class="swatch-row">
+      <div class="swatch"><div class="fill" style="background:var(--bg)"></div><div class="label"><b>Фон</b><span>#F4F6F0</span></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--surface)"></div><div class="label"><b>Поверхность</b><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink)"></div><div class="label"><b>Текст</b><span>#1B2A22</span></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent)"></div><div class="label"><b>Акцент — янтарь</b><span>#E29A34</span></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--teal)"></div><div class="label"><b>Тил — доверие</b><span>#1F6F63</span></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--clay)"></div><div class="label"><b>Глина — отказ</b><span>#C1543F</span></div></div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-sample display"><span class="tag">Display / заголовки</span>AnimalFriendly</div>
+      <div class="type-sample ui-h"><span class="tag">UI / заголовок экрана</span>Мэтчи рядом</div>
+      <div class="type-sample ui-b"><span class="tag">UI / текст</span>Порода, возраст, расстояние</div>
+      <div class="type-sample ui-c"><span class="tag">UI / лейбл</span>ОСТАЛОСЬ 4 ДНЯ</div>
+    </div>
+
+    <div class="component-row">
+      <button class="btn btn-primary">Оформить Plus</button>
+      <button class="btn btn-teal">Написать сообщение</button>
+      <button class="btn btn-outline">Пропустить</button>
+      <span class="chip chip-teal"><svg class="icon" style="width:11px;height:11px"><use href="#i-check-circle"/></svg>Приют проверен</span>
+      <span class="chip chip-amber">Супер-лайк</span>
+      <span class="chip chip-clay">Осталось 2 дня</span>
+    </div>
+  </section>
+
+  <!-- Онбординг -->
+  <section class="flow" id="onboarding">
+    <div class="flow-head">
+      <h2>Онбординг</h2>
+      <p>Регистрация → согласие на обработку ПД (152-ФЗ) → анкета первого питомца</p>
+    </div>
+    <div class="phones">
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="content center">
+            <div class="row" style="justify-content:center;gap:8px;margin-bottom:6px">
+              <svg class="icon" style="width:26px;height:26px;color:var(--accent)"><use href="#i-paw"/></svg>
+              <span style="font-family:var(--font-display);font-size:1.375rem">AnimalFriendly</span>
+            </div>
+            <p style="text-align:center;font-size:0.8125rem;color:var(--ink-soft);margin:0 0 18px">Находите друзей, дом и продолжение рода — для питомцев рядом</p>
+            <div class="stack" style="gap:10px">
+              <div class="role-card selected"><div class="icon-wrap"><svg class="icon"><use href="#i-user"/></svg></div><div><b>Я — владелец</b><span>Знакомства, приюты, покупки</span></div></div>
+              <div class="role-card"><div class="icon-wrap"><svg class="icon"><use href="#i-bag"/></svg></div><div><b>Я — заводчик</b><span>Продажа щенков/котят</span></div></div>
+              <div class="role-card"><div class="icon-wrap"><svg class="icon"><use href="#i-shield"/></svg></div><div><b>Я — приют</b><span>Пристройство животных</span></div></div>
+            </div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-primary btn-block">Продолжить</button></div>
+        </div></div>
+        <figcaption><span class="step-badge">1</span><b>Выбор роли.</b> Определяет набор функций аккаунта; заводчик/приют проходят верификацию модератором.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Регистрация</h3></div>
+          <div class="content">
+            <div class="field"><label>Номер телефона</label><div class="input">+7 (___) ___-__-__</div></div>
+            <div class="consent">
+              <div class="box"><svg class="icon"><use href="#i-check"/></svg></div>
+              <span>Даю согласие на обработку персональных данных в соответствии с 152-ФЗ и принимаю условия пользовательского соглашения</span>
+            </div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-primary btn-block">Получить код</button></div>
+        </div></div>
+        <figcaption><span class="step-badge">2</span><b>Согласие на обработку ПД</b> — обязательный чекбокс, без него регистрация недоступна.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Анкета питомца</h3></div>
+          <div class="content">
+            <div class="photo-panel" style="height:120px"><svg class="icon"><use href="#i-camera"/></svg><span>Добавить фото</span></div>
+            <div class="field"><label>Кличка</label><div class="input">Рекс</div></div>
+            <div class="field"><label>Вид</label>
+              <div class="species-chips">
+                <span class="chip chip-teal">Собака</span><span class="chip chip-neutral">Кошка</span><span class="chip chip-neutral">Птица</span><span class="chip chip-neutral">Другое</span>
+              </div>
+            </div>
+            <div class="field"><label>Цель анкеты</label>
+              <div class="species-chips">
+                <span class="chip chip-amber">Общение</span><span class="chip chip-neutral">Вязка</span>
+              </div>
+            </div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-primary btn-block">Создать анкету</button></div>
+        </div></div>
+        <figcaption><span class="step-badge">3</span><b>Первая анкета питомца.</b> Вид/порода — из справочника <code>Catalog</code>, влияют на фильтры подбора.</figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <!-- Мэтчинг -->
+  <section class="flow" id="matching">
+    <div class="flow-head">
+      <h2>Мэтчинг</h2>
+      <p>Свайп-лента → мэтч → чат</p>
+    </div>
+    <div class="phones">
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><span class="brand"><svg class="icon"><use href="#i-paw"/></svg>AnimalFriendly</span><svg class="icon"><use href="#i-bell"/></svg></div>
+          <div class="content">
+            <div class="swipe-card">
+              <div class="pattern"></div>
+              <svg class="icon paw-mark"><use href="#i-paw"/></svg>
+              <div class="info">
+                <h3>Луна, 2 года</h3>
+                <p>Кошка · Британская · 1,2 км от вас</p>
+              </div>
+            </div>
+            <div class="swipe-actions">
+              <div class="circle-btn dislike"><svg class="icon"><use href="#i-x"/></svg></div>
+              <div class="circle-btn super"><svg class="icon"><use href="#i-star"/></svg></div>
+              <div class="circle-btn like"><svg class="icon"><use href="#i-heart"/></svg></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><svg class="icon"><use href="#i-home"/></svg>Лента</div>
+            <div class="tab"><svg class="icon"><use href="#i-compass"/></svg>Приюты</div>
+            <div class="tab"><svg class="icon"><use href="#i-bag"/></svg>Маркет</div>
+            <div class="tab"><svg class="icon"><use href="#i-chat"/></svg>Чаты</div>
+            <div class="tab"><svg class="icon"><use href="#i-user"/></svg>Профиль</div>
+          </div>
+        </div></div>
+        <figcaption><b>Свайп-лента.</b> Лайк/дизлайк/супер-лайк; дневной лимит лайков зависит от тарифа подписки.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar" style="color:#fff"><span>9:41</span><span class="icons" style="color:rgba(255,255,255,.7)">••• LTE 100%</span></div>
+          <div class="content" style="padding:12px">
+            <div class="match-screen">
+              <div class="avatars">
+                <div class="avatar"><svg class="icon"><use href="#i-paw"/></svg></div>
+                <div class="avatar"><svg class="icon"><use href="#i-paw"/></svg></div>
+              </div>
+              <h2>Это мэтч!</h2>
+              <p>Луна и Барс понравились друг другу. Начните переписку, пока не остыло.</p>
+              <button class="btn btn-primary">Написать сообщение</button>
+              <button class="btn" style="background:transparent;color:#fff;font-weight:600">Смотреть дальше</button>
+            </div>
+          </div>
+        </div></div>
+        <figcaption><b>Экран мэтча.</b> Открывается поверх ленты, создаёт запись <code>matches</code> и чат.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><div class="avatar" style="width:28px;height:28px"><svg class="icon"><use href="#i-paw"/></svg></div><h3 style="margin-left:2px">Барс</h3></div>
+          <div class="content" style="justify-content:flex-end">
+            <div class="msg in">Привет! Барс тоже дружелюбный, гуляем в парке у дома 🐾</div>
+            <div class="msg out">Супер, а во сколько обычно?</div>
+            <div class="msg in">Часов в 7 вечера, можем познакомить их на площадке</div>
+            <div class="chat-input"><span>Сообщение…</span><div class="send"><svg class="icon"><use href="#i-send"/></svg></div></div>
+          </div>
+        </div></div>
+        <figcaption><b>Чат.</b> Реалтайм через Reverb/Echo; тот же экран используется для переписки по заявке в приют.</figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <!-- Приюты -->
+  <section class="flow" id="shelter">
+    <div class="flow-head">
+      <h2>Приюты и усыновление</h2>
+      <p>Карточки животных на пристройство → заявка → рассмотрение</p>
+    </div>
+    <div class="phones">
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Приют «Добрые лапы»</h3></div>
+          <div class="content">
+            <span class="verified"><svg class="icon"><use href="#i-check-circle"/></svg>Приют проверен</span>
+            <div class="card">
+              <div class="listing-row"><div class="thumb"><svg class="icon"><use href="#i-paw"/></svg></div>
+                <div class="stack" style="flex:1"><b style="font-size:0.875rem">Рыжик, 3 года</b><span style="font-size:0.75rem;color:var(--ink-faint)">Кот · привит · стерилизован</span></div>
+                <span class="chip chip-amber">Ищет дом</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="listing-row"><div class="thumb"><svg class="icon"><use href="#i-paw"/></svg></div>
+                <div class="stack" style="flex:1"><b style="font-size:0.875rem">Дымка, 1 год</b><span style="font-size:0.75rem;color:var(--ink-faint)">Собака · метис · привита</span></div>
+                <span class="chip chip-teal">Резерв</span>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <figcaption><b>Карточки приюта.</b> Статус <code>available/reserved/adopted</code> синхронизирован с заявками.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Заявка на усыновление</h3></div>
+          <div class="content">
+            <div class="card-flat"><div class="listing-row"><div class="thumb"><svg class="icon"><use href="#i-paw"/></svg></div><b style="font-size:0.875rem">Рыжик · Приют «Добрые лапы»</b></div></div>
+            <div class="field"><label>Сообщение приюту</label><div class="input" style="height:64px;align-items:flex-start">Живу в своём доме, есть опыт содержания кошек…</div></div>
+            <div class="timeline" style="margin-top:4px">
+              <div class="tl-step done"><div class="dot-col"><div class="dot"><svg class="icon"><use href="#i-check"/></svg></div><div class="line"></div></div><div class="tl-body"><b>Заявка подана</b><span>Сегодня, 14:02</span></div></div>
+              <div class="tl-step current"><div class="dot-col"><div class="dot"><svg class="icon"><use href="#i-clock"/></svg></div><div class="line"></div></div><div class="tl-body"><b>На рассмотрении</b><span>Приют отвечает в течение 3 дней</span></div></div>
+              <div class="tl-step pending"><div class="dot-col"><div class="dot"></div></div><div class="tl-body"><b>Решение</b><span>Одобрено / отклонено</span></div></div>
+            </div>
+          </div>
+        </div></div>
+        <figcaption><b>Статус заявки.</b> Переписка с приютом — в том же модуле <code>Chat</code>, что и мэтчи.</figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <!-- Маркетплейс -->
+  <section class="flow" id="marketplace">
+    <div class="flow-head">
+      <h2>Маркетплейс и сделка</h2>
+      <p>Листинг → оплата через ЮKassa → эскроу до подтверждения обеими сторонами (или 7 дней)</p>
+    </div>
+    <div class="phones">
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Щенок лабрадора</h3></div>
+          <div class="content">
+            <div class="photo-panel" style="height:150px"><svg class="icon"><use href="#i-paw"/></svg><span>Фото питомца</span></div>
+            <div class="between"><span class="price">65 000 ₽</span><span class="chip chip-teal"><svg class="icon" style="width:11px;height:11px"><use href="#i-check-circle"/></svg>Заводчик проверен</span></div>
+            <p style="font-size:0.8125rem;color:var(--ink-soft);margin:0">Лабрадор, кобель, 2 месяца, документы РКФ, привит по возрасту.</p>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-primary btn-block">Купить с защитой сделки</button></div>
+        </div></div>
+        <figcaption><b>Листинг.</b> Продавать может только верифицированный заводчик (см. правило в <code>rules/04</code>).</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Оформление сделки</h3></div>
+          <div class="content">
+            <div class="card">
+              <div class="price-line"><span>Щенок лабрадора</span><b>65 000 ₽</b></div>
+              <hr class="hair" style="margin:8px 0">
+              <div class="price-line"><span>Комиссия сервиса (5%)</span><b>удерживается платформой</b></div>
+              <div class="price-line"><span>Продавец получит</span><b>61 750 ₽</b></div>
+            </div>
+            <div class="card-flat" style="font-size:0.75rem;color:var(--ink-soft)">Деньги замораживаются на счету AnimalFriendly до подтверждения сделки обеими сторонами или автоматически — через 7 дней.</div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0;gap:8px">
+            <button class="btn btn-primary btn-block">Оплатить через ЮKassa</button>
+            <div class="row" style="justify-content:center;gap:6px;color:var(--ink-faint);font-size:0.6875rem"><svg class="icon" style="width:12px;height:12px"><use href="#i-shield"/></svg>Безопасная сделка с эскроу</div>
+          </div>
+        </div></div>
+        <figcaption><b>Оплата.</b> Комиссия 5% фиксируется на этом шаге и не меняется до завершения сделки.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-chevron-left"/></svg><h3>Статус сделки</h3></div>
+          <div class="content">
+            <div class="timeline">
+              <div class="tl-step done"><div class="dot-col"><div class="dot"><svg class="icon"><use href="#i-check"/></svg></div><div class="line"></div></div><div class="tl-body"><b>Оплачено</b><span>Деньги удержаны на счету сервиса</span></div></div>
+              <div class="tl-step done"><div class="dot-col"><div class="dot"><svg class="icon"><use href="#i-check"/></svg></div><div class="line"></div></div><div class="tl-body"><b>Покупатель подтвердил</b><span>Сегодня, 10:14</span></div></div>
+              <div class="tl-step current"><div class="dot-col"><div class="dot"><svg class="icon"><use href="#i-clock"/></svg></div><div class="line"></div></div><div class="tl-body"><b>Ожидает продавца</b><span>Подтверждение получения оплаты</span></div></div>
+              <div class="tl-step pending"><div class="dot-col"><div class="dot"></div></div><div class="tl-body"><b>Сделка завершена</b><span>Выплата продавцу за вычетом 5%</span></div></div>
+            </div>
+            <div class="countdown-banner"><svg class="icon"><use href="#i-clock"/></svg><span>Если продавец не подтвердит — сделка завершится автоматически через <b>4 дня</b></span></div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-outline btn-block">Открыть спор</button></div>
+        </div></div>
+        <figcaption><b>Эскроу-статус.</b> Ровно отражает state machine из <code>plan/08-flow-marketplace-escrow.md</code>.</figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <!-- Подписка -->
+  <section class="flow" id="subscription">
+    <div class="flow-head">
+      <h2>Подписка</h2>
+      <p>Paywall с тремя тарифами — по образцу Tinder Gold/Platinum и Twinby</p>
+    </div>
+    <div class="phones">
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><svg class="icon"><use href="#i-x"/></svg><h3 style="text-align:center;flex:1;margin-right:18px">Подписка</h3></div>
+          <div class="content" style="gap:10px">
+            <div class="plan-card">
+              <div class="plan-top"><span class="plan-name">Free</span><span class="plan-price">0 ₽</span></div>
+              <ul><li><svg class="icon"><use href="#i-check"/></svg>20 лайков в сутки</li><li><svg class="icon"><use href="#i-check"/></svg>1 супер-лайк в неделю</li></ul>
+            </div>
+            <div class="plan-card featured">
+              <span class="best-badge">Популярный</span>
+              <div class="plan-top"><span class="plan-name">Plus</span><span class="plan-price">399 ₽/мес</span></div>
+              <ul><li><svg class="icon"><use href="#i-check"/></svg>Безлимитные лайки</li><li><svg class="icon"><use href="#i-check"/></svg>5 супер-лайков в неделю</li><li><svg class="icon"><use href="#i-check"/></svg>1 буст анкеты в месяц</li></ul>
+            </div>
+            <div class="plan-card">
+              <div class="plan-top"><span class="plan-name">Premium</span><span class="plan-price">799 ₽/мес</span></div>
+              <ul><li><svg class="icon"><use href="#i-check"/></svg>Кто меня лайкнул</li><li><svg class="icon"><use href="#i-check"/></svg>Комиссия маркетплейса 4%</li></ul>
+            </div>
+          </div>
+          <div class="content" style="flex:0;padding-top:0"><button class="btn btn-primary btn-block">Оформить Plus</button></div>
+        </div></div>
+        <figcaption><b>Paywall.</b> Единая проверка доступа — <code>SubscriptionFeatureGate</code>, см. <code>plan/09-flow-subscriptions.md</code>.</figcaption>
+      </figure>
+
+      <figure class="phone-wrap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span class="icons">••• LTE 100%</span></div>
+          <div class="navbar"><h3>Профиль</h3><svg class="icon"><use href="#i-settings"/></svg></div>
+          <div class="content">
+            <div class="row">
+              <div class="avatar" style="width:52px;height:52px"><svg class="icon"><use href="#i-user"/></svg></div>
+              <div class="stack"><b style="font-size:0.9375rem">Иван Петров</b><span class="chip chip-amber" style="margin-top:2px">Plus-подписка</span></div>
+            </div>
+            <div class="row">
+              <div class="stat-box"><b>3</b><span>питомца</span></div>
+              <div class="stat-box"><b>12</b><span>мэтча</span></div>
+              <div class="stat-box"><b>1</b><span>сделка</span></div>
+            </div>
+            <hr class="hair">
+            <div class="menu-item"><div class="icon-wrap"><svg class="icon"><use href="#i-paw"/></svg></div><span>Мои питомцы</span><svg class="icon chev"><use href="#i-chevron-right"/></svg></div>
+            <div class="menu-item"><div class="icon-wrap"><svg class="icon"><use href="#i-bag"/></svg></div><span>Мои сделки</span><svg class="icon chev"><use href="#i-chevron-right"/></svg></div>
+            <div class="menu-item"><div class="icon-wrap"><svg class="icon"><use href="#i-shield"/></svg></div><span>Подписка</span><svg class="icon chev"><use href="#i-chevron-right"/></svg></div>
+            <div class="menu-item"><div class="icon-wrap"><svg class="icon"><use href="#i-log-out"/></svg></div><span>Выйти</span></div>
+          </div>
+          <div class="tabbar">
+            <div class="tab"><svg class="icon"><use href="#i-home"/></svg>Лента</div>
+            <div class="tab"><svg class="icon"><use href="#i-compass"/></svg>Приюты</div>
+            <div class="tab"><svg class="icon"><use href="#i-bag"/></svg>Маркет</div>
+            <div class="tab"><svg class="icon"><use href="#i-chat"/></svg>Чаты</div>
+            <div class="tab active"><svg class="icon"><use href="#i-user"/></svg>Профиль</div>
+          </div>
+        </div></div>
+        <figcaption><b>Профиль.</b> Тот же экран (флоу и тексты) обязателен и в Android-приложении.</figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+</div>

@@ -4,7 +4,7 @@
 
 | Слой | Технология | Примечание |
 |---|---|---|
-| Backend | Laravel 11, PHP 8.3 | DDD, модульная структура — [`04-backend-structure.md`](./04-backend-structure.md) |
+| Backend | Laravel 13, PHP 8.5 | DDD, модульная структура — [`04-backend-structure.md`](./04-backend-structure.md); версии — актуальные стабильные на момент старта разработки, поднимать при выходе новых мажорных релизов только осознанно |
 | БД | PostgreSQL 16 | JSONB для гибких атрибутов пород/тарифов |
 | Кэш/очереди | Redis + Laravel Horizon | вебхуки, уведомления, авто-подтверждение сделок |
 | Реалтайм | Laravel Reverb (WebSocket) + Echo | чат, live-обновления мэтчей |

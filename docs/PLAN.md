@@ -28,9 +28,11 @@
 
 - [`plan/10-integrations.md`](./plan/10-integrations.md) — внешние сервисы и переменные `.env`
 - [`plan/11-non-functional.md`](./plan/11-non-functional.md) — безопасность, 152-ФЗ, масштабируемость
+- [`plan/12-infrastructure.md`](./plan/12-infrastructure.md) — контейнеризация, приоритет Kubernetes, единый бэкенд/БД для сайта и мобилки
 
 ## Связанные документы
 
 - [`DATABASE.md`](./DATABASE.md) — структура БД (по модулям, отдельные файлы)
 - [`RULES.md`](./RULES.md) — правила написания кода (по слоям, отдельные файлы)
+- [`DEPLOY.md`](./DEPLOY.md) — деплой: контейнеры, Kubernetes, гайд по разворачиванию на голом VPS
 - [`mockups/mockup.html`](./mockups/mockup.html) — макет ключевых экранов (также опубликован как Artifact)

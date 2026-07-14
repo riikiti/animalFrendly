@@ -11,3 +11,4 @@
 - [`rules/04-payments-escrow.md`](./rules/04-payments-escrow.md) — ЮKassa, идемпотентность, эскроу, авто-подтверждение
 - [`rules/05-testing.md`](./rules/05-testing.md) — пирамида тестов по всем трём платформам
 - [`rules/06-definition-of-done.md`](./rules/06-definition-of-done.md) — чек-лист готовности задачи
+- [`rules/07-infrastructure.md`](./rules/07-infrastructure.md) — единый бэкенд/БД, образы, секреты, миграции, K8s-приоритет, CI/CD после основного кода
