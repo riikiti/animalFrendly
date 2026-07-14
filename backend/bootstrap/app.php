@@ -1,6 +1,7 @@
 <?php
 
 use App\Shared\Infrastructure\Http\Middleware\AssignRequestId;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        // Эскроу-сделки старше 7 дней без спора — авто-подтверждение, см.
+        // docs/rules/04-payments-escrow.md.
+        $schedule->command('deals:auto-confirm')->hourly();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AssignRequestId::class);
 
