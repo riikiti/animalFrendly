@@ -1,6 +1,7 @@
 export interface Conversation {
   id: string
-  match_id: string
+  match_id: string | null
+  adoption_request_id: string | null
   created_at: string
 }
 

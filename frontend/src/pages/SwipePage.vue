@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import BottomNav from '@/widgets/BottomNav.vue'
 import MatchModal from '@/widgets/MatchModal.vue'
 import PetCard from '@/widgets/PetCard.vue'
 import { useCatalogStore } from '@/entities/catalog/model'
@@ -71,7 +72,7 @@ function dismissMatch(): void {
 
 async function goToChat(): Promise<void> {
   if (!currentMatch.value) return
-  await router.push({ name: 'chat', params: { matchId: currentMatch.value.id } })
+  await router.push({ name: 'chat', params: { kind: 'match', id: currentMatch.value.id } })
 }
 
 async function onLogout(): Promise<void> {
@@ -81,7 +82,7 @@ async function onLogout(): Promise<void> {
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 py-6">
+  <div class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6">
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">AnimalFriendly</span>
       <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
@@ -119,5 +120,9 @@ async function onLogout(): Promise<void> {
     </template>
 
     <MatchModal :open="currentMatch !== null" @continue="dismissMatch" @chat="goToChat" />
+
+    <div class="-mx-4 mt-auto">
+      <BottomNav />
+    </div>
   </div>
 </template>

@@ -15,8 +15,13 @@ const draft = ref('')
 let pollTimer: ReturnType<typeof setInterval> | undefined
 
 onMounted(async () => {
-  const matchId = String(route.params.matchId)
-  const conversation = await conversationApi.getConversationForMatch(matchId)
+  const kind = String(route.params.kind)
+  const id = String(route.params.id)
+
+  const conversation =
+    kind === 'adoption'
+      ? await conversationApi.getConversationForAdoptionRequest(id)
+      : await conversationApi.getConversationForMatch(id)
   conversationId.value = conversation.data.id
 
   await refreshMessages()

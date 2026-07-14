@@ -28,7 +28,20 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/chat/:matchId',
+      path: '/shelters',
+      name: 'shelter-animals',
+      component: () => import('@/pages/shelter/ShelterAnimalsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/adoption-requests',
+      name: 'my-adoption-requests',
+      component: () => import('@/pages/shelter/MyAdoptionRequestsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      // kind: 'match' | 'adoption' — см. src/pages/chat/ChatPage.vue.
+      path: '/chat/:kind/:id',
       name: 'chat',
       component: () => import('@/pages/chat/ChatPage.vue'),
       meta: { requiresAuth: true },

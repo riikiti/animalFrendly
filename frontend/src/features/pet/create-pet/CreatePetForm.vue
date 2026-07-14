@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
@@ -31,12 +31,23 @@ const isSubmitting = ref(false)
 const errors = ref<Record<string, string[]>>({})
 const generalError = ref('')
 
-onMounted(async () => {
-  await catalogStore.ensureSpeciesLoaded()
+// Пользователь может уйти со страницы, пока справочник видов/пород ещё грузится (см. тот
+// же приём в SwipePage.vue) — не считаем это необработанной ошибкой.
+let isMounted = true
+onUnmounted(() => {
+  isMounted = false
+})
 
-  const first = catalogStore.species[0]
-  if (first) {
-    await selectSpecies(first.slug, first.id)
+onMounted(async () => {
+  try {
+    await catalogStore.ensureSpeciesLoaded()
+
+    const first = catalogStore.species[0]
+    if (first) {
+      await selectSpecies(first.slug, first.id)
+    }
+  } catch (error) {
+    if (isMounted) throw error
   }
 })
 

@@ -9,6 +9,12 @@ export function getConversationForMatch(matchId: string): Promise<{ data: Conver
   return apiRequest(`/api/v1/matches/${matchId}/conversation`)
 }
 
+export function getConversationForAdoptionRequest(
+  adoptionRequestId: string,
+): Promise<{ data: Conversation }> {
+  return apiRequest(`/api/v1/adoption-requests/${adoptionRequestId}/conversation`)
+}
+
 export function listMessages(conversationId: string): Promise<{ data: Message[] }> {
   return apiRequest(`/api/v1/conversations/${conversationId}/messages`)
 }
