@@ -7,6 +7,7 @@ const tabs = [
   { name: 'home', label: 'Лента' },
   { name: 'shelter-animals', label: 'Приюты' },
   { name: 'my-adoption-requests', label: 'Заявки' },
+  { name: 'marketplace', label: 'Маркет' },
 ] as const
 </script>
 

@@ -46,6 +46,31 @@ const router = createRouter({
       component: () => import('@/pages/chat/ChatPage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/marketplace',
+      name: 'marketplace',
+      component: () => import('@/pages/marketplace/MarketplacePage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/marketplace/my-listings',
+      name: 'my-listings',
+      component: () => import('@/pages/marketplace/MyListingsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/orders',
+      name: 'my-orders',
+      component: () => import('@/pages/marketplace/MyOrdersPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      // Совпадает с return_url платежа ЮKassa — см. src/pages/marketplace/OrderDetailPage.vue.
+      path: '/orders/:id',
+      name: 'order-detail',
+      component: () => import('@/pages/marketplace/OrderDetailPage.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
