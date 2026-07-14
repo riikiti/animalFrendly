@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Chat\Application\Commands\SendMessage;
+
+use App\Modules\Chat\Application\Services\MatchParticipantGuard;
+use App\Modules\Chat\Domain\Entities\Message;
+use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
+use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
+use App\Modules\Chat\Domain\Repositories\MessageRepositoryInterface;
+use App\Shared\Domain\ValueObjects\Id;
+
+final class SendMessageHandler
+{
+    public function __construct(
+        private readonly ConversationRepositoryInterface $conversations,
+        private readonly MessageRepositoryInterface $messages,
+        private readonly MatchParticipantGuard $participantGuard,
+    ) {}
+
+    public function handle(SendMessageCommand $command): Message
+    {
+        $conversationId = Id::fromString($command->conversationId);
+        $conversation = $this->conversations->findById($conversationId);
+
+        if ($conversation === null) {
+            throw ConversationNotFoundException::forId($command->conversationId);
+        }
+
+        $actingUserId = Id::fromString($command->actingUserId);
+        $this->participantGuard->assertParticipant($conversation->matchId(), $actingUserId);
+
+        $message = Message::send($this->messages->nextIdentity(), $conversationId, $actingUserId, $command->body);
+        $this->messages->save($message);
+
+        return $message;
+    }
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Catalog\Infrastructure\Providers\CatalogServiceProvider;
+use App\Modules\Chat\Infrastructure\Providers\ChatServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Matching\Infrastructure\Providers\MatchingServiceProvider;
 use App\Modules\Profile\Infrastructure\Providers\ProfileServiceProvider;
@@ -14,4 +15,5 @@ return [
     CatalogServiceProvider::class,
     ProfileServiceProvider::class,
     MatchingServiceProvider::class,
+    ChatServiceProvider::class,
 ];

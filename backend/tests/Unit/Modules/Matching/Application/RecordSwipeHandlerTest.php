@@ -13,6 +13,7 @@ use App\Modules\Profile\Domain\Entities\Pet;
 use App\Modules\Profile\Domain\Enums\PetPurpose;
 use App\Modules\Profile\Domain\Enums\PetSex;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 function makeTestPet(Id $id, Id $ownerId): Pet
@@ -50,13 +51,16 @@ it('records a like without creating a match when the target has not liked back',
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
     $matches->shouldNotReceive('save');
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldNotReceive('dispatch');
+
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
     $result = $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 
     expect($result->isMatch())->toBeFalse();
 });
 
-it('creates a match when the target had already liked the swiper', function (): void {
+it('creates a match and dispatches PetsMatched when the target had already liked the swiper', function (): void {
     $actingUserId = Id::generate();
     $swiperPetId = Id::generate();
     $targetPetId = Id::generate();
@@ -77,7 +81,10 @@ it('creates a match when the target had already liked the swiper', function (): 
     $matches->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
     $matches->shouldReceive('save')->once();
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
     $result = $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 
     expect($result->isMatch())->toBeTrue();
@@ -93,8 +100,9 @@ it('rejects swiping with a pet the actor does not own', function (): void {
 
     $swipes = Mockery::mock(SwipeRepositoryInterface::class);
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
     $handler->handle(new RecordSwipeCommand(Id::generate()->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(PetNotOwnedByActorException::class);
 
@@ -111,8 +119,9 @@ it('rejects swiping own pet', function (): void {
 
     $swipes = Mockery::mock(SwipeRepositoryInterface::class);
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
     $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(CannotSwipeOwnPetException::class);
 
@@ -132,7 +141,8 @@ it('rejects swiping the same target twice', function (): void {
     $swipes->shouldNotReceive('record');
 
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
     $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(PetAlreadySwipedException::class);
