@@ -23,6 +23,13 @@ final class EloquentBreedRepository implements BreedRepositoryInterface
         );
     }
 
+    public function findById(int $id): ?DomainBreed
+    {
+        $model = EloquentBreed::query()->where('is_active', true)->find($id);
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
     private function toDomain(EloquentBreed $model): DomainBreed
     {
         return new DomainBreed(

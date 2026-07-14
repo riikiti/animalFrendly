@@ -29,6 +29,13 @@ final class EloquentSpeciesRepository implements SpeciesRepositoryInterface
         return $model ? $this->toDomain($model) : null;
     }
 
+    public function findById(int $id): ?DomainSpecies
+    {
+        $model = EloquentSpecies::query()->where('is_active', true)->find($id);
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
     private function toDomain(EloquentSpecies $model): DomainSpecies
     {
         return new DomainSpecies(

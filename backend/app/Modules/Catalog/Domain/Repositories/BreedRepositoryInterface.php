@@ -12,4 +12,6 @@ interface BreedRepositoryInterface
      * @return list<Breed>
      */
     public function activeBySpeciesId(int $speciesId): array;
+
+    public function findById(int $id): ?Breed;
 }

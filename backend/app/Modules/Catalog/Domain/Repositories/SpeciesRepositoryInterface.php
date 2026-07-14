@@ -14,4 +14,6 @@ interface SpeciesRepositoryInterface
     public function allActive(): array;
 
     public function findBySlug(string $slug): ?Species;
+
+    public function findById(int $id): ?Species;
 }
