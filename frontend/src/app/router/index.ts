@@ -18,7 +18,19 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('@/pages/HomePage.vue'),
+      component: () => import('@/pages/SwipePage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/pets/new',
+      name: 'create-pet',
+      component: () => import('@/pages/pets/CreatePetPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/chat/:matchId',
+      name: 'chat',
+      component: () => import('@/pages/chat/ChatPage.vue'),
       meta: { requiresAuth: true },
     },
   ],

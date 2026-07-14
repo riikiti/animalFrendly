@@ -4,8 +4,8 @@ function randomPhone(): string {
   return `+7926${Math.floor(1000000 + Math.random() * 8999999)}`
 }
 
-test.describe('онбординг: регистрация и вход', () => {
-  test('пользователь регистрируется, попадает на главную и может выйти и войти снова', async ({
+test.describe('онбординг: регистрация, анкета питомца, вход', () => {
+  test('пользователь регистрируется, заводит анкету питомца, попадает в ленту и может выйти и войти снова', async ({
     page,
   }) => {
     const phone = randomPhone()
@@ -21,8 +21,14 @@ test.describe('онбординг: регистрация и вход', () => {
 
     await page.getByRole('button', { name: 'Продолжить' }).click()
 
+    await page.waitForURL('/pets/new')
+    await expect(page.getByText('Анкета питомца')).toBeVisible()
+
+    await page.getByPlaceholder('Рекс').fill('Барс')
+    await page.getByRole('button', { name: 'Создать анкету' }).click()
+
     await page.waitForURL('/')
-    await expect(page.getByText(phone)).toBeVisible()
+    await expect(page.getByText('AnimalFriendly')).toBeVisible()
 
     await page.getByRole('button', { name: 'Выйти' }).click()
     await page.waitForURL('/login')
@@ -32,6 +38,6 @@ test.describe('онбординг: регистрация и вход', () => {
     await page.getByRole('button', { name: 'Войти' }).click()
 
     await page.waitForURL('/')
-    await expect(page.getByText(phone)).toBeVisible()
+    await expect(page.getByText('AnimalFriendly')).toBeVisible()
   })
 })
