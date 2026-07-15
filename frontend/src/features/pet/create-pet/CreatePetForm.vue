@@ -6,6 +6,7 @@ import BaseInput from '@/shared/ui/components/BaseInput.vue'
 import * as catalogApi from '@/entities/catalog/api'
 import { useCatalogStore } from '@/entities/catalog/model'
 import type { Breed } from '@/entities/catalog/types'
+import * as petApi from '@/entities/pet/api'
 import { usePetStore } from '@/entities/pet/model'
 import { ApiError } from '@/shared/api/http'
 
@@ -30,6 +31,13 @@ const breeds = ref<Breed[]>([])
 const isSubmitting = ref(false)
 const errors = ref<Record<string, string[]>>({})
 const generalError = ref('')
+
+const step = ref<'form' | 'photo'>('form')
+const createdPetId = ref<string | null>(null)
+const photoPreviewUrl = ref<string | null>(null)
+const selectedPhoto = ref<File | null>(null)
+const isUploadingPhoto = ref(false)
+const photoError = ref('')
 
 // Пользователь может уйти со страницы, пока справочник видов/пород ещё грузится (см. тот
 // же приём в SwipePage.vue) — не считаем это необработанной ошибкой.
@@ -67,14 +75,15 @@ async function onSubmit(): Promise<void> {
   isSubmitting.value = true
 
   try {
-    await petStore.createPet({
+    const pet = await petStore.createPet({
       species_id: form.speciesId,
       breed_id: form.breedId,
       name: form.name,
       sex: form.sex,
       purpose: form.purpose,
     })
-    await router.push({ name: 'home' })
+    createdPetId.value = pet.id
+    step.value = 'photo'
   } catch (error) {
     if (error instanceof ApiError) {
       errors.value = error.errors ?? {}
@@ -86,16 +95,39 @@ async function onSubmit(): Promise<void> {
     isSubmitting.value = false
   }
 }
+
+function onPhotoSelected(event: Event): void {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  selectedPhoto.value = file
+  photoPreviewUrl.value = URL.createObjectURL(file)
+}
+
+async function uploadPhoto(): Promise<void> {
+  if (createdPetId.value === null || selectedPhoto.value === null) return
+
+  photoError.value = ''
+  isUploadingPhoto.value = true
+
+  try {
+    await petApi.uploadPetPhoto(createdPetId.value, selectedPhoto.value)
+    await router.push({ name: 'home' })
+  } catch (error) {
+    photoError.value = error instanceof ApiError ? error.message : 'Не удалось загрузить фото.'
+  } finally {
+    isUploadingPhoto.value = false
+  }
+}
+
+async function skipPhoto(): Promise<void> {
+  await router.push({ name: 'home' })
+}
 </script>
 
 <template>
-  <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
-    <div
-      class="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl bg-teal-soft text-teal"
-    >
-      <span class="text-xs">Фото добавим позже</span>
-    </div>
-
+  <form v-if="step === 'form'" class="flex flex-col gap-4" @submit.prevent="onSubmit">
     <BaseInput v-model="form.name" label="Кличка" placeholder="Рекс" :error="errors.name?.[0]" />
 
     <div class="flex flex-col gap-2">
@@ -172,4 +204,28 @@ async function onSubmit(): Promise<void> {
       {{ isSubmitting ? 'Создаём анкету…' : 'Создать анкету' }}
     </BaseButton>
   </form>
+
+  <div v-else class="flex flex-col gap-4">
+    <label
+      class="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl bg-teal-soft text-teal"
+    >
+      <img
+        v-if="photoPreviewUrl"
+        :src="photoPreviewUrl"
+        class="h-full w-full object-cover"
+        alt=""
+      />
+      <span v-else class="text-xs">Добавить фото питомца</span>
+      <input type="file" accept="image/*" class="hidden" @change="onPhotoSelected" />
+    </label>
+
+    <p v-if="photoError" class="text-xs text-danger">{{ photoError }}</p>
+
+    <BaseButton :disabled="selectedPhoto === null || isUploadingPhoto" @click="uploadPhoto">
+      {{ isUploadingPhoto ? 'Загружаем…' : 'Загрузить' }}
+    </BaseButton>
+    <button type="button" class="text-sm font-semibold text-ink-faint" @click="skipPhoto">
+      Пропустить
+    </button>
+  </div>
 </template>

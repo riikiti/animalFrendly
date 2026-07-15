@@ -14,4 +14,5 @@ export interface Pet {
   description: string | null
   is_vaccinated: boolean
   status: PetStatus
+  photo_url: string | null
 }

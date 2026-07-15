@@ -7,6 +7,7 @@ import PetCard from '@/widgets/PetCard.vue'
 import { useCatalogStore } from '@/entities/catalog/model'
 import * as matchApi from '@/entities/match/api'
 import type { PetMatch } from '@/entities/match/types'
+import { useNotificationStore } from '@/entities/notification/model'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
 import { useUserStore } from '@/entities/user/model'
@@ -18,6 +19,7 @@ const router = useRouter()
 const petStore = usePetStore()
 const catalogStore = useCatalogStore()
 const userStore = useUserStore()
+const notificationStore = useNotificationStore()
 
 const myPet = ref<Pet | null>(null)
 const candidates = ref<Pet[]>([])
@@ -31,8 +33,11 @@ const isBoosting = ref(false)
 // тогда токен уже очищен, и последующие запросы закономерно получат 401. Не считаем это
 // необработанной ошибкой: страница уже покидается, реагировать не на что.
 let isMounted = true
+let unreadPollTimer: ReturnType<typeof setInterval> | null = null
+
 onUnmounted(() => {
   isMounted = false
+  if (unreadPollTimer) clearInterval(unreadPollTimer)
 })
 
 onMounted(async () => {
@@ -48,6 +53,9 @@ onMounted(async () => {
     myPet.value = petStore.myPets[0]
     await loadCandidates()
     isLoading.value = false
+
+    await notificationStore.refreshUnreadCount()
+    unreadPollTimer = setInterval(() => notificationStore.refreshUnreadCount(), 30000)
   } catch (error) {
     if (isMounted) throw error
   }
@@ -133,6 +141,18 @@ async function onLogout(): Promise<void> {
           @click="router.push({ name: 'subscription-status' })"
         >
           Тариф
+        </button>
+        <button
+          class="relative text-lg text-ink-soft"
+          @click="router.push({ name: 'notifications' })"
+        >
+          🔔
+          <span
+            v-if="notificationStore.unreadCount > 0"
+            class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-accent-ink"
+          >
+            {{ notificationStore.unreadCount > 9 ? '9+' : notificationStore.unreadCount }}
+          </span>
         </button>
         <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
       </div>

@@ -14,6 +14,12 @@ const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id
     class="relative min-h-[420px] flex-1 overflow-hidden rounded-[20px]"
     style="background: linear-gradient(165deg, var(--teal-soft), var(--surface-soft))"
   >
+    <img
+      v-if="pet.photo_url"
+      :src="pet.photo_url"
+      class="absolute inset-0 h-full w-full object-cover"
+      alt=""
+    />
     <div class="absolute inset-x-0 bottom-0">
       <div
         class="p-4"

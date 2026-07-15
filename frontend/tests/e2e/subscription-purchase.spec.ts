@@ -28,6 +28,7 @@ test('оформление подписки → оплата с сохранен
   await page.waitForURL('/pets/new')
   await page.getByPlaceholder('Рекс').fill(`Подписчик${Date.now()}`)
   await page.getByRole('button', { name: 'Создать анкету' }).click()
+  await page.getByRole('button', { name: 'Пропустить' }).click()
   await page.waitForURL('/')
 
   await page.getByRole('button', { name: 'Тариф' }).click()

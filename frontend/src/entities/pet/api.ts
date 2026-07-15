@@ -19,3 +19,14 @@ export function listMyPets(): Promise<{ data: Pet[] }> {
 export function createPet(payload: CreatePetPayload): Promise<{ data: Pet }> {
   return apiRequest('/api/v1/pets', { method: 'POST', body: payload })
 }
+
+export function uploadPetPhoto(petId: string, file: File): Promise<{ data: Pet }> {
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  return apiRequest(`/api/v1/pets/${petId}/photo`, { method: 'POST', body: formData })
+}
+
+export function removePetPhoto(petId: string): Promise<{ data: Pet }> {
+  return apiRequest(`/api/v1/pets/${petId}/photo`, { method: 'DELETE' })
+}

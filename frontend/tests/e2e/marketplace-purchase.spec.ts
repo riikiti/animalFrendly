@@ -27,6 +27,7 @@ async function registerWithThrowawayPet(context: BrowserContext, petName: string
   await page.waitForURL('/pets/new')
   await page.getByPlaceholder('Рекс').fill(petName)
   await page.getByRole('button', { name: 'Создать анкету' }).click()
+  await page.getByRole('button', { name: 'Пропустить' }).click()
   await page.waitForURL('/')
 
   return page
