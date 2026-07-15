@@ -42,4 +42,20 @@ final class MatchParticipantGuard
 
         return $match;
     }
+
+    public function otherPetOwnerId(PetMatch $match, Id $senderId): ?Id
+    {
+        $petA = $this->pets->findById($match->petAId());
+        $petB = $this->pets->findById($match->petBId());
+
+        if ($petA !== null && ! $petA->ownerId()->equals($senderId)) {
+            return $petA->ownerId();
+        }
+
+        if ($petB !== null && ! $petB->ownerId()->equals($senderId)) {
+            return $petB->ownerId();
+        }
+
+        return null;
+    }
 }

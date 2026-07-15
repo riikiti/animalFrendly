@@ -6,10 +6,13 @@ namespace App\Modules\Chat\Application\Commands\SendMessage;
 
 use App\Modules\Chat\Application\Services\ConversationAccessGuard;
 use App\Modules\Chat\Domain\Entities\Message;
+use App\Modules\Chat\Domain\Events\MessageSent;
 use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
 use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
 use App\Modules\Chat\Domain\Repositories\MessageRepositoryInterface;
 use App\Shared\Domain\ValueObjects\Id;
+use DateTimeImmutable;
+use Illuminate\Contracts\Events\Dispatcher;
 
 final class SendMessageHandler
 {
@@ -17,6 +20,7 @@ final class SendMessageHandler
         private readonly ConversationRepositoryInterface $conversations,
         private readonly MessageRepositoryInterface $messages,
         private readonly ConversationAccessGuard $accessGuard,
+        private readonly Dispatcher $events,
     ) {}
 
     public function handle(SendMessageCommand $command): Message
@@ -33,6 +37,18 @@ final class SendMessageHandler
 
         $message = Message::send($this->messages->nextIdentity(), $conversationId, $actingUserId, $command->body);
         $this->messages->save($message);
+
+        $recipientId = $this->accessGuard->resolveRecipientId($conversation, $actingUserId);
+
+        if ($recipientId !== null) {
+            $this->events->dispatch(new MessageSent(
+                conversationId: $conversationId,
+                messageId: $message->id(),
+                senderUserId: $actingUserId,
+                recipientUserId: $recipientId,
+                occurredAt: new DateTimeImmutable,
+            ));
+        }
 
         return $message;
     }

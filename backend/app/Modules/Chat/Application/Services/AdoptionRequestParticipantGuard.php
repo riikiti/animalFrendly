@@ -45,4 +45,16 @@ final class AdoptionRequestParticipantGuard
 
         return $request;
     }
+
+    public function otherParticipantId(AdoptionRequest $request, Id $senderId): ?Id
+    {
+        if ($request->requesterUserId()->equals($senderId)) {
+            $shelterAnimal = $this->shelterAnimals->findById($request->shelterAnimalId());
+            $shelter = $shelterAnimal !== null ? $this->shelters->findById($shelterAnimal->shelterId()) : null;
+
+            return $shelter?->ownerUserId();
+        }
+
+        return $request->requesterUserId();
+    }
 }

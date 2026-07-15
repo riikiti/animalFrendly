@@ -31,4 +31,26 @@ final class ConversationAccessGuard
 
         throw ConversationAccessDeniedException::create();
     }
+
+    /**
+     * Возвращает id второго участника беседы (не отправителя) — используется модулем
+     * Notification. Вызывается только после assertParticipant, поэтому $senderId гарантированно
+     * участник.
+     */
+    public function resolveRecipientId(Conversation $conversation, Id $senderId): ?Id
+    {
+        if ($conversation->matchId() !== null) {
+            $match = $this->matchGuard->assertParticipant($conversation->matchId(), $senderId);
+
+            return $this->matchGuard->otherPetOwnerId($match, $senderId);
+        }
+
+        if ($conversation->adoptionRequestId() !== null) {
+            $request = $this->adoptionGuard->assertParticipant($conversation->adoptionRequestId(), $senderId);
+
+            return $this->adoptionGuard->otherParticipantId($request, $senderId);
+        }
+
+        return null;
+    }
 }
