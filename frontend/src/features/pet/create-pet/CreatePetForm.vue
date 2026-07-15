@@ -8,7 +8,10 @@ import { useCatalogStore } from '@/entities/catalog/model'
 import type { Breed } from '@/entities/catalog/types'
 import * as petApi from '@/entities/pet/api'
 import { usePetStore } from '@/entities/pet/model'
+import type { PetPhoto } from '@/entities/pet/types'
 import { ApiError } from '@/shared/api/http'
+
+const MAX_PHOTOS = 6
 
 const router = useRouter()
 const catalogStore = useCatalogStore()
@@ -34,8 +37,7 @@ const generalError = ref('')
 
 const step = ref<'form' | 'photo'>('form')
 const createdPetId = ref<string | null>(null)
-const photoPreviewUrl = ref<string | null>(null)
-const selectedPhoto = ref<File | null>(null)
+const photos = ref<PetPhoto[]>([])
 const isUploadingPhoto = ref(false)
 const photoError = ref('')
 
@@ -96,24 +98,24 @@ async function onSubmit(): Promise<void> {
   }
 }
 
-function onPhotoSelected(event: Event): void {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
-  selectedPhoto.value = file
-  photoPreviewUrl.value = URL.createObjectURL(file)
+async function refreshPhotos(): Promise<void> {
+  if (createdPetId.value === null) return
+  const response = await petApi.listPetPhotos(createdPetId.value)
+  photos.value = response.data
 }
 
-async function uploadPhoto(): Promise<void> {
-  if (createdPetId.value === null || selectedPhoto.value === null) return
+async function onPhotoSelected(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || createdPetId.value === null) return
 
   photoError.value = ''
   isUploadingPhoto.value = true
 
   try {
-    await petApi.uploadPetPhoto(createdPetId.value, selectedPhoto.value)
-    await router.push({ name: 'home' })
+    await petApi.addPetPhoto(createdPetId.value, file)
+    await refreshPhotos()
   } catch (error) {
     photoError.value = error instanceof ApiError ? error.message : 'Не удалось загрузить фото.'
   } finally {
@@ -121,7 +123,19 @@ async function uploadPhoto(): Promise<void> {
   }
 }
 
-async function skipPhoto(): Promise<void> {
+async function setCover(photoId: string): Promise<void> {
+  if (createdPetId.value === null) return
+  await petApi.setPetPhotoCover(createdPetId.value, photoId)
+  await refreshPhotos()
+}
+
+async function removePhoto(photoId: string): Promise<void> {
+  if (createdPetId.value === null) return
+  await petApi.removePetPhoto(createdPetId.value, photoId)
+  await refreshPhotos()
+}
+
+async function finishPhotoStep(): Promise<void> {
   await router.push({ name: 'home' })
 }
 </script>
@@ -206,26 +220,56 @@ async function skipPhoto(): Promise<void> {
   </form>
 
   <div v-else class="flex flex-col gap-4">
-    <label
-      class="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl bg-teal-soft text-teal"
-    >
-      <img
-        v-if="photoPreviewUrl"
-        :src="photoPreviewUrl"
-        class="h-full w-full object-cover"
-        alt=""
-      />
-      <span v-else class="text-xs">Добавить фото питомца</span>
-      <input type="file" accept="image/*" class="hidden" @change="onPhotoSelected" />
-    </label>
+    <span class="text-xs font-semibold text-ink-soft">Фото питомца (до {{ MAX_PHOTOS }})</span>
+
+    <div class="grid grid-cols-3 gap-2">
+      <div
+        v-for="photo in photos"
+        :key="photo.id"
+        class="relative aspect-square overflow-hidden rounded-xl bg-surface-soft"
+      >
+        <img :src="photo.url" class="h-full w-full object-cover" alt="" />
+        <span
+          v-if="photo.is_primary"
+          class="absolute left-1 top-1 rounded-full bg-teal px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        >
+          Обложка
+        </span>
+        <button
+          v-else
+          type="button"
+          class="absolute left-1 top-1 rounded-full bg-surface/90 px-1.5 py-0.5 text-[10px] font-semibold text-ink"
+          @click="setCover(photo.id)"
+        >
+          Сделать обложкой
+        </button>
+        <button
+          type="button"
+          class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface/90 text-xs text-ink"
+          @click="removePhoto(photo.id)"
+        >
+          ✕
+        </button>
+      </div>
+
+      <label
+        v-if="photos.length < MAX_PHOTOS"
+        class="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-hairline text-ink-faint"
+      >
+        <span class="text-xl">+</span>
+        <span class="text-[10px]">{{ isUploadingPhoto ? 'Загрузка…' : 'Добавить' }}</span>
+        <input
+          type="file"
+          accept="image/*"
+          class="hidden"
+          :disabled="isUploadingPhoto"
+          @change="onPhotoSelected"
+        />
+      </label>
+    </div>
 
     <p v-if="photoError" class="text-xs text-danger">{{ photoError }}</p>
 
-    <BaseButton :disabled="selectedPhoto === null || isUploadingPhoto" @click="uploadPhoto">
-      {{ isUploadingPhoto ? 'Загружаем…' : 'Загрузить' }}
-    </BaseButton>
-    <button type="button" class="text-sm font-semibold text-ink-faint" @click="skipPhoto">
-      Пропустить
-    </button>
+    <BaseButton @click="finishPhotoStep">Готово</BaseButton>
   </div>
 </template>

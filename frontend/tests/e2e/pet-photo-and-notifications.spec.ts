@@ -11,6 +11,17 @@ const onePixelPng = Buffer.from(
   'base64',
 )
 
+async function uploadPhotoAndWait(page: Page, filename: string): Promise<void> {
+  const response = page.waitForResponse(
+    (res) => res.url().includes('/photos') && res.request().method() === 'POST',
+  )
+  await page
+    .locator('input[type="file"]')
+    .last()
+    .setInputFiles({ name: filename, mimeType: 'image/png', buffer: onePixelPng })
+  await response
+}
+
 async function registerWithPet(
   context: BrowserContext,
   petName: string,
@@ -34,14 +45,10 @@ async function registerWithPet(
   await page.getByRole('button', { name: 'Создать анкету' }).click()
 
   if (withPhoto) {
-    await page
-      .locator('input[type="file"]')
-      .setInputFiles({ name: 'cat.png', mimeType: 'image/png', buffer: onePixelPng })
-    await page.getByRole('button', { name: 'Загрузить' }).click()
-  } else {
-    await page.getByRole('button', { name: 'Пропустить' }).click()
+    await uploadPhotoAndWait(page, 'cat.png')
   }
 
+  await page.getByRole('button', { name: 'Готово' }).click()
   await page.waitForURL('/')
 
   return page
@@ -52,7 +59,7 @@ async function registerWithPet(
  */
 async function swipeUntilFound(page: Page, targetName: string): Promise<void> {
   for (let attempt = 0; attempt < 30; attempt++) {
-    const emptyState = page.getByText('Пока новых анкет рядом нет');
+    const emptyState = page.getByText('Пока новых анкет рядом нет')
     if (await emptyState.isVisible().catch(() => false)) {
       throw new Error(`Candidate "${targetName}" not found before the feed ran out`)
     }
@@ -125,4 +132,40 @@ test('pet photo is visible in the feed, and a match triggers an in-app notificat
 
   await pageA.getByText('У вас новый мэтч!').click()
   await expect(pageA.getByText('Прочитать всё')).not.toBeVisible()
+})
+
+test('manages a photo gallery: add several photos, change the cover, remove one', async ({
+  page,
+}) => {
+  const phone = randomPhone()
+
+  await page.goto('/register')
+  await page.getByText('Я — владелец').click()
+  await page.getByPlaceholder('+7 926 123-45-67').fill(phone)
+
+  const passwordInputs = page.locator('input[type="password"]')
+  await passwordInputs.nth(0).fill('correct-password')
+  await passwordInputs.nth(1).fill('correct-password')
+  await page.locator('input[type="checkbox"]').check()
+  await page.getByRole('button', { name: 'Продолжить' }).click()
+
+  await page.waitForURL('/pets/new')
+  await page.getByPlaceholder('Рекс').fill(`Галерейный${Date.now()}`)
+  await page.getByRole('button', { name: 'Создать анкету' }).click()
+
+  await uploadPhotoAndWait(page, 'first.png')
+  await expect(page.getByText('Обложка')).toBeVisible()
+
+  await uploadPhotoAndWait(page, 'second.png')
+  await expect(page.getByText('Сделать обложкой')).toBeVisible()
+
+  await page.getByText('Сделать обложкой').click()
+  await expect(page.getByText('Обложка')).toBeVisible()
+  await expect(page.getByText('Сделать обложкой')).toBeVisible()
+
+  await page.locator('button', { hasText: '✕' }).first().click()
+  await expect(page.getByText('Сделать обложкой')).not.toBeVisible()
+
+  await page.getByRole('button', { name: 'Готово' }).click()
+  await page.waitForURL('/')
 })

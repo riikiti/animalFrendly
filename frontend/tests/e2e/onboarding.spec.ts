@@ -27,7 +27,7 @@ test.describe('онбординг: регистрация, анкета пито
     await page.getByPlaceholder('Рекс').fill('Барс')
     await page.getByRole('button', { name: 'Создать анкету' }).click()
 
-    await page.getByRole('button', { name: 'Пропустить' }).click()
+    await page.getByRole('button', { name: 'Готово' }).click()
     await page.waitForURL('/')
     await expect(page.getByText('AnimalFriendly')).toBeVisible()
 
