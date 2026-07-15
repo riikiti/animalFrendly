@@ -36,6 +36,8 @@ export interface Order {
   buyer_confirmed_at: string | null
   seller_confirmed_at: string | null
   escrow_hold_until: string | null
+  counterpart_address: string | null
+  counterpart_location: { lat: number; lng: number } | null
 }
 
 export interface Dispute {

@@ -91,6 +91,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/search/pets',
+      name: 'search-pets',
+      component: () => import('@/pages/search/SearchPetsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings/profile',
+      name: 'profile-settings',
+      component: () => import('@/pages/settings/ProfileSettingsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/admin',
       name: 'admin-dashboard',
       component: () => import('@/pages/admin/AdminDashboardPage.vue'),

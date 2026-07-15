@@ -148,6 +148,19 @@ async function onLogout(): Promise<void> {
         </button>
         <button
           class="text-xs font-semibold text-teal"
+          @click="router.push({ name: 'search-pets' })"
+        >
+          🔍 Искать
+        </button>
+        <button
+          class="text-lg text-ink-soft"
+          title="Адрес"
+          @click="router.push({ name: 'profile-settings' })"
+        >
+          📍
+        </button>
+        <button
+          class="text-xs font-semibold text-teal"
           @click="router.push({ name: 'subscription-status' })"
         >
           Тариф

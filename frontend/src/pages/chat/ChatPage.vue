@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import * as conversationApi from '@/entities/conversation/api'
 import type { Message } from '@/entities/conversation/types'
 import { useUserStore } from '@/entities/user/model'
+import { yandexRouteUrl } from '@/shared/lib/directions'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +13,8 @@ const userStore = useUserStore()
 const conversationId = ref<string | null>(null)
 const messages = ref<Message[]>([])
 const draft = ref('')
+const counterpartAddress = ref<string | null>(null)
+const counterpartLocation = ref<{ lat: number; lng: number } | null>(null)
 let pollTimer: ReturnType<typeof setInterval> | undefined
 
 onMounted(async () => {
@@ -23,6 +26,8 @@ onMounted(async () => {
       ? await conversationApi.getConversationForAdoptionRequest(id)
       : await conversationApi.getConversationForMatch(id)
   conversationId.value = conversation.data.id
+  counterpartAddress.value = conversation.data.counterpart_address
+  counterpartLocation.value = conversation.data.counterpart_location
 
   await refreshMessages()
   pollTimer = setInterval(refreshMessages, 3000)
@@ -53,6 +58,22 @@ async function send(): Promise<void> {
     <div class="flex items-center gap-2 pb-2">
       <button class="text-ink-soft" @click="router.back()">←</button>
       <span class="text-sm font-semibold text-ink">Чат</span>
+    </div>
+
+    <div
+      v-if="counterpartAddress"
+      class="flex items-center justify-between gap-2 rounded-2xl bg-surface-soft px-3 py-2"
+    >
+      <span class="text-xs text-ink-soft">📍 {{ counterpartAddress }}</span>
+      <a
+        v-if="counterpartLocation"
+        :href="yandexRouteUrl(counterpartLocation.lat, counterpartLocation.lng)"
+        target="_blank"
+        rel="noopener"
+        class="shrink-0 text-xs font-semibold text-teal"
+      >
+        Как добраться
+      </a>
     </div>
 
     <div class="flex-1 space-y-2 overflow-y-auto py-2">

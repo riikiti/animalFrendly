@@ -6,6 +6,7 @@ export interface User {
   email: string | null
   account_type: AccountType
   status: string
+  city: string | null
   created_at: string
 }
 

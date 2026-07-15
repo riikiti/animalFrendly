@@ -38,5 +38,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  return { currentUser, isLoading, register, login, logout, fetchCurrentUser }
+  async function updateAddress(address: string | null): Promise<void> {
+    currentUser.value = await userApi.updateProfile({ address })
+  }
+
+  return { currentUser, isLoading, register, login, logout, fetchCurrentUser, updateAddress }
 })

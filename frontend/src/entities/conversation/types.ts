@@ -3,6 +3,8 @@ export interface Conversation {
   match_id: string | null
   adoption_request_id: string | null
   created_at: string
+  counterpart_address: string | null
+  counterpart_location: { lat: number; lng: number } | null
 }
 
 export interface Message {

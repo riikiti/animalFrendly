@@ -7,6 +7,7 @@ import * as moderationApi from '@/entities/moderation/api'
 import { useUserStore } from '@/entities/user/model'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import { ApiError } from '@/shared/api/http'
+import { yandexRouteUrl } from '@/shared/lib/directions'
 
 const route = useRoute()
 const router = useRouter()
@@ -153,6 +154,22 @@ async function submitReview(): Promise<void> {
           Деньги удерживаются платформой до
           {{ new Date(order.escrow_hold_until).toLocaleDateString('ru-RU') }}
         </p>
+      </div>
+
+      <div
+        v-if="order.counterpart_address"
+        class="flex items-center justify-between gap-2 rounded-2xl bg-surface-soft px-3 py-2"
+      >
+        <span class="text-xs text-ink-soft">📍 {{ order.counterpart_address }}</span>
+        <a
+          v-if="order.counterpart_location"
+          :href="yandexRouteUrl(order.counterpart_location.lat, order.counterpart_location.lng)"
+          target="_blank"
+          rel="noopener"
+          class="shrink-0 text-xs font-semibold text-teal"
+        >
+          Как добраться
+        </a>
       </div>
 
       <p v-if="error" class="text-xs text-danger">{{ error }}</p>
