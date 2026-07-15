@@ -23,3 +23,7 @@ export function swipe(
     body: { target_pet_id: targetPetId, action },
   })
 }
+
+export function boostPet(petId: string): Promise<{ data: Pet }> {
+  return apiRequest(`/api/v1/pets/${petId}/boost`, { method: 'POST' })
+}

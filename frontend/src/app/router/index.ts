@@ -71,6 +71,19 @@ const router = createRouter({
       component: () => import('@/pages/marketplace/OrderDetailPage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/subscription/plans',
+      name: 'subscription-plans',
+      component: () => import('@/pages/subscription/PlansPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      // Совпадает с return_url платежа ЮKassa — см. src/pages/subscription/SubscriptionStatusPage.vue.
+      path: '/subscription/status',
+      name: 'subscription-status',
+      component: () => import('@/pages/subscription/SubscriptionStatusPage.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

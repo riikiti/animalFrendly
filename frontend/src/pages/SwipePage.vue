@@ -10,7 +10,9 @@ import type { PetMatch } from '@/entities/match/types'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
 import { useUserStore } from '@/entities/user/model'
+import { ApiError } from '@/shared/api/http'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 
 const router = useRouter()
 const petStore = usePetStore()
@@ -21,6 +23,9 @@ const myPet = ref<Pet | null>(null)
 const candidates = ref<Pet[]>([])
 const currentMatch = ref<PetMatch | null>(null)
 const isLoading = ref(true)
+const paywallOpen = ref(false)
+const paywallMessage = ref('')
+const isBoosting = ref(false)
 
 // Пользователь может выйти (см. onLogout) прежде, чем эта цепочка успеет завершиться —
 // тогда токен уже очищен, и последующие запросы закономерно получат 401. Не считаем это
@@ -58,12 +63,49 @@ async function onSwipe(action: matchApi.SwipeAction): Promise<void> {
   if (!myPet.value || candidates.value.length === 0) return
 
   const target = candidates.value[0]
-  const result = await matchApi.swipe(myPet.value.id, target.id, action)
-  candidates.value = candidates.value.slice(1)
 
-  if (result.is_match) {
-    currentMatch.value = result.match
+  try {
+    const result = await matchApi.swipe(myPet.value.id, target.id, action)
+    candidates.value = candidates.value.slice(1)
+
+    if (result.is_match) {
+      currentMatch.value = result.match
+    }
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 402) {
+      paywallMessage.value = e.message
+      paywallOpen.value = true
+      return
+    }
+    throw e
   }
+}
+
+async function onBoost(): Promise<void> {
+  if (!myPet.value || isBoosting.value) return
+  isBoosting.value = true
+
+  try {
+    await matchApi.boostPet(myPet.value.id)
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 402) {
+      paywallMessage.value = e.message
+      paywallOpen.value = true
+    } else {
+      throw e
+    }
+  } finally {
+    isBoosting.value = false
+  }
+}
+
+function closePaywall(): void {
+  paywallOpen.value = false
+}
+
+async function goToSubscriptionPlans(): Promise<void> {
+  paywallOpen.value = false
+  await router.push({ name: 'subscription-plans' })
 }
 
 function dismissMatch(): void {
@@ -85,7 +127,15 @@ async function onLogout(): Promise<void> {
   <div class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6">
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">AnimalFriendly</span>
-      <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
+      <div class="flex items-center gap-3">
+        <button
+          class="text-xs font-semibold text-teal"
+          @click="router.push({ name: 'subscription-status' })"
+        >
+          Тариф
+        </button>
+        <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
+      </div>
     </div>
 
     <template v-if="!isLoading">
@@ -96,6 +146,14 @@ async function onLogout(): Promise<void> {
       >
         Пока новых анкет рядом нет — загляните позже
       </div>
+
+      <button
+        class="self-center text-xs font-semibold text-accent-ink disabled:opacity-50"
+        :disabled="isBoosting"
+        @click="onBoost"
+      >
+        {{ isBoosting ? 'Бустим…' : '✨ Забустить анкету' }}
+      </button>
 
       <div class="flex justify-center gap-4 py-2">
         <button
@@ -120,6 +178,12 @@ async function onLogout(): Promise<void> {
     </template>
 
     <MatchModal :open="currentMatch !== null" @continue="dismissMatch" @chat="goToChat" />
+    <PaywallSheet
+      :open="paywallOpen"
+      :message="paywallMessage"
+      @close="closePaywall"
+      @upgrade="goToSubscriptionPlans"
+    />
 
     <div class="-mx-4 mt-auto">
       <BottomNav />
