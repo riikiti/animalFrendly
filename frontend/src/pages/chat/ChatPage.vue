@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import * as conversationApi from '@/entities/conversation/api'
 import type { Message } from '@/entities/conversation/types'
 import { useUserStore } from '@/entities/user/model'
+import { echo } from '@/shared/lib/echo'
 import { yandexRouteUrl } from '@/shared/lib/directions'
 
 const route = useRoute()
@@ -15,7 +16,6 @@ const messages = ref<Message[]>([])
 const draft = ref('')
 const counterpartAddress = ref<string | null>(null)
 const counterpartLocation = ref<{ lat: number; lng: number } | null>(null)
-let pollTimer: ReturnType<typeof setInterval> | undefined
 
 onMounted(async () => {
   const kind = String(route.params.kind)
@@ -30,11 +30,27 @@ onMounted(async () => {
   counterpartLocation.value = conversation.data.counterpart_location
 
   await refreshMessages()
-  pollTimer = setInterval(refreshMessages, 3000)
+
+  echo
+    .private(`conversation.${conversationId.value}`)
+    .listen('.message.sent', (message: Message) => {
+      appendMessage(message)
+    })
 })
 
+// Отправитель добавляет своё сообщение локально сразу по ответу POST — не ждёт эха
+// собственного WebSocket-события (под нагрузкой это может занять больше пары секунд, т.к.
+// broadcast идёт через ту же очередь, что и остальные джобы). Дедуп по id на случай, если
+// WS-событие всё же придёт следом.
+function appendMessage(message: Message): void {
+  if (messages.value.some((m) => m.id === message.id)) return
+  messages.value.push(message)
+}
+
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
+  if (conversationId.value) {
+    echo.leave(`conversation.${conversationId.value}`)
+  }
 })
 
 async function refreshMessages(): Promise<void> {
@@ -48,8 +64,8 @@ async function send(): Promise<void> {
 
   const body = draft.value
   draft.value = ''
-  await conversationApi.sendMessage(conversationId.value, body)
-  await refreshMessages()
+  const response = await conversationApi.sendMessage(conversationId.value, body)
+  appendMessage(response.data)
 }
 </script>
 

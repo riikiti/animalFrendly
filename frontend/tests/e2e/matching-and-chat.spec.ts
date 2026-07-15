@@ -64,6 +64,12 @@ async function swipeUntilFound(page: Page, targetName: string): Promise<void> {
 }
 
 test('two pet owners mutually like each other, get matched, and chat', async ({ browser }) => {
+  // Реальная WS-доставка через Reverb — под полной параллельной нагрузкой всего E2E-набора
+  // (8 браузеров Chromium одновременно) на этой машине заметно возрастает джиттер CPU-
+  // шедулинга для фоновых вкладок, из-за чего доставка может занять заметно дольше, чем
+  // в изолированном прогоне (см. отдельные замеры — тест стабилен один и при малой нагрузке).
+  test.setTimeout(60_000)
+
   const contextA = await browser.newContext()
   const contextB = await browser.newContext()
 
@@ -101,6 +107,7 @@ test('two pet owners mutually like each other, get matched, and chat', async ({ 
   await pageA.getByPlaceholder('Сообщение…').press('Enter')
   await expect(pageA.getByText('С радостью!')).toBeVisible()
 
-  // Сообщение от A должно долететь до B через поллинг (см. ChatPage.vue).
-  await expect(pageB.getByText('С радостью!')).toBeVisible({ timeout: 5000 })
+  // Сообщение от A должно долететь до B в реальном времени через Reverb (см. ChatPage.vue и
+  // test.setTimeout выше).
+  await expect(pageB.getByText('С радостью!')).toBeVisible({ timeout: 45_000 })
 })
