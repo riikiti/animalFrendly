@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Order } from '@/entities/marketplace/types'
+import * as moderationApi from '@/entities/moderation/api'
 import { useUserStore } from '@/entities/user/model'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import { ApiError } from '@/shared/api/http'
@@ -18,6 +19,11 @@ const isLoading = ref(true)
 const error = ref('')
 const showDisputeForm = ref(false)
 const disputeReason = ref('')
+
+const reviewRating = ref(5)
+const reviewComment = ref('')
+const reviewSubmitted = ref(false)
+const reviewError = ref('')
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Ожидает оплаты',
@@ -102,6 +108,21 @@ async function submitDispute(): Promise<void> {
     error.value = e instanceof ApiError ? e.message : 'Что-то пошло не так. Попробуйте ещё раз.'
   }
 }
+
+async function submitReview(): Promise<void> {
+  reviewError.value = ''
+  try {
+    await moderationApi.submitReview({
+      order_id: orderId,
+      rating: reviewRating.value,
+      comment: reviewComment.value || null,
+    })
+    reviewSubmitted.value = true
+  } catch (e) {
+    reviewError.value =
+      e instanceof ApiError ? e.message : 'Что-то пошло не так. Попробуйте ещё раз.'
+  }
+}
 </script>
 
 <template>
@@ -160,6 +181,39 @@ async function submitDispute(): Promise<void> {
           </div>
         </div>
       </template>
+
+      <div
+        v-if="order.status === 'completed' && isBuyer && !reviewSubmitted"
+        class="flex flex-col gap-2 rounded-2xl border border-hairline p-4"
+      >
+        <span class="text-sm font-semibold text-ink">Оставить отзыв о продавце</span>
+        <div class="flex gap-1">
+          <button
+            v-for="star in [1, 2, 3, 4, 5]"
+            :key="star"
+            type="button"
+            class="text-2xl"
+            :class="star <= reviewRating ? 'text-accent' : 'text-hairline'"
+            @click="reviewRating = star"
+          >
+            ★
+          </button>
+        </div>
+        <textarea
+          v-model="reviewComment"
+          rows="2"
+          placeholder="Комментарий (необязательно)"
+          class="rounded-xl bg-surface-soft px-3 py-2 text-sm text-ink outline-none"
+        ></textarea>
+        <p v-if="reviewError" class="text-xs text-danger">{{ reviewError }}</p>
+        <BaseButton @click="submitReview">Отправить отзыв</BaseButton>
+      </div>
+      <p
+        v-else-if="order.status === 'completed' && isBuyer && reviewSubmitted"
+        class="text-xs text-teal"
+      >
+        Спасибо за отзыв!
+      </p>
     </div>
   </div>
 </template>

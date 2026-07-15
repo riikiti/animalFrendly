@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BottomNav from '@/widgets/BottomNav.vue'
 import * as shelterApi from '@/entities/shelter/api'
 import type { AdoptionRequest, AdoptionRequestStatus } from '@/entities/shelter/types'
+import * as moderationApi from '@/entities/moderation/api'
+import { ApiError } from '@/shared/api/http'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 
 const router = useRouter()
 
 const requests = ref<AdoptionRequest[]>([])
 const isLoading = ref(true)
+
+const reviewFormOpenId = ref<string | null>(null)
+const reviewedRequestIds = ref(new Set<string>())
+const reviewRating = ref(5)
+const reviewComment = ref('')
+const reviewErrors = reactive<Record<string, string>>({})
 
 const statusLabels: Record<AdoptionRequestStatus, string> = {
   pending: 'На рассмотрении',
@@ -35,6 +43,28 @@ async function cancel(requestId: string): Promise<void> {
 
 async function openChat(requestId: string): Promise<void> {
   await router.push({ name: 'chat', params: { kind: 'adoption', id: requestId } })
+}
+
+function openReviewForm(requestId: string): void {
+  reviewFormOpenId.value = requestId
+  reviewRating.value = 5
+  reviewComment.value = ''
+  delete reviewErrors[requestId]
+}
+
+async function submitReview(requestId: string): Promise<void> {
+  delete reviewErrors[requestId]
+  try {
+    await moderationApi.submitReview({
+      adoption_request_id: requestId,
+      rating: reviewRating.value,
+      comment: reviewComment.value || null,
+    })
+    reviewedRequestIds.value.add(requestId)
+    reviewFormOpenId.value = null
+  } catch (e) {
+    reviewErrors[requestId] = e instanceof ApiError ? e.message : 'Что-то пошло не так.'
+  }
 }
 </script>
 
@@ -86,6 +116,47 @@ async function openChat(requestId: string): Promise<void> {
         >
           Отменить заявку
         </BaseButton>
+
+        <template v-if="request.status === 'approved' && !reviewedRequestIds.has(request.id)">
+          <button
+            v-if="reviewFormOpenId !== request.id"
+            type="button"
+            class="text-xs font-semibold text-teal"
+            @click="openReviewForm(request.id)"
+          >
+            Оставить отзыв о приюте
+          </button>
+          <div v-else class="flex flex-col gap-2">
+            <div class="flex gap-1">
+              <button
+                v-for="star in [1, 2, 3, 4, 5]"
+                :key="star"
+                type="button"
+                class="text-2xl"
+                :class="star <= reviewRating ? 'text-accent' : 'text-hairline'"
+                @click="reviewRating = star"
+              >
+                ★
+              </button>
+            </div>
+            <textarea
+              v-model="reviewComment"
+              rows="2"
+              placeholder="Комментарий (необязательно)"
+              class="rounded-xl bg-surface-soft px-3 py-2 text-sm text-ink outline-none"
+            ></textarea>
+            <p v-if="reviewErrors[request.id]" class="text-xs text-danger">
+              {{ reviewErrors[request.id] }}
+            </p>
+            <div class="flex gap-2">
+              <BaseButton @click="submitReview(request.id)">Отправить</BaseButton>
+              <BaseButton variant="ghost" @click="reviewFormOpenId = null">Отмена</BaseButton>
+            </div>
+          </div>
+        </template>
+        <p v-else-if="reviewedRequestIds.has(request.id)" class="text-xs text-teal">
+          Спасибо за отзыв!
+        </p>
       </div>
     </div>
 

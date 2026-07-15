@@ -14,12 +14,14 @@ import { useUserStore } from '@/entities/user/model'
 import { ApiError } from '@/shared/api/http'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
+import { useStaff } from '@/shared/lib/useStaff'
 
 const router = useRouter()
 const petStore = usePetStore()
 const catalogStore = useCatalogStore()
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
+const { isStaff } = useStaff()
 
 const myPet = ref<Pet | null>(null)
 const candidates = ref<Pet[]>([])
@@ -44,6 +46,7 @@ onMounted(async () => {
   try {
     await catalogStore.ensureSpeciesLoaded()
     await petStore.fetchMyPets()
+    if (!isMounted) return
 
     if (petStore.myPets.length === 0) {
       await router.push({ name: 'create-pet' })
@@ -136,6 +139,13 @@ async function onLogout(): Promise<void> {
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">AnimalFriendly</span>
       <div class="flex items-center gap-3">
+        <button
+          v-if="isStaff"
+          class="text-xs font-semibold text-danger"
+          @click="router.push({ name: 'admin-dashboard' })"
+        >
+          Админ
+        </button>
         <button
           class="text-xs font-semibold text-teal"
           @click="router.push({ name: 'subscription-status' })"

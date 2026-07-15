@@ -90,6 +90,24 @@ const router = createRouter({
       component: () => import('@/pages/notifications/NotificationsPage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/admin',
+      name: 'admin-dashboard',
+      component: () => import('@/pages/admin/AdminDashboardPage.vue'),
+      meta: { requiresAuth: true, requiresStaff: true },
+    },
+    {
+      path: '/admin/reports',
+      name: 'admin-reports',
+      component: () => import('@/pages/admin/AdminReportsPage.vue'),
+      meta: { requiresAuth: true, requiresStaff: true },
+    },
+    {
+      path: '/admin/audit-log',
+      name: 'admin-audit-log',
+      component: () => import('@/pages/admin/AdminAuditLogPage.vue'),
+      meta: { requiresAuth: true, requiresStaff: true },
+    },
   ],
 })
 
@@ -107,6 +125,13 @@ router.beforeEach(async (to) => {
       await userStore.fetchCurrentUser()
     } catch {
       return { name: 'login' }
+    }
+  }
+
+  if (to.meta.requiresStaff) {
+    const accountType = userStore.currentUser?.account_type
+    if (accountType !== 'admin' && accountType !== 'moderator') {
+      return { name: 'home' }
     }
   }
 

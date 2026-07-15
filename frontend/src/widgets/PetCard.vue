@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useCatalogStore } from '@/entities/catalog/model'
 import type { Pet } from '@/entities/pet/types'
+import ReportButton from '@/shared/ui/components/ReportButton.vue'
 
 const props = defineProps<{ pet: Pet }>()
 const catalogStore = useCatalogStore()
@@ -35,6 +36,7 @@ const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id
         <p class="text-sm text-ink-soft">
           {{ speciesName }}<span v-if="pet.description"> · {{ pet.description }}</span>
         </p>
+        <ReportButton target-type="pet" :target-id="pet.id" />
       </div>
     </div>
   </div>

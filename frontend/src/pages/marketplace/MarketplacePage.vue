@@ -6,6 +6,7 @@ import { useCatalogStore } from '@/entities/catalog/model'
 import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Listing } from '@/entities/marketplace/types'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import ReportButton from '@/shared/ui/components/ReportButton.vue'
 import { ApiError } from '@/shared/api/http'
 
 const router = useRouter()
@@ -106,6 +107,7 @@ const hasListings = computed(() => listings.value.length > 0)
         <BaseButton :disabled="purchasingId === listing.id" @click="purchase(listing.id)">
           {{ purchasingId === listing.id ? 'Переходим к оплате…' : 'Купить' }}
         </BaseButton>
+        <ReportButton target-type="listing" :target-id="listing.id" />
       </div>
     </div>
 
