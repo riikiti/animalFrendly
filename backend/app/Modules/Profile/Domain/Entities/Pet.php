@@ -24,6 +24,7 @@ final class Pet
         private readonly ?string $description,
         private readonly bool $isVaccinated,
         private PetStatus $status,
+        private ?DateTimeImmutable $boostedUntil,
     ) {}
 
     public static function create(
@@ -56,6 +57,7 @@ final class Pet
             $description,
             $isVaccinated,
             PetStatus::Active,
+            null,
         );
     }
 
@@ -71,6 +73,7 @@ final class Pet
         ?string $description,
         bool $isVaccinated,
         PetStatus $status,
+        ?DateTimeImmutable $boostedUntil = null,
     ): self {
         return new self(
             $id,
@@ -84,6 +87,7 @@ final class Pet
             $description,
             $isVaccinated,
             $status,
+            $boostedUntil,
         );
     }
 
@@ -145,5 +149,20 @@ final class Pet
     public function isActive(): bool
     {
         return $this->status === PetStatus::Active;
+    }
+
+    public function boost(DateTimeImmutable $until): void
+    {
+        $this->boostedUntil = $until;
+    }
+
+    public function boostedUntil(): ?DateTimeImmutable
+    {
+        return $this->boostedUntil;
+    }
+
+    public function isBoosted(): bool
+    {
+        return $this->boostedUntil !== null && $this->boostedUntil > new DateTimeImmutable;
     }
 }

@@ -60,6 +60,13 @@ final class EloquentPaymentRepository implements PaymentRepositoryInterface
         return $model ? $this->toDomain($model) : null;
     }
 
+    public function findByIdempotencyKey(string $idempotencyKey): ?DomainPayment
+    {
+        $model = EloquentPayment::query()->where('idempotency_key', $idempotencyKey)->first();
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
     private function toDomain(EloquentPayment $model): DomainPayment
     {
         return DomainPayment::reconstitute(

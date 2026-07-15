@@ -8,6 +8,7 @@ use App\Modules\Matching\Infrastructure\Providers\MatchingServiceProvider;
 use App\Modules\Payment\Infrastructure\Providers\PaymentServiceProvider;
 use App\Modules\Profile\Infrastructure\Providers\ProfileServiceProvider;
 use App\Modules\Shelter\Infrastructure\Providers\ShelterServiceProvider;
+use App\Modules\Subscription\Infrastructure\Providers\SubscriptionServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Shared\Infrastructure\Providers\SharedServiceProvider;
 
@@ -22,4 +23,5 @@ return [
     ShelterServiceProvider::class,
     MarketplaceServiceProvider::class,
     PaymentServiceProvider::class,
+    SubscriptionServiceProvider::class,
 ];

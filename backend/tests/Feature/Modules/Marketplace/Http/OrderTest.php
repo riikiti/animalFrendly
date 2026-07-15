@@ -7,15 +7,18 @@ use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Payment\Application\Contracts\YookassaClientInterface;
 use App\Modules\Payment\Infrastructure\Persistence\Eloquent\Models\Payment as EloquentPayment;
 use App\Modules\Payment\Infrastructure\Persistence\Eloquent\Models\Payout as EloquentPayout;
+use App\Modules\Subscription\Infrastructure\Persistence\Eloquent\Models\Subscription as EloquentSubscription;
+use App\Modules\Subscription\Infrastructure\Persistence\Eloquent\Models\SubscriptionPlan as EloquentSubscriptionPlan;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\FakeYookassaClient;
 
-function purchaseTestListing(int $priceAmount = 100_000): array
+function purchaseTestListing(int $priceAmount = 100_000, ?User $seller = null): array
 {
     app()->bind(YookassaClientInterface::class, FakeYookassaClient::class);
 
     $dog = Species::query()->firstOrCreate(['slug' => 'dog'], ['name_ru' => 'Собака', 'is_active' => true]);
-    $seller = User::factory()->create();
+    $seller ??= User::factory()->create();
     $buyer = User::factory()->create();
 
     Sanctum::actingAs($seller);
@@ -126,6 +129,40 @@ it('lets a party open a dispute and an admin resolve it seller_wins -> completed
     Sanctum::actingAs($buyer);
     $order = $this->getJson("/api/v1/orders/{$orderId}")->json('data');
     expect($order['status'])->toBe('completed');
+});
+
+it('charges a lower commission for a seller with an active premium subscription', function (): void {
+    $plan = EloquentSubscriptionPlan::query()->create([
+        'slug' => 'premium',
+        'name_ru' => 'Premium',
+        'price_amount' => 59_900,
+        'currency' => 'RUB',
+        'period' => 'month',
+        'features' => ['marketplace_commission_bps' => 400],
+        'is_active' => true,
+    ]);
+
+    $seller = User::factory()->create();
+
+    EloquentSubscription::query()->create([
+        'id' => (string) Str::ulid(),
+        'user_id' => $seller->id,
+        'plan_id' => $plan->id,
+        'status' => 'active',
+        'started_at' => now(),
+        'current_period_ends_at' => now()->addMonth(),
+        'auto_renew' => true,
+    ]);
+
+    ['orderId' => $orderId, 'yookassaPaymentId' => $yookassaPaymentId] = purchaseTestListing(100_000, $seller);
+    sendSucceededWebhook($yookassaPaymentId);
+
+    Sanctum::actingAs($seller);
+    $order = $this->getJson("/api/v1/orders/{$orderId}")->json('data');
+
+    expect($order['status'])->toBe('paid_escrow')
+        ->and($order['commission_amount'])->toBe(4_000)
+        ->and($order['payout_amount'])->toBe(96_000);
 });
 
 it('resolves a dispute buyer_wins and refunds the order', function (): void {

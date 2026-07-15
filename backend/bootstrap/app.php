@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Эскроу-сделки старше 7 дней без спора — авто-подтверждение, см.
         // docs/rules/04-payments-escrow.md.
         $schedule->command('deals:auto-confirm')->hourly();
+
+        // Автосписание за истёкшие периоды подписки, past_due-разбор, завершение отменённых
+        // подписок, см. docs/plan/09-flow-subscriptions.md.
+        $schedule->command('subscriptions:process-billing')->daily();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AssignRequestId::class);

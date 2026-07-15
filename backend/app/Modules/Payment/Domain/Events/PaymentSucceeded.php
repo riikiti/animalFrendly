@@ -16,11 +16,17 @@ use DateTimeImmutable;
  */
 final class PaymentSucceeded implements DomainEvent
 {
+    /**
+     * @param  array<string, mixed>|null  $rawPayload  сырой ответ ЮKassa (object из вебхука) —
+     *                                                 используется слушателем Subscription,
+     *                                                 чтобы достать payment_method.id/saved.
+     */
     public function __construct(
         public readonly string $payableType,
         public readonly Id $payableId,
         public readonly Money $amount,
         private readonly DateTimeImmutable $occurredAt,
+        public readonly ?array $rawPayload = null,
     ) {}
 
     public function occurredAt(): DateTimeImmutable

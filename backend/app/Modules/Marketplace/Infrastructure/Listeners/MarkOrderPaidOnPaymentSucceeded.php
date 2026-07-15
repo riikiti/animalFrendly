@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Marketplace\Infrastructure\Listeners;
 
+use App\Modules\Marketplace\Application\Contracts\CommissionRateResolverInterface;
 use App\Modules\Marketplace\Domain\Enums\OrderStatus;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Marketplace\Domain\Repositories\OrderRepositoryInterface;
@@ -15,6 +16,7 @@ final class MarkOrderPaidOnPaymentSucceeded
     public function __construct(
         private readonly OrderRepositoryInterface $orders,
         private readonly ListingRepositoryInterface $listings,
+        private readonly CommissionRateResolverInterface $commissionRates,
     ) {}
 
     public function handle(PaymentSucceeded $event): void
@@ -32,7 +34,8 @@ final class MarkOrderPaidOnPaymentSucceeded
         }
 
         DB::transaction(function () use ($order): void {
-            $commission = $order->amount()->percentage((int) config('yookassa.commission_basis_points'));
+            $bps = $this->commissionRates->basisPointsFor($order->sellerId());
+            $commission = $order->amount()->percentage($bps);
             $order->markPaid($commission, (int) config('yookassa.escrow_hold_days'));
             $this->orders->save($order, null, 'payment_succeeded');
 

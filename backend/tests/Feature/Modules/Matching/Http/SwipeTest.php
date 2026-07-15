@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models\Pet;
+use App\Modules\Subscription\Infrastructure\Persistence\Eloquent\Models\SubscriptionPlan as EloquentSubscriptionPlan;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 
@@ -93,4 +94,34 @@ it('rejects a duplicate swipe on the same target', function (): void {
         'target_pet_id' => $target->id,
         'action' => 'like',
     ])->assertUnprocessable();
+});
+
+it('blocks liking once the free tariff daily limit is exhausted', function (): void {
+    EloquentSubscriptionPlan::query()->create([
+        'slug' => 'free',
+        'name_ru' => 'Free',
+        'price_amount' => 0,
+        'currency' => 'RUB',
+        'period' => 'month',
+        'features' => ['daily_likes' => 2],
+        'is_active' => true,
+    ]);
+
+    $owner = User::factory()->create();
+    $myPet = Pet::factory()->create(['owner_id' => $owner->id]);
+    $targets = Pet::factory()->count(3)->create();
+
+    Sanctum::actingAs($owner);
+
+    foreach ($targets->take(2) as $target) {
+        $this->postJson("/api/v1/pets/{$myPet->id}/swipes", [
+            'target_pet_id' => $target->id,
+            'action' => 'like',
+        ])->assertCreated();
+    }
+
+    $this->postJson("/api/v1/pets/{$myPet->id}/swipes", [
+        'target_pet_id' => $targets->last()->id,
+        'action' => 'like',
+    ])->assertStatus(402)->assertJsonPath('error_code', 'quota_exceeded');
 });

@@ -18,8 +18,13 @@ use Illuminate\Support\Facades\Http;
  */
 final class YookassaClient implements YookassaClientInterface
 {
-    public function createPayment(Money $amount, string $description, string $returnUrl, string $idempotencyKey): array
-    {
+    public function createPayment(
+        Money $amount,
+        string $description,
+        string $returnUrl,
+        string $idempotencyKey,
+        bool $savePaymentMethod = false,
+    ): array {
         $response = $this->request($idempotencyKey)->post('/payments', [
             'amount' => $this->formatAmount($amount),
             'capture' => true,
@@ -28,9 +33,26 @@ final class YookassaClient implements YookassaClientInterface
                 'return_url' => $returnUrl,
             ],
             'description' => $description,
+            ...($savePaymentMethod ? ['save_payment_method' => true] : []),
         ]);
 
         return $this->decode($response, 'createPayment');
+    }
+
+    public function chargeWithSavedMethod(
+        Money $amount,
+        string $paymentMethodId,
+        string $description,
+        string $idempotencyKey,
+    ): array {
+        $response = $this->request($idempotencyKey)->post('/payments', [
+            'amount' => $this->formatAmount($amount),
+            'capture' => true,
+            'payment_method_id' => $paymentMethodId,
+            'description' => $description,
+        ]);
+
+        return $this->decode($response, 'chargeWithSavedMethod');
     }
 
     public function createRefund(string $yookassaPaymentId, Money $amount, string $idempotencyKey): array

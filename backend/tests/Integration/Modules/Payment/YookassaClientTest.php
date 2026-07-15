@@ -39,6 +39,63 @@ it('sends a correctly shaped createPayment request with idempotency key and basi
     });
 });
 
+it('sends save_payment_method when requested on createPayment', function (): void {
+    Http::fake([
+        'https://api.yookassa.ru/v3/payments' => Http::response([
+            'id' => 'yk-payment-2',
+            'confirmation' => ['confirmation_url' => 'https://yookassa.ru/pay/2'],
+        ], 200),
+    ]);
+
+    $client = new YookassaClient;
+    $client->createPayment(
+        Money::fromMinorUnits(29_900),
+        'Оформление подписки',
+        'https://app.test/subscription/status',
+        'sub-1:create',
+        savePaymentMethod: true,
+    );
+
+    Http::assertSent(fn (Request $request): bool => $request['save_payment_method'] === true);
+});
+
+it('does not send save_payment_method by default', function (): void {
+    Http::fake([
+        'https://api.yookassa.ru/v3/payments' => Http::response([
+            'id' => 'yk-payment-3',
+            'confirmation' => ['confirmation_url' => 'https://yookassa.ru/pay/3'],
+        ], 200),
+    ]);
+
+    $client = new YookassaClient;
+    $client->createPayment(Money::fromMinorUnits(100_00), 'Оплата заказа', 'https://app.test/orders/1', 'order-2:create');
+
+    Http::assertSent(fn (Request $request): bool => ! array_key_exists('save_payment_method', $request->data()));
+});
+
+it('charges a saved payment method without a confirmation redirect', function (): void {
+    Http::fake([
+        'https://api.yookassa.ru/v3/payments' => Http::response(['id' => 'yk-payment-4', 'status' => 'pending'], 200),
+    ]);
+
+    $client = new YookassaClient;
+    $result = $client->chargeWithSavedMethod(
+        Money::fromMinorUnits(29_900),
+        'pm-123',
+        'Автопродление подписки',
+        'sub-1:renew:2026-08',
+    );
+
+    expect($result['id'])->toBe('yk-payment-4');
+
+    Http::assertSent(function (Request $request): bool {
+        return $request->url() === 'https://api.yookassa.ru/v3/payments'
+            && $request['payment_method_id'] === 'pm-123'
+            && $request->hasHeader('Idempotence-Key', 'sub-1:renew:2026-08')
+            && ! array_key_exists('confirmation', $request->data());
+    });
+});
+
 it('sends a correctly shaped createRefund request', function (): void {
     Http::fake(['https://api.yookassa.ru/v3/refunds' => Http::response(['id' => 'yk-refund-1'], 200)]);
 

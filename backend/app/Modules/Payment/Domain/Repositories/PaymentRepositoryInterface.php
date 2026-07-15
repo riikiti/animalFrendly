@@ -18,4 +18,6 @@ interface PaymentRepositoryInterface
     public function findByYookassaId(string $yookassaPaymentId): ?Payment;
 
     public function findByPayable(string $payableType, Id $payableId): ?Payment;
+
+    public function findByIdempotencyKey(string $idempotencyKey): ?Payment;
 }

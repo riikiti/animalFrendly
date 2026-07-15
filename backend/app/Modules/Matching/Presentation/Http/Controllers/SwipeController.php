@@ -15,6 +15,7 @@ use App\Modules\Matching\Domain\Exceptions\CannotSwipeOwnPetException;
 use App\Modules\Matching\Domain\Exceptions\PetAlreadySwipedException;
 use App\Modules\Matching\Domain\Exceptions\PetNotFoundException;
 use App\Modules\Matching\Domain\Exceptions\PetNotOwnedByActorException;
+use App\Modules\Matching\Domain\Exceptions\SwipeQuotaExceededException;
 use App\Modules\Matching\Presentation\Http\Requests\StoreSwipeRequest;
 use App\Modules\Matching\Presentation\Http\Resources\MatchResource;
 use App\Modules\Profile\Presentation\Http\Resources\PetResource;
@@ -54,6 +55,8 @@ final class SwipeController
             return response()->json(['message' => $e->getMessage()], 403);
         } catch (CannotSwipeOwnPetException|PetAlreadySwipedException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (SwipeQuotaExceededException $e) {
+            return response()->json(['message' => $e->getMessage(), 'error_code' => 'quota_exceeded'], 402);
         }
 
         return response()->json([

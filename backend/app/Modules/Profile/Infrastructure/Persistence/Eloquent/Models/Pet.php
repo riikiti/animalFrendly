@@ -31,11 +31,13 @@ final class Pet extends Model
         'health_notes',
         'is_vaccinated',
         'status',
+        'boosted_until',
     ];
 
     protected $casts = [
         'birthdate' => 'date',
         'is_vaccinated' => 'boolean',
+        'boosted_until' => 'datetime',
     ];
 
     protected static function newFactory(): PetFactory

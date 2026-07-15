@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Matching\Application\Commands\RecordSwipe\RecordSwipeCommand;
 use App\Modules\Matching\Application\Commands\RecordSwipe\RecordSwipeHandler;
+use App\Modules\Matching\Application\Contracts\SubscriptionFeatureGateInterface;
 use App\Modules\Matching\Domain\Exceptions\CannotSwipeOwnPetException;
 use App\Modules\Matching\Domain\Exceptions\PetAlreadySwipedException;
 use App\Modules\Matching\Domain\Exceptions\PetNotOwnedByActorException;
@@ -32,6 +33,14 @@ function makeTestPet(Id $id, Id $ownerId): Pet
     );
 }
 
+function allowingFeatureGate(): SubscriptionFeatureGateInterface
+{
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $featureGate->shouldReceive('consume')->once()->andReturn(true);
+
+    return $featureGate;
+}
+
 it('records a like without creating a match when the target has not liked back', function (): void {
     $actingUserId = Id::generate();
     $swiperPetId = Id::generate();
@@ -54,7 +63,7 @@ it('records a like without creating a match when the target has not liked back',
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
     $events->shouldNotReceive('dispatch');
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events, allowingFeatureGate());
     $result = $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 
     expect($result->isMatch())->toBeFalse();
@@ -84,7 +93,7 @@ it('creates a match and dispatches PetsMatched when the target had already liked
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
     $events->shouldReceive('dispatch')->once();
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events, allowingFeatureGate());
     $result = $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 
     expect($result->isMatch())->toBeTrue();
@@ -101,8 +110,9 @@ it('rejects swiping with a pet the actor does not own', function (): void {
     $swipes = Mockery::mock(SwipeRepositoryInterface::class);
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events, $featureGate);
     $handler->handle(new RecordSwipeCommand(Id::generate()->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(PetNotOwnedByActorException::class);
 
@@ -120,8 +130,9 @@ it('rejects swiping own pet', function (): void {
     $swipes = Mockery::mock(SwipeRepositoryInterface::class);
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events, $featureGate);
     $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(CannotSwipeOwnPetException::class);
 
@@ -142,7 +153,8 @@ it('rejects swiping the same target twice', function (): void {
 
     $matches = Mockery::mock(PetMatchRepositoryInterface::class);
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
 
-    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events);
+    $handler = new RecordSwipeHandler($pets, $swipes, $matches, $events, $featureGate);
     $handler->handle(new RecordSwipeCommand($actingUserId->toString(), $swiperPetId->toString(), $targetPetId->toString(), 'like'));
 })->throws(PetAlreadySwipedException::class);

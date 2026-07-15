@@ -15,7 +15,26 @@ interface YookassaClientInterface
     /**
      * @return array<string, mixed> сырой ответ ЮKassa API v3 (создание платежа)
      */
-    public function createPayment(Money $amount, string $description, string $returnUrl, string $idempotencyKey): array;
+    public function createPayment(
+        Money $amount,
+        string $description,
+        string $returnUrl,
+        string $idempotencyKey,
+        bool $savePaymentMethod = false,
+    ): array;
+
+    /**
+     * Серверное списание с ранее сохранённого способа оплаты (рекуррентный платёж) — без
+     * confirmation/редиректа, используется для автопродления подписки.
+     *
+     * @return array<string, mixed>
+     */
+    public function chargeWithSavedMethod(
+        Money $amount,
+        string $paymentMethodId,
+        string $description,
+        string $idempotencyKey,
+    ): array;
 
     /**
      * @return array<string, mixed>

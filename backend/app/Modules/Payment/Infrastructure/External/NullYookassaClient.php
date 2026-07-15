@@ -17,12 +17,27 @@ use App\Shared\Domain\ValueObjects\Money;
  */
 final class NullYookassaClient implements YookassaClientInterface
 {
-    public function createPayment(Money $amount, string $description, string $returnUrl, string $idempotencyKey): array
-    {
+    public function createPayment(
+        Money $amount,
+        string $description,
+        string $returnUrl,
+        string $idempotencyKey,
+        bool $savePaymentMethod = false,
+    ): array {
         return [
             'id' => "local-{$idempotencyKey}",
             'confirmation' => ['confirmation_url' => $returnUrl],
+            ...($savePaymentMethod ? ['payment_method' => ['id' => "local-pm-{$idempotencyKey}", 'saved' => true]] : []),
         ];
+    }
+
+    public function chargeWithSavedMethod(
+        Money $amount,
+        string $paymentMethodId,
+        string $description,
+        string $idempotencyKey,
+    ): array {
+        return ['id' => "local-{$idempotencyKey}", 'status' => 'pending'];
     }
 
     public function createRefund(string $yookassaPaymentId, Money $amount, string $idempotencyKey): array

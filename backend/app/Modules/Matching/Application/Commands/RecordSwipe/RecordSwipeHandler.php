@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Matching\Application\Commands\RecordSwipe;
 
+use App\Modules\Matching\Application\Contracts\SubscriptionFeatureGateInterface;
 use App\Modules\Matching\Domain\Entities\PetMatch;
 use App\Modules\Matching\Domain\Entities\Swipe;
 use App\Modules\Matching\Domain\Enums\SwipeAction;
@@ -12,6 +13,7 @@ use App\Modules\Matching\Domain\Exceptions\CannotSwipeOwnPetException;
 use App\Modules\Matching\Domain\Exceptions\PetAlreadySwipedException;
 use App\Modules\Matching\Domain\Exceptions\PetNotFoundException;
 use App\Modules\Matching\Domain\Exceptions\PetNotOwnedByActorException;
+use App\Modules\Matching\Domain\Exceptions\SwipeQuotaExceededException;
 use App\Modules\Matching\Domain\Repositories\PetMatchRepositoryInterface;
 use App\Modules\Matching\Domain\Repositories\SwipeRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
@@ -26,6 +28,7 @@ final class RecordSwipeHandler
         private readonly SwipeRepositoryInterface $swipes,
         private readonly PetMatchRepositoryInterface $matches,
         private readonly DomainEventDispatcherInterface $events,
+        private readonly SubscriptionFeatureGateInterface $featureGate,
     ) {}
 
     public function handle(RecordSwipeCommand $command): RecordSwipeResult
@@ -59,6 +62,16 @@ final class RecordSwipeHandler
         }
 
         $action = SwipeAction::from($command->action);
+
+        $featureKey = match ($action) {
+            SwipeAction::Like => 'daily_like',
+            SwipeAction::SuperLike => 'super_like',
+            SwipeAction::Dislike => null,
+        };
+
+        if ($featureKey !== null && ! $this->featureGate->consume($actingUserId, $featureKey)) {
+            throw SwipeQuotaExceededException::for($action);
+        }
 
         $this->swipes->record(new Swipe($swiperPetId, $targetPetId, $action, new DateTimeImmutable));
 

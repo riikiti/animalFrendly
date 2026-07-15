@@ -34,6 +34,7 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 'description' => $pet->description(),
                 'is_vaccinated' => $pet->isVaccinated(),
                 'status' => $pet->status()->value,
+                'boosted_until' => $pet->boostedUntil(),
             ],
         );
     }
@@ -66,6 +67,7 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 ->where('status', 'active')
                 ->where('owner_id', '!=', $excludeOwnerId->toString())
                 ->when($excludeIdStrings !== [], fn ($query) => $query->whereNotIn('id', $excludeIdStrings))
+                ->orderByRaw('CASE WHEN boosted_until IS NOT NULL AND boosted_until > ? THEN 0 ELSE 1 END', [now()])
                 ->orderByDesc('created_at')
                 ->limit($limit)
                 ->get()
@@ -88,6 +90,7 @@ final class EloquentPetRepository implements PetRepositoryInterface
             description: $model->description,
             isVaccinated: $model->is_vaccinated,
             status: PetStatus::from($model->status),
+            boostedUntil: $model->boosted_until?->toDateTimeImmutable(),
         );
     }
 }

@@ -18,8 +18,13 @@ final class InitiatePaymentService
         private readonly YookassaClientInterface $client,
     ) {}
 
-    public function initiate(string $payableType, Id $payableId, Money $amount, string $returnUrl): InitiatePaymentResult
-    {
+    public function initiate(
+        string $payableType,
+        Id $payableId,
+        Money $amount,
+        string $returnUrl,
+        bool $savePaymentMethod = false,
+    ): InitiatePaymentResult {
         $idempotencyKey = "{$payableId->toString()}:create";
 
         $payment = Payment::create($this->payments->nextIdentity(), $payableType, $payableId, $amount, $idempotencyKey);
@@ -30,6 +35,7 @@ final class InitiatePaymentService
             "Оплата заказа {$payableId->toString()} — AnimalFriendly",
             $returnUrl,
             $idempotencyKey,
+            $savePaymentMethod,
         );
 
         $yookassaPaymentId = $response['id'] ?? null;
