@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 it('stores an uploaded image and creates a media record', function (): void {
-    Storage::fake('local');
+    Storage::fake('public');
 
     $ownerId = Id::generate();
     $file = UploadedFile::fake()->image('cat.jpg', 100, 100)->size(50);
@@ -26,11 +26,11 @@ it('stores an uploaded image and creates a media record', function (): void {
     expect($result->mimeType())->toBe('image/jpeg')
         ->and($result->ownerUserId()->equals($ownerId))->toBeTrue();
 
-    Storage::disk('local')->assertExists($result->path());
+    Storage::disk('public')->assertExists($result->path());
 });
 
 it('rejects unsupported mime types', function (): void {
-    Storage::fake('local');
+    Storage::fake('public');
 
     $file = UploadedFile::fake()->create('doc.pdf', 10, 'application/pdf');
 
@@ -42,7 +42,7 @@ it('rejects unsupported mime types', function (): void {
 })->throws(InvalidMediaUploadException::class);
 
 it('rejects files larger than the configured limit', function (): void {
-    Storage::fake('local');
+    Storage::fake('public');
     config(['media.max_size_kb' => 100]);
 
     $file = UploadedFile::fake()->image('cat.jpg')->size(200);

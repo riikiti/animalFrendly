@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Modules\Notification\Application\Contracts\UserEmailLookupInterface;
 use App\Modules\Notification\Application\Services\NotificationDispatcher;
 use App\Modules\Notification\Domain\Entities\Notification;
+use App\Modules\Notification\Domain\Repositories\DeviceTokenRepositoryInterface;
 use App\Modules\Notification\Domain\Repositories\NotificationRepositoryInterface;
 use App\Modules\Notification\Infrastructure\Listeners\NotifyOnAdoptionRequestApproved;
 use App\Modules\Shelter\Domain\Entities\AdoptionRequest;
@@ -25,6 +27,12 @@ it('notifies the requester when the adoption request is approved', function (): 
         fn (Notification $n) => $n->userId()->equals($requesterId),
     ));
 
-    $listener = new NotifyOnAdoptionRequestApproved($requests, new NotificationDispatcher($notifications));
+    $deviceTokens = Mockery::mock(DeviceTokenRepositoryInterface::class);
+    $deviceTokens->shouldReceive('findByUser')->once()->andReturn([]);
+
+    $emailLookup = Mockery::mock(UserEmailLookupInterface::class);
+    $emailLookup->shouldReceive('emailFor')->once()->andReturn(null);
+
+    $listener = new NotifyOnAdoptionRequestApproved($requests, new NotificationDispatcher($notifications, $deviceTokens, $emailLookup));
     $listener->handle(new AdoptionRequestApproved($requestId, new DateTimeImmutable));
 });

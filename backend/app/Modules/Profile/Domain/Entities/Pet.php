@@ -25,7 +25,6 @@ final class Pet
         private readonly bool $isVaccinated,
         private PetStatus $status,
         private ?DateTimeImmutable $boostedUntil,
-        private ?Id $photoMediaId,
         private ?string $photoUrl,
     ) {}
 
@@ -61,7 +60,6 @@ final class Pet
             PetStatus::Active,
             null,
             null,
-            null,
         );
     }
 
@@ -78,7 +76,6 @@ final class Pet
         bool $isVaccinated,
         PetStatus $status,
         ?DateTimeImmutable $boostedUntil = null,
-        ?Id $photoMediaId = null,
         ?string $photoUrl = null,
     ): self {
         return new self(
@@ -94,7 +91,6 @@ final class Pet
             $isVaccinated,
             $status,
             $boostedUntil,
-            $photoMediaId,
             $photoUrl,
         );
     }
@@ -174,21 +170,14 @@ final class Pet
         return $this->boostedUntil !== null && $this->boostedUntil > new DateTimeImmutable;
     }
 
-    public function setPhoto(Id $mediaId, string $url): void
+    public function setPhoto(string $url): void
     {
-        $this->photoMediaId = $mediaId;
         $this->photoUrl = $url;
     }
 
     public function removePhoto(): void
     {
-        $this->photoMediaId = null;
         $this->photoUrl = null;
-    }
-
-    public function photoMediaId(): ?Id
-    {
-        return $this->photoMediaId;
     }
 
     public function photoUrl(): ?string

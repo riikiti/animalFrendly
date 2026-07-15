@@ -35,7 +35,6 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 'is_vaccinated' => $pet->isVaccinated(),
                 'status' => $pet->status()->value,
                 'boosted_until' => $pet->boostedUntil(),
-                'photo_media_id' => $pet->photoMediaId()?->toString(),
                 'photo_url' => $pet->photoUrl(),
             ],
         );
@@ -93,7 +92,6 @@ final class EloquentPetRepository implements PetRepositoryInterface
             isVaccinated: $model->is_vaccinated,
             status: PetStatus::from($model->status),
             boostedUntil: $model->boosted_until?->toDateTimeImmutable(),
-            photoMediaId: $model->photo_media_id !== null ? Id::fromString($model->photo_media_id) : null,
             photoUrl: $model->photo_url,
         );
     }

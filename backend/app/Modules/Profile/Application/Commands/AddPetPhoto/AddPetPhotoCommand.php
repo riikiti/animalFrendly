@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Profile\Application\Commands\SetPetPhoto;
+namespace App\Modules\Profile\Application\Commands\AddPetPhoto;
 
 use Illuminate\Http\UploadedFile;
 
-final class SetPetPhotoCommand
+final class AddPetPhotoCommand
 {
     public function __construct(
         public readonly string $petId,

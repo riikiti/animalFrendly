@@ -8,6 +8,7 @@ final class RemovePetPhotoCommand
 {
     public function __construct(
         public readonly string $petId,
+        public readonly string $photoId,
         public readonly string $actingUserId,
     ) {}
 }

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Modules\Matching\Domain\Events\PetsMatched;
+use App\Modules\Notification\Application\Contracts\UserEmailLookupInterface;
 use App\Modules\Notification\Application\Services\NotificationDispatcher;
 use App\Modules\Notification\Domain\Entities\Notification;
+use App\Modules\Notification\Domain\Repositories\DeviceTokenRepositoryInterface;
 use App\Modules\Notification\Domain\Repositories\NotificationRepositoryInterface;
 use App\Modules\Notification\Infrastructure\Listeners\NotifyOnPetsMatched;
 use App\Modules\Profile\Domain\Entities\Pet;
@@ -29,6 +31,12 @@ it('notifies both pet owners about a new match', function (): void {
         fn (Notification $n) => $n->userId()->equals($ownerA) || $n->userId()->equals($ownerB),
     ));
 
-    $listener = new NotifyOnPetsMatched($pets, new NotificationDispatcher($notifications));
+    $deviceTokens = Mockery::mock(DeviceTokenRepositoryInterface::class);
+    $deviceTokens->shouldReceive('findByUser')->twice()->andReturn([]);
+
+    $emailLookup = Mockery::mock(UserEmailLookupInterface::class);
+    $emailLookup->shouldReceive('emailFor')->twice()->andReturn(null);
+
+    $listener = new NotifyOnPetsMatched($pets, new NotificationDispatcher($notifications, $deviceTokens, $emailLookup));
     $listener->handle(new PetsMatched(Id::generate(), $petA->id(), $petB->id(), new DateTimeImmutable));
 });

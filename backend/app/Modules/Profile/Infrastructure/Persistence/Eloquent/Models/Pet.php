@@ -32,7 +32,6 @@ final class Pet extends Model
         'is_vaccinated',
         'status',
         'boosted_until',
-        'photo_media_id',
         'photo_url',
     ];
 

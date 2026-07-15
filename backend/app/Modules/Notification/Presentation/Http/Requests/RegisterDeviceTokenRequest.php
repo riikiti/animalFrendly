@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Profile\Presentation\Http\Requests;
+namespace App\Modules\Notification\Presentation\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class SetPetPhotoRequest extends FormRequest
+final class RegisterDeviceTokenRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,8 @@ final class SetPetPhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'photo' => ['required', 'file', 'image', 'max:5120'],
+            'platform' => ['required', 'string', 'in:android,ios'],
+            'fcm_token' => ['required', 'string', 'max:255'],
         ];
     }
 }

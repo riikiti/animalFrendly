@@ -10,4 +10,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function (): void {
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('/notifications/{notificationId}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('/notifications/device-tokens', [NotificationController::class, 'registerDeviceToken']);
+    Route::delete('/notifications/device-tokens/{fcmToken}', [NotificationController::class, 'unregisterDeviceToken']);
 });

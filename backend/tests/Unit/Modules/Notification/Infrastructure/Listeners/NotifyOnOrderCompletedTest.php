@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Modules\Marketplace\Domain\Events\OrderCompleted;
+use App\Modules\Notification\Application\Contracts\UserEmailLookupInterface;
 use App\Modules\Notification\Application\Services\NotificationDispatcher;
 use App\Modules\Notification\Domain\Entities\Notification;
+use App\Modules\Notification\Domain\Repositories\DeviceTokenRepositoryInterface;
 use App\Modules\Notification\Domain\Repositories\NotificationRepositoryInterface;
 use App\Modules\Notification\Infrastructure\Listeners\NotifyOnOrderCompleted;
 use App\Shared\Domain\ValueObjects\Id;
@@ -19,6 +21,12 @@ it('notifies the seller when the order is completed', function (): void {
         fn (Notification $n) => $n->userId()->equals($sellerId),
     ));
 
-    $listener = new NotifyOnOrderCompleted(new NotificationDispatcher($notifications));
+    $deviceTokens = Mockery::mock(DeviceTokenRepositoryInterface::class);
+    $deviceTokens->shouldReceive('findByUser')->once()->andReturn([]);
+
+    $emailLookup = Mockery::mock(UserEmailLookupInterface::class);
+    $emailLookup->shouldReceive('emailFor')->once()->andReturn(null);
+
+    $listener = new NotifyOnOrderCompleted(new NotificationDispatcher($notifications, $deviceTokens, $emailLookup));
     $listener->handle(new OrderCompleted(Id::generate(), $sellerId, Money::fromMinorUnits(100_000), new DateTimeImmutable));
 });
