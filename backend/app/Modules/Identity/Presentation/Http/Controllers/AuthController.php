@@ -8,6 +8,7 @@ use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserC
 use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserHandler;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserCommand;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserHandler;
+use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
 use App\Modules\Identity\Domain\Exceptions\InvalidCredentialsException;
 use App\Modules\Identity\Domain\Exceptions\PhoneAlreadyRegisteredException;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as EloquentUser;
@@ -49,6 +50,8 @@ final class AuthController
             ));
         } catch (InvalidCredentialsException $e) {
             return response()->json(['message' => $e->getMessage()], 401);
+        } catch (AccountBlockedException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
         }
 
         $model = EloquentUser::query()->findOrFail($user->id()->toString());

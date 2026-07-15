@@ -19,4 +19,10 @@ interface UserRepositoryInterface
     public function findById(Id $id): ?User;
 
     public function findByPhone(PhoneNumber $phone): ?User;
+
+    /**
+     * Отзывает все выданные Sanctum-токены пользователя — используется при бане, чтобы
+     * доступ прекращался немедленно, а не только блокировал последующие входы.
+     */
+    public function revokeAllTokens(Id $userId): void;
 }

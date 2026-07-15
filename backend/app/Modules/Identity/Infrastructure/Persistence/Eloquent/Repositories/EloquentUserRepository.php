@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Infrastructure\Persistence\Eloquent\Repositories;
 
 use App\Modules\Identity\Domain\Entities\User as DomainUser;
 use App\Modules\Identity\Domain\Enums\AccountType;
+use App\Modules\Identity\Domain\Enums\UserStatus;
 use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Domain\ValueObjects\PhoneNumber;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as EloquentUser;
@@ -32,8 +33,14 @@ final class EloquentUserRepository implements UserRepositoryInterface
                 'password_hash' => $user->passwordHash(),
                 'account_type' => $user->accountType()->value,
                 'personal_data_consent_at' => $user->personalDataConsentAt(),
+                'status' => $user->status()->value,
             ],
         );
+    }
+
+    public function revokeAllTokens(Id $userId): void
+    {
+        EloquentUser::query()->find($userId->toString())?->tokens()->delete();
     }
 
     public function findById(Id $id): ?DomainUser
@@ -58,6 +65,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
             passwordHash: $model->password_hash,
             accountType: AccountType::from($model->account_type),
             personalDataConsentAt: $model->personal_data_consent_at->toDateTimeImmutable(),
+            status: UserStatus::from($model->status),
         );
     }
 }

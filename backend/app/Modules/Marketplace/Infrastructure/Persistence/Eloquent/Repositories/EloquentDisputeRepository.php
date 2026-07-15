@@ -46,6 +46,11 @@ final class EloquentDisputeRepository implements DisputeRepositoryInterface
         return $model ? $this->toDomain($model) : null;
     }
 
+    public function countOpen(): int
+    {
+        return EloquentDispute::query()->whereNull('resolved_at')->count();
+    }
+
     private function toDomain(EloquentDispute $model): DomainDispute
     {
         return DomainDispute::reconstitute(

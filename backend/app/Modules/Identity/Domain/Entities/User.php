@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Domain\Entities;
 
 use App\Modules\Identity\Domain\Enums\AccountType;
+use App\Modules\Identity\Domain\Enums\UserStatus;
 use App\Modules\Identity\Domain\Exceptions\PersonalDataConsentRequiredException;
 use App\Modules\Identity\Domain\ValueObjects\PhoneNumber;
 use App\Shared\Domain\ValueObjects\Id;
@@ -18,6 +19,7 @@ final class User
         private readonly string $passwordHash,
         private readonly AccountType $accountType,
         private readonly DateTimeImmutable $personalDataConsentAt,
+        private UserStatus $status,
     ) {}
 
     /**
@@ -34,7 +36,7 @@ final class User
             throw PersonalDataConsentRequiredException::create();
         }
 
-        return new self($id, $phone, $passwordHash, $accountType, new DateTimeImmutable);
+        return new self($id, $phone, $passwordHash, $accountType, new DateTimeImmutable, UserStatus::Active);
     }
 
     public static function reconstitute(
@@ -43,8 +45,9 @@ final class User
         string $passwordHash,
         AccountType $accountType,
         DateTimeImmutable $personalDataConsentAt,
+        UserStatus $status = UserStatus::Active,
     ): self {
-        return new self($id, $phone, $passwordHash, $accountType, $personalDataConsentAt);
+        return new self($id, $phone, $passwordHash, $accountType, $personalDataConsentAt, $status);
     }
 
     public function id(): Id
@@ -70,5 +73,25 @@ final class User
     public function personalDataConsentAt(): DateTimeImmutable
     {
         return $this->personalDataConsentAt;
+    }
+
+    public function status(): UserStatus
+    {
+        return $this->status;
+    }
+
+    public function block(): void
+    {
+        $this->status = UserStatus::Blocked;
+    }
+
+    public function unblock(): void
+    {
+        $this->status = UserStatus::Active;
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->status === UserStatus::Blocked;
     }
 }

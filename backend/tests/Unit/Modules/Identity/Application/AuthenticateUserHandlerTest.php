@@ -6,6 +6,7 @@ use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserC
 use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserHandler;
 use App\Modules\Identity\Domain\Entities\User;
 use App\Modules\Identity\Domain\Enums\AccountType;
+use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
 use App\Modules\Identity\Domain\Exceptions\InvalidCredentialsException;
 use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Domain\ValueObjects\PhoneNumber;
@@ -65,3 +66,24 @@ it('rejects authentication when the password is wrong', function (): void {
 
     $handler->handle(new AuthenticateUserCommand('+79261234567', 'wrong-password'));
 })->throws(InvalidCredentialsException::class);
+
+it('rejects authentication for a blocked account', function (): void {
+    $existingUser = User::register(
+        id: Id::generate(),
+        phone: PhoneNumber::fromString('+79261234567'),
+        passwordHash: 'hashed',
+        accountType: AccountType::Owner,
+        personalDataConsentGiven: true,
+    );
+    $existingUser->block();
+
+    $users = Mockery::mock(UserRepositoryInterface::class);
+    $users->shouldReceive('findByPhone')->once()->andReturn($existingUser);
+
+    $hasher = Mockery::mock(Hasher::class);
+    $hasher->shouldReceive('check')->once()->andReturn(true);
+
+    $handler = new AuthenticateUserHandler($users, $hasher);
+
+    $handler->handle(new AuthenticateUserCommand('+79261234567', 'correct-password'));
+})->throws(AccountBlockedException::class);

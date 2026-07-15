@@ -19,4 +19,6 @@ interface ShelterRepositoryInterface
      * @return list<Shelter>
      */
     public function findByOwnerUserId(Id $ownerUserId): array;
+
+    public function countPendingVerification(): int;
 }

@@ -16,4 +16,6 @@ interface DisputeRepositoryInterface
     public function findById(Id $id): ?Dispute;
 
     public function findByOrderId(Id $orderId): ?Dispute;
+
+    public function countOpen(): int;
 }

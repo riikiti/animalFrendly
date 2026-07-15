@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\Commands\AuthenticateUser;
 
 use App\Modules\Identity\Domain\Entities\User;
+use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
 use App\Modules\Identity\Domain\Exceptions\InvalidCredentialsException;
 use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Domain\ValueObjects\PhoneNumber;
@@ -24,6 +25,10 @@ final class AuthenticateUserHandler
 
         if ($user === null || ! $this->hasher->check($command->password, $user->passwordHash())) {
             throw InvalidCredentialsException::create();
+        }
+
+        if ($user->isBlocked()) {
+            throw AccountBlockedException::create();
         }
 
         return $user;

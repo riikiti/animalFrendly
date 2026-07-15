@@ -64,3 +64,18 @@ it('returns the authenticated user from /me and revokes the token on logout', fu
 it('rejects unauthenticated access to /me', function (): void {
     $this->getJson('/api/v1/auth/me')->assertUnauthorized();
 });
+
+it('rejects login for a blocked account', function (): void {
+    User::factory()->create([
+        'phone' => '+79261234567',
+        'password_hash' => Hash::make('correct-password'),
+        'status' => 'blocked',
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/login', [
+        'phone' => '+79261234567',
+        'password' => 'correct-password',
+    ]);
+
+    $response->assertForbidden();
+});
