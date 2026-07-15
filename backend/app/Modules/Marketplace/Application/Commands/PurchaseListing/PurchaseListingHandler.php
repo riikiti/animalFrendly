@@ -6,12 +6,15 @@ namespace App\Modules\Marketplace\Application\Commands\PurchaseListing;
 
 use App\Modules\Marketplace\Application\Contracts\PaymentGatewayInterface;
 use App\Modules\Marketplace\Domain\Entities\Order;
+use App\Modules\Marketplace\Domain\Events\ListingStatusChanged;
 use App\Modules\Marketplace\Domain\Exceptions\CannotPurchaseOwnListingException;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotAvailableException;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotFoundException;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Marketplace\Domain\Repositories\OrderRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class PurchaseListingHandler
@@ -20,6 +23,7 @@ final class PurchaseListingHandler
         private readonly ListingRepositoryInterface $listings,
         private readonly OrderRepositoryInterface $orders,
         private readonly PaymentGatewayInterface $paymentGateway,
+        private readonly DomainEventDispatcherInterface $events,
     ) {}
 
     public function handle(PurchaseListingCommand $command): PurchaseListingResult
@@ -51,6 +55,7 @@ final class PurchaseListingHandler
 
             $listing->reserve();
             $this->listings->save($listing);
+            $this->events->dispatch(new ListingStatusChanged($listing->id(), $listing->status(), new DateTimeImmutable));
             $this->orders->save($order, $buyerId, 'order_created');
 
             $returnUrl = rtrim((string) config('yookassa.frontend_url'), '/')."/orders/{$order->id()->toString()}";

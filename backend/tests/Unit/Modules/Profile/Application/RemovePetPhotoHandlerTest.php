@@ -12,6 +12,7 @@ use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\PetPhotoNotFoundException;
 use App\Modules\Profile\Domain\Repositories\PetPhotoRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 function makeRemoveTestPet(Id $id, Id $ownerId, ?string $photoUrl = null): Pet
@@ -51,7 +52,10 @@ it('removes a non-cover photo without touching the pet cover', function (): void
     $photos->shouldReceive('findById')->once()->andReturn($photo);
     $photos->shouldReceive('delete')->once()->with(Mockery::on(fn (Id $id) => $id->equals($photoId)));
 
-    $handler = new RemovePetPhotoHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldNotReceive('dispatch');
+
+    $handler = new RemovePetPhotoHandler($pets, $photos, $events);
     $handler->handle(new RemovePetPhotoCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 
     expect($pet->photoUrl())->toBe('https://cdn.example/cover.jpg');
@@ -75,7 +79,10 @@ it('promotes the next photo to cover when the cover photo is removed', function 
     $photos->shouldReceive('findByPetId')->once()->andReturn([$nextPhoto]);
     $photos->shouldReceive('save')->once()->with(Mockery::on(fn (PetPhoto $p) => $p->isPrimary() === true));
 
-    $handler = new RemovePetPhotoHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new RemovePetPhotoHandler($pets, $photos, $events);
     $handler->handle(new RemovePetPhotoCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 });
 
@@ -95,7 +102,10 @@ it('clears the pet cover when the last photo is removed', function (): void {
     $photos->shouldReceive('delete')->once();
     $photos->shouldReceive('findByPetId')->once()->andReturn([]);
 
-    $handler = new RemovePetPhotoHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new RemovePetPhotoHandler($pets, $photos, $events);
     $handler->handle(new RemovePetPhotoCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 });
 
@@ -108,8 +118,9 @@ it('rejects removing a photo the actor does not own', function (): void {
     $pets->shouldReceive('findById')->once()->andReturn($pet);
 
     $photos = Mockery::mock(PetPhotoRepositoryInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new RemovePetPhotoHandler($pets, $photos);
+    $handler = new RemovePetPhotoHandler($pets, $photos, $events);
     $handler->handle(new RemovePetPhotoCommand($petId->toString(), $photoId->toString(), Id::generate()->toString()));
 })->throws(PetNotOwnedByActorException::class);
 
@@ -125,6 +136,8 @@ it('rejects removing a photo that does not belong to the pet', function (): void
     $photos = Mockery::mock(PetPhotoRepositoryInterface::class);
     $photos->shouldReceive('findById')->once()->andReturn(null);
 
-    $handler = new RemovePetPhotoHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new RemovePetPhotoHandler($pets, $photos, $events);
     $handler->handle(new RemovePetPhotoCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 })->throws(PetPhotoNotFoundException::class);

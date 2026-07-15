@@ -34,6 +34,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
                 'account_type' => $user->accountType()->value,
                 'personal_data_consent_at' => $user->personalDataConsentAt(),
                 'status' => $user->status()->value,
+                'address' => $user->address(),
+                'city' => $user->city(),
+                'latitude' => $user->latitude(),
+                'longitude' => $user->longitude(),
             ],
         );
     }
@@ -66,6 +70,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
             accountType: AccountType::from($model->account_type),
             personalDataConsentAt: $model->personal_data_consent_at->toDateTimeImmutable(),
             status: UserStatus::from($model->status),
+            address: $model->address,
+            city: $model->city,
+            latitude: $model->latitude,
+            longitude: $model->longitude,
         );
     }
 }

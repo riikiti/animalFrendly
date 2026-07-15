@@ -11,6 +11,7 @@ use App\Modules\Moderation\Infrastructure\Providers\ModerationServiceProvider;
 use App\Modules\Notification\Infrastructure\Providers\NotificationServiceProvider;
 use App\Modules\Payment\Infrastructure\Providers\PaymentServiceProvider;
 use App\Modules\Profile\Infrastructure\Providers\ProfileServiceProvider;
+use App\Modules\Search\Infrastructure\Providers\SearchServiceProvider;
 use App\Modules\Shelter\Infrastructure\Providers\ShelterServiceProvider;
 use App\Modules\Subscription\Infrastructure\Providers\SubscriptionServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -30,6 +31,7 @@ return [
     PaymentServiceProvider::class,
     SubscriptionServiceProvider::class,
     NotificationServiceProvider::class,
+    SearchServiceProvider::class,
     ModerationServiceProvider::class,
     AdminServiceProvider::class,
 ];

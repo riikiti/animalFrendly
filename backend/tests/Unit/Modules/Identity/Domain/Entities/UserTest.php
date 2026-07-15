@@ -52,3 +52,31 @@ it('registers a user as active and can be blocked/unblocked', function (): void 
     expect($user->isBlocked())->toBeFalse()
         ->and($user->status())->toBe(UserStatus::Active);
 });
+
+it('has no location by default and can have it set/cleared', function (): void {
+    $user = User::register(
+        id: Id::generate(),
+        phone: PhoneNumber::fromString('+79261234567'),
+        passwordHash: 'hashed-password',
+        accountType: AccountType::Owner,
+        personalDataConsentGiven: true,
+    );
+
+    expect($user->address())->toBeNull()
+        ->and($user->city())->toBeNull()
+        ->and($user->hasCoordinates())->toBeFalse();
+
+    $user->setLocation('Москва, ул. Тверская, 1', 'Москва', 55.755, 37.617);
+
+    expect($user->address())->toBe('Москва, ул. Тверская, 1')
+        ->and($user->city())->toBe('Москва')
+        ->and($user->latitude())->toBe(55.755)
+        ->and($user->longitude())->toBe(37.617)
+        ->and($user->hasCoordinates())->toBeTrue();
+
+    $user->setLocation('Новый адрес без координат', null, null, null);
+
+    expect($user->address())->toBe('Новый адрес без координат')
+        ->and($user->city())->toBeNull()
+        ->and($user->hasCoordinates())->toBeFalse();
+});

@@ -8,12 +8,15 @@ use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserC
 use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserHandler;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserCommand;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserHandler;
+use App\Modules\Identity\Application\Commands\UpdateUserAddress\UpdateUserAddressCommand;
+use App\Modules\Identity\Application\Commands\UpdateUserAddress\UpdateUserAddressHandler;
 use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
 use App\Modules\Identity\Domain\Exceptions\InvalidCredentialsException;
 use App\Modules\Identity\Domain\Exceptions\PhoneAlreadyRegisteredException;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as EloquentUser;
 use App\Modules\Identity\Presentation\Http\Requests\LoginRequest;
 use App\Modules\Identity\Presentation\Http\Requests\RegisterRequest;
+use App\Modules\Identity\Presentation\Http\Requests\UpdateProfileRequest;
 use App\Modules\Identity\Presentation\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,5 +81,23 @@ final class AuthController
     public function me(Request $request): UserResource
     {
         return new UserResource($request->user());
+    }
+
+    public function updateProfile(
+        UpdateProfileRequest $request,
+        UpdateUserAddressHandler $handler,
+    ): UserResource {
+        $user = $request->user();
+
+        if (! $user instanceof EloquentUser) {
+            abort(401);
+        }
+
+        $handler->handle(new UpdateUserAddressCommand(
+            userId: $user->id,
+            address: $request->string('address')->toString() ?: null,
+        ));
+
+        return new UserResource($user->fresh());
     }
 }

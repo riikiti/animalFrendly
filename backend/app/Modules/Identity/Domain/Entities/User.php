@@ -20,6 +20,10 @@ final class User
         private readonly AccountType $accountType,
         private readonly DateTimeImmutable $personalDataConsentAt,
         private UserStatus $status,
+        private ?string $address = null,
+        private ?string $city = null,
+        private ?float $latitude = null,
+        private ?float $longitude = null,
     ) {}
 
     /**
@@ -46,8 +50,23 @@ final class User
         AccountType $accountType,
         DateTimeImmutable $personalDataConsentAt,
         UserStatus $status = UserStatus::Active,
+        ?string $address = null,
+        ?string $city = null,
+        ?float $latitude = null,
+        ?float $longitude = null,
     ): self {
-        return new self($id, $phone, $passwordHash, $accountType, $personalDataConsentAt, $status);
+        return new self(
+            $id,
+            $phone,
+            $passwordHash,
+            $accountType,
+            $personalDataConsentAt,
+            $status,
+            $address,
+            $city,
+            $latitude,
+            $longitude,
+        );
     }
 
     public function id(): Id
@@ -93,5 +112,42 @@ final class User
     public function isBlocked(): bool
     {
         return $this->status === UserStatus::Blocked;
+    }
+
+    public function address(): ?string
+    {
+        return $this->address;
+    }
+
+    public function city(): ?string
+    {
+        return $this->city;
+    }
+
+    public function latitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function longitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function hasCoordinates(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
+    }
+
+    /**
+     * Город и координаты приходят из геокодера вместе с адресом и всегда согласованы —
+     * отдельных сеттеров на каждое поле нет, чтобы нельзя было выставить город без адреса.
+     */
+    public function setLocation(?string $address, ?string $city, ?float $latitude, ?float $longitude): void
+    {
+        $this->address = $address;
+        $this->city = $city;
+        $this->latitude = $latitude;
+        $this->longitude = $longitude;
     }
 }

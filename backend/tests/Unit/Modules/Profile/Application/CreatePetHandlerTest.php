@@ -11,6 +11,7 @@ use App\Modules\Profile\Application\Commands\CreatePet\CreatePetHandler;
 use App\Modules\Profile\Domain\Exceptions\BreedDoesNotBelongToSpeciesException;
 use App\Modules\Profile\Domain\Exceptions\SpeciesNotFoundException;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 function makeCreatePetCommand(array $overrides = []): CreatePetCommand
@@ -41,7 +42,10 @@ it('creates a pet for a valid species', function (): void {
     $breeds = Mockery::mock(BreedRepositoryInterface::class);
     $breeds->shouldNotReceive('findById');
 
-    $handler = new CreatePetHandler($pets, $species, $breeds);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
     $pet = $handler->handle(makeCreatePetCommand());
 
     expect($pet->name())->toBe('Рекс');
@@ -56,7 +60,9 @@ it('rejects an unknown species', function (): void {
 
     $breeds = Mockery::mock(BreedRepositoryInterface::class);
 
-    $handler = new CreatePetHandler($pets, $species, $breeds);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
     $handler->handle(makeCreatePetCommand(['speciesId' => 999]));
 })->throws(SpeciesNotFoundException::class);
 
@@ -74,6 +80,8 @@ it('rejects a breed that does not belong to the given species', function (): voi
         new Breed(id: 10, speciesId: 2, slug: 'siamese', nameRu: 'Сиамская', attributes: [], isActive: true),
     );
 
-    $handler = new CreatePetHandler($pets, $species, $breeds);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
     $handler->handle(makeCreatePetCommand(['speciesId' => 1, 'breedId' => 10]));
 })->throws(BreedDoesNotBelongToSpeciesException::class);

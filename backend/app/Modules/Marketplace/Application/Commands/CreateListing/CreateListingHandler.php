@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Marketplace\Application\Commands\CreateListing;
 
 use App\Modules\Marketplace\Domain\Entities\Listing;
+use App\Modules\Marketplace\Domain\Events\ListingStatusChanged;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Profile\Application\Commands\CreatePet\CreatePetCommand;
 use App\Modules\Profile\Application\Commands\CreatePet\CreatePetHandler;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 use App\Shared\Domain\ValueObjects\Money;
+use DateTimeImmutable;
 
 /**
  * Как и PublishShelterAnimalHandler, создание листинга — это (1) анкета питомца в Profile
@@ -21,6 +24,7 @@ final class CreateListingHandler
     public function __construct(
         private readonly ListingRepositoryInterface $listings,
         private readonly CreatePetHandler $createPet,
+        private readonly DomainEventDispatcherInterface $events,
     ) {}
 
     public function handle(CreateListingCommand $command): CreateListingResult
@@ -45,6 +49,7 @@ final class CreateListingHandler
         );
 
         $this->listings->save($listing);
+        $this->events->dispatch(new ListingStatusChanged($listing->id(), $listing->status(), new DateTimeImmutable));
 
         return new CreateListingResult($listing, $pet);
     }

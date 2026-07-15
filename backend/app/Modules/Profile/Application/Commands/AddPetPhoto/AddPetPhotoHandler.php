@@ -6,12 +6,15 @@ namespace App\Modules\Profile\Application\Commands\AddPetPhoto;
 
 use App\Modules\Profile\Application\Contracts\MediaUploaderInterface;
 use App\Modules\Profile\Domain\Entities\PetPhoto;
+use App\Modules\Profile\Domain\Events\PetSaved;
 use App\Modules\Profile\Domain\Exceptions\PetNotFoundException;
 use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\TooManyPetPhotosException;
 use App\Modules\Profile\Domain\Repositories\PetPhotoRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
+use DateTimeImmutable;
 
 final class AddPetPhotoHandler
 {
@@ -21,6 +24,7 @@ final class AddPetPhotoHandler
         private readonly PetRepositoryInterface $pets,
         private readonly PetPhotoRepositoryInterface $photos,
         private readonly MediaUploaderInterface $mediaUploader,
+        private readonly DomainEventDispatcherInterface $events,
     ) {}
 
     public function handle(AddPetPhotoCommand $command): PetPhoto
@@ -59,6 +63,7 @@ final class AddPetPhotoHandler
         if ($isPrimary) {
             $pet->setPhoto($uploaded->url);
             $this->pets->save($pet);
+            $this->events->dispatch(new PetSaved($petId, new DateTimeImmutable));
         }
 
         return $photo;

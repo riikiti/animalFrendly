@@ -14,6 +14,8 @@ use App\Modules\Chat\Application\Queries\ListMessages\ListMessagesHandler;
 use App\Modules\Chat\Application\Queries\ListMessages\ListMessagesQuery;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsHandler;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsQuery;
+use App\Modules\Chat\Application\Services\AdoptionRequestParticipantGuard;
+use App\Modules\Chat\Application\Services\MatchParticipantGuard;
 use App\Modules\Chat\Domain\Exceptions\AdoptionRequestNotFoundException;
 use App\Modules\Chat\Domain\Exceptions\ConversationAccessDeniedException;
 use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
@@ -21,7 +23,9 @@ use App\Modules\Chat\Domain\Exceptions\MatchNotFoundException;
 use App\Modules\Chat\Presentation\Http\Requests\StoreMessageRequest;
 use App\Modules\Chat\Presentation\Http\Resources\ConversationResource;
 use App\Modules\Chat\Presentation\Http\Resources\MessageResource;
+use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as IdentityUser;
+use App\Shared\Domain\ValueObjects\Id;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -38,38 +42,80 @@ final class ChatController
         string $matchId,
         Request $request,
         GetConversationForMatchHandler $handler,
+        MatchParticipantGuard $participantGuard,
+        UserRepositoryInterface $users,
     ): JsonResponse {
+        $actingUserId = Id::fromString($this->authenticatedUserId($request));
+
         try {
             $conversation = $handler->handle(new GetConversationForMatchQuery(
-                actingUserId: $this->authenticatedUserId($request),
+                actingUserId: $actingUserId->toString(),
                 matchId: $matchId,
             ));
+            $match = $participantGuard->assertParticipant(Id::fromString($matchId), $actingUserId);
         } catch (MatchNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (ConversationAccessDeniedException $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
 
-        return response()->json(['data' => new ConversationResource($conversation)]);
+        $counterpartId = $participantGuard->otherPetOwnerId($match, $actingUserId);
+
+        return response()->json(['data' => new ConversationResource([
+            'conversation' => $conversation,
+            ...$this->resolveCounterpartLocation($counterpartId, $users),
+        ])]);
     }
 
     public function conversationForAdoptionRequest(
         string $adoptionRequestId,
         Request $request,
         GetConversationForAdoptionRequestHandler $handler,
+        AdoptionRequestParticipantGuard $participantGuard,
+        UserRepositoryInterface $users,
     ): JsonResponse {
+        $actingUserId = Id::fromString($this->authenticatedUserId($request));
+
         try {
             $conversation = $handler->handle(new GetConversationForAdoptionRequestQuery(
-                actingUserId: $this->authenticatedUserId($request),
+                actingUserId: $actingUserId->toString(),
                 adoptionRequestId: $adoptionRequestId,
             ));
+            $adoptionRequest = $participantGuard->assertParticipant(Id::fromString($adoptionRequestId), $actingUserId);
         } catch (AdoptionRequestNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (ConversationAccessDeniedException $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
 
-        return response()->json(['data' => new ConversationResource($conversation)]);
+        $counterpartId = $participantGuard->otherParticipantId($adoptionRequest, $actingUserId);
+
+        return response()->json(['data' => new ConversationResource([
+            'conversation' => $conversation,
+            ...$this->resolveCounterpartLocation($counterpartId, $users),
+        ])]);
+    }
+
+    /**
+     * Точный адрес контрагента виден только участнику начатой беседы — до этого момента
+     * показывать домашний адрес незнакомому человеку небезопасно, см. Search-фазу.
+     *
+     * @return array{counterpart_address: ?string, counterpart_location: ?array{lat: float, lng: float}}
+     */
+    private function resolveCounterpartLocation(?Id $counterpartId, UserRepositoryInterface $users): array
+    {
+        $counterpart = $counterpartId !== null ? $users->findById($counterpartId) : null;
+
+        if ($counterpart === null || $counterpart->address() === null) {
+            return ['counterpart_address' => null, 'counterpart_location' => null];
+        }
+
+        return [
+            'counterpart_address' => $counterpart->address(),
+            'counterpart_location' => $counterpart->hasCoordinates()
+                ? ['lat' => (float) $counterpart->latitude(), 'lng' => (float) $counterpart->longitude()]
+                : null,
+        ];
     }
 
     public function messages(string $conversationId, Request $request, ListMessagesHandler $handler): JsonResponse

@@ -14,6 +14,7 @@ use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\TooManyPetPhotosException;
 use App\Modules\Profile\Domain\Repositories\PetPhotoRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 use Illuminate\Http\UploadedFile;
 
@@ -52,7 +53,10 @@ it('adds the first photo and makes it the cover', function (): void {
     $uploader->shouldReceive('upload')->once()
         ->andReturn(new UploadedMedia($mediaId->toString(), 'https://cdn.example/photo.jpg'));
 
-    $handler = new AddPetPhotoHandler($pets, $photos, $uploader);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new AddPetPhotoHandler($pets, $photos, $uploader, $events);
     $result = $handler->handle(new AddPetPhotoCommand(
         petId: $petId->toString(),
         actingUserId: $ownerId->toString(),
@@ -81,7 +85,10 @@ it('adds a second photo without changing the existing cover', function (): void 
     $uploader->shouldReceive('upload')->once()
         ->andReturn(new UploadedMedia(Id::generate()->toString(), 'https://cdn.example/second.jpg'));
 
-    $handler = new AddPetPhotoHandler($pets, $photos, $uploader);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldNotReceive('dispatch');
+
+    $handler = new AddPetPhotoHandler($pets, $photos, $uploader, $events);
     $result = $handler->handle(new AddPetPhotoCommand(
         petId: $petId->toString(),
         actingUserId: $ownerId->toString(),
@@ -106,7 +113,9 @@ it('rejects adding a photo once the limit is reached', function (): void {
     $uploader = Mockery::mock(MediaUploaderInterface::class);
     $uploader->shouldNotReceive('upload');
 
-    $handler = new AddPetPhotoHandler($pets, $photos, $uploader);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new AddPetPhotoHandler($pets, $photos, $uploader, $events);
     $handler->handle(new AddPetPhotoCommand(
         petId: $petId->toString(),
         actingUserId: $ownerId->toString(),
@@ -123,8 +132,9 @@ it('rejects adding a photo for a pet the actor does not own', function (): void 
 
     $photos = Mockery::mock(PetPhotoRepositoryInterface::class);
     $uploader = Mockery::mock(MediaUploaderInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new AddPetPhotoHandler($pets, $photos, $uploader);
+    $handler = new AddPetPhotoHandler($pets, $photos, $uploader, $events);
     $handler->handle(new AddPetPhotoCommand(
         petId: $petId->toString(),
         actingUserId: Id::generate()->toString(),

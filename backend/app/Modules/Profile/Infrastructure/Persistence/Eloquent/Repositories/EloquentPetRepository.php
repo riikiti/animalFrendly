@@ -77,6 +77,19 @@ final class EloquentPetRepository implements PetRepositoryInterface
         );
     }
 
+    public function findAllForReindex(?string $afterId, int $limit): array
+    {
+        return array_values(
+            EloquentPet::query()
+                ->when($afterId !== null, fn ($query) => $query->where('id', '>', $afterId))
+                ->orderBy('id')
+                ->limit($limit)
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentPet $model): DomainPet
     {
         return DomainPet::reconstitute(

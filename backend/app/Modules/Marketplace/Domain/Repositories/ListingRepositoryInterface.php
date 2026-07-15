@@ -24,4 +24,13 @@ interface ListingRepositoryInterface
      * @return list<Listing>
      */
     public function findBySeller(Id $sellerId): array;
+
+    /**
+     * Курсорная постраничная выборка всех листингов (любого статуса — переиндексация должна и
+     * удалять из индекса те, что больше не published), упорядоченная по id — используется
+     * полным реиндексом Search.
+     *
+     * @return list<Listing>
+     */
+    public function findAllForReindex(?string $afterId, int $limit): array;
 }

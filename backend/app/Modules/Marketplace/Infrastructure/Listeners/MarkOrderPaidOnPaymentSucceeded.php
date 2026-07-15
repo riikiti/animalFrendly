@@ -6,9 +6,12 @@ namespace App\Modules\Marketplace\Infrastructure\Listeners;
 
 use App\Modules\Marketplace\Application\Contracts\CommissionRateResolverInterface;
 use App\Modules\Marketplace\Domain\Enums\OrderStatus;
+use App\Modules\Marketplace\Domain\Events\ListingStatusChanged;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Marketplace\Domain\Repositories\OrderRepositoryInterface;
 use App\Modules\Payment\Domain\Events\PaymentSucceeded;
+use App\Shared\Application\DomainEventDispatcherInterface;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class MarkOrderPaidOnPaymentSucceeded
@@ -17,6 +20,7 @@ final class MarkOrderPaidOnPaymentSucceeded
         private readonly OrderRepositoryInterface $orders,
         private readonly ListingRepositoryInterface $listings,
         private readonly CommissionRateResolverInterface $commissionRates,
+        private readonly DomainEventDispatcherInterface $events,
     ) {}
 
     public function handle(PaymentSucceeded $event): void
@@ -44,6 +48,7 @@ final class MarkOrderPaidOnPaymentSucceeded
             if ($listing !== null) {
                 $listing->markSold();
                 $this->listings->save($listing);
+                $this->events->dispatch(new ListingStatusChanged($listing->id(), $listing->status(), new DateTimeImmutable));
             }
         });
     }

@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Автосписание за истёкшие периоды подписки, past_due-разбор, завершение отменённых
         // подписок, см. docs/plan/09-flow-subscriptions.md.
         $schedule->command('subscriptions:process-billing')->daily();
+
+        // Страховка от рассинхрона поискового индекса (адрес владельца изменился задним
+        // числом, событийная индексация могла быть пропущена и т.п.).
+        $schedule->command('search:reindex')->daily();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AssignRequestId::class);

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Marketplace\Application\Commands\CancelOrder;
 
 use App\Modules\Marketplace\Domain\Entities\Order;
+use App\Modules\Marketplace\Domain\Events\ListingStatusChanged;
 use App\Modules\Marketplace\Domain\Exceptions\NotOrderPartyException;
 use App\Modules\Marketplace\Domain\Exceptions\OrderNotFoundException;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Marketplace\Domain\Repositories\OrderRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class CancelOrderHandler
@@ -17,6 +20,7 @@ final class CancelOrderHandler
     public function __construct(
         private readonly OrderRepositoryInterface $orders,
         private readonly ListingRepositoryInterface $listings,
+        private readonly DomainEventDispatcherInterface $events,
     ) {}
 
     public function handle(CancelOrderCommand $command): Order
@@ -42,6 +46,7 @@ final class CancelOrderHandler
             if ($listing !== null) {
                 $listing->backToPublished();
                 $this->listings->save($listing);
+                $this->events->dispatch(new ListingStatusChanged($listing->id(), $listing->status(), new DateTimeImmutable));
             }
         });
 

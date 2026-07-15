@@ -13,6 +13,7 @@ use App\Modules\Marketplace\Domain\Exceptions\ListingNotAvailableException;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotFoundException;
 use App\Modules\Marketplace\Domain\Repositories\ListingRepositoryInterface;
 use App\Modules\Marketplace\Domain\Repositories\OrderRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 use App\Shared\Domain\ValueObjects\Money;
 
@@ -33,7 +34,10 @@ it('reserves the listing, creates a pending order and returns the gateway confir
     $gateway = Mockery::mock(PaymentGatewayInterface::class);
     $gateway->shouldReceive('initiate')->once()->andReturn(new PaymentInitiationResult('https://yookassa.ru/pay/123', 'yk-123'));
 
-    $handler = new PurchaseListingHandler($listings, $orders, $gateway);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new PurchaseListingHandler($listings, $orders, $gateway, $events);
     $result = $handler->handle(new PurchaseListingCommand($listing->id()->toString(), $buyerId->toString()));
 
     expect($result->confirmationUrl)->toBe('https://yookassa.ru/pay/123')
@@ -51,8 +55,9 @@ it('rejects purchasing your own listing', function (): void {
 
     $orders = Mockery::mock(OrderRepositoryInterface::class);
     $gateway = Mockery::mock(PaymentGatewayInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new PurchaseListingHandler($listings, $orders, $gateway);
+    $handler = new PurchaseListingHandler($listings, $orders, $gateway, $events);
     $handler->handle(new PurchaseListingCommand($listing->id()->toString(), $sellerId->toString()));
 })->throws(CannotPurchaseOwnListingException::class);
 
@@ -64,8 +69,9 @@ it('rejects purchasing a listing that is not published', function (): void {
 
     $orders = Mockery::mock(OrderRepositoryInterface::class);
     $gateway = Mockery::mock(PaymentGatewayInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new PurchaseListingHandler($listings, $orders, $gateway);
+    $handler = new PurchaseListingHandler($listings, $orders, $gateway, $events);
     $handler->handle(new PurchaseListingCommand($listing->id()->toString(), Id::generate()->toString()));
 })->throws(ListingNotAvailableException::class);
 
@@ -75,7 +81,8 @@ it('rejects purchasing a listing that does not exist', function (): void {
 
     $orders = Mockery::mock(OrderRepositoryInterface::class);
     $gateway = Mockery::mock(PaymentGatewayInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new PurchaseListingHandler($listings, $orders, $gateway);
+    $handler = new PurchaseListingHandler($listings, $orders, $gateway, $events);
     $handler->handle(new PurchaseListingCommand(Id::generate()->toString(), Id::generate()->toString()));
 })->throws(ListingNotFoundException::class);

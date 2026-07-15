@@ -29,6 +29,10 @@ final class User extends Authenticatable
         'status',
         'phone_verified_at',
         'personal_data_consent_at',
+        'address',
+        'city',
+        'latitude',
+        'longitude',
     ];
 
     protected $hidden = [
@@ -40,6 +44,8 @@ final class User extends Authenticatable
     protected $casts = [
         'phone_verified_at' => 'datetime',
         'personal_data_consent_at' => 'datetime',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     /**

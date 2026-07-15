@@ -47,6 +47,25 @@ it('rejects access to the conversation for someone who is not a participant', fu
     $this->getJson("/api/v1/matches/{$matchId}/conversation")->assertForbidden();
 });
 
+it('reveals the counterpart address to a match participant, never to strangers', function (): void {
+    [$ownerA, $ownerB, $matchId] = createMutualMatch();
+    $ownerB->forceFill([
+        'address' => 'Санкт-Петербург, Невский проспект, 1',
+        'latitude' => 59.93,
+        'longitude' => 30.36,
+    ])->save();
+
+    Sanctum::actingAs($ownerA);
+    $this->getJson("/api/v1/matches/{$matchId}/conversation")
+        ->assertOk()
+        ->assertJsonPath('data.counterpart_address', 'Санкт-Петербург, Невский проспект, 1')
+        ->assertJsonPath('data.counterpart_location.lat', 59.93)
+        ->assertJsonPath('data.counterpart_location.lng', 30.36);
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->getJson("/api/v1/matches/{$matchId}/conversation")->assertForbidden();
+});
+
 it('lets both participants send and read messages', function (): void {
     [$ownerA, $ownerB, $matchId] = createMutualMatch();
 

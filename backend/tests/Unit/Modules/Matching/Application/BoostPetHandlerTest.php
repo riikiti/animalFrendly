@@ -11,6 +11,7 @@ use App\Modules\Profile\Domain\Entities\Pet;
 use App\Modules\Profile\Domain\Enums\PetPurpose;
 use App\Modules\Profile\Domain\Enums\PetSex;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 function makeBoostTestPet(Id $id, Id $ownerId): Pet
@@ -42,7 +43,10 @@ it('boosts the pet when the quota allows it', function (): void {
     $featureGate->shouldReceive('consume')->once()
         ->with(Mockery::on(fn ($id) => $id->equals($ownerId)), 'boost')->andReturn(true);
 
-    $handler = new BoostPetHandler($pets, $featureGate);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new BoostPetHandler($pets, $featureGate, $events);
     $result = $handler->handle(new BoostPetCommand($petId->toString(), $ownerId->toString()));
 
     expect($result->isBoosted())->toBeTrue();
@@ -60,7 +64,9 @@ it('rejects boosting once the monthly quota is exhausted', function (): void {
     $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
     $featureGate->shouldReceive('consume')->once()->andReturn(false);
 
-    $handler = new BoostPetHandler($pets, $featureGate);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new BoostPetHandler($pets, $featureGate, $events);
     $handler->handle(new BoostPetCommand($petId->toString(), $ownerId->toString()));
 })->throws(BoostQuotaExceededException::class);
 
@@ -72,7 +78,8 @@ it('rejects boosting a pet the actor does not own', function (): void {
     $pets->shouldReceive('findById')->once()->andReturn($pet);
 
     $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new BoostPetHandler($pets, $featureGate);
+    $handler = new BoostPetHandler($pets, $featureGate, $events);
     $handler->handle(new BoostPetCommand($petId->toString(), Id::generate()->toString()));
 })->throws(PetNotOwnedByActorException::class);

@@ -66,6 +66,25 @@ it('reserves the listing on purchase and marks it sold once payment succeeds', f
     expect($listingAfterPayment['status'])->toBe('sold');
 });
 
+it('reveals the seller address to the buyer only after payment succeeds', function (): void {
+    ['seller' => $seller, 'buyer' => $buyer, 'orderId' => $orderId, 'yookassaPaymentId' => $yookassaPaymentId] = purchaseTestListing();
+    $seller->forceFill([
+        'address' => 'Екатеринбург, ул. Ленина, 10',
+        'latitude' => 56.838,
+        'longitude' => 60.597,
+    ])->save();
+
+    Sanctum::actingAs($buyer);
+    $this->getJson("/api/v1/orders/{$orderId}")->assertOk()->assertJsonPath('data.counterpart_address', null);
+
+    sendSucceededWebhook($yookassaPaymentId);
+
+    $this->getJson("/api/v1/orders/{$orderId}")
+        ->assertOk()
+        ->assertJsonPath('data.counterpart_address', 'Екатеринбург, ул. Ленина, 10')
+        ->assertJsonPath('data.counterpart_location.lat', 56.838);
+});
+
 it('completes the order once both sides confirm and queues a payout', function (): void {
     ['seller' => $seller, 'buyer' => $buyer, 'orderId' => $orderId, 'yookassaPaymentId' => $yookassaPaymentId] = purchaseTestListing();
     sendSucceededWebhook($yookassaPaymentId);

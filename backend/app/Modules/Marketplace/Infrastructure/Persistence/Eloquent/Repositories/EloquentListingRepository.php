@@ -63,6 +63,19 @@ final class EloquentListingRepository implements ListingRepositoryInterface
         );
     }
 
+    public function findAllForReindex(?string $afterId, int $limit): array
+    {
+        return array_values(
+            EloquentListing::query()
+                ->when($afterId !== null, fn ($query) => $query->where('id', '>', $afterId))
+                ->orderBy('id')
+                ->limit($limit)
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentListing $model): DomainListing
     {
         return DomainListing::reconstitute(

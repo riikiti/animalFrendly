@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Breed;
 use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Species;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
+use App\Modules\Search\Infrastructure\Jobs\IndexPetJob;
+use Illuminate\Support\Facades\Queue;
 use Laravel\Sanctum\Sanctum;
 
 it('rejects unauthenticated access', function (): void {
@@ -85,4 +87,19 @@ it('rejects for_sale as a self-serve purpose', function (): void {
     ]);
 
     $response->assertUnprocessable()->assertJsonValidationErrors('purpose');
+});
+
+it('queues search reindexing after a pet is created', function (): void {
+    Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+
+    $this->postJson('/api/v1/pets', [
+        'species_id' => $dog->id,
+        'name' => 'Рекс',
+        'sex' => 'male',
+        'purpose' => 'social',
+    ])->assertCreated();
+
+    Queue::assertPushed(IndexPetJob::class);
 });

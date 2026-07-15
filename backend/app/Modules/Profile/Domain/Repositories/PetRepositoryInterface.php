@@ -28,4 +28,13 @@ interface PetRepositoryInterface
      * @return list<Pet>
      */
     public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $limit): array;
+
+    /**
+     * Курсорная постраничная выборка всех питомцев (включая неактивных — переиндексация
+     * должна и удалять из поискового индекса тех, кто больше не подходит), упорядоченная по
+     * id (ULID монотонно возрастает) — используется полным реиндексом Search.
+     *
+     * @return list<Pet>
+     */
+    public function findAllForReindex(?string $afterId, int $limit): array;
 }

@@ -12,6 +12,7 @@ use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\PetPhotoNotFoundException;
 use App\Modules\Profile\Domain\Repositories\PetPhotoRepositoryInterface;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
+use App\Shared\Application\DomainEventDispatcherInterface;
 use App\Shared\Domain\ValueObjects\Id;
 
 it('makes a non-cover photo the new cover', function (): void {
@@ -36,7 +37,10 @@ it('makes a non-cover photo the new cover', function (): void {
     );
     $photos->shouldReceive('save')->once()->with(Mockery::on(fn (PetPhoto $p) => $p->isPrimary() === true));
 
-    $handler = new SetPetPhotoCoverHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new SetPetPhotoCoverHandler($pets, $photos, $events);
     $result = $handler->handle(new SetPetPhotoCoverCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 
     expect($result->isPrimary())->toBeTrue();
@@ -51,8 +55,9 @@ it('rejects setting the cover for a pet the actor does not own', function (): vo
     $pets->shouldReceive('findById')->once()->andReturn($pet);
 
     $photos = Mockery::mock(PetPhotoRepositoryInterface::class);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new SetPetPhotoCoverHandler($pets, $photos);
+    $handler = new SetPetPhotoCoverHandler($pets, $photos, $events);
     $handler->handle(new SetPetPhotoCoverCommand($petId->toString(), $photoId->toString(), Id::generate()->toString()));
 })->throws(PetNotOwnedByActorException::class);
 
@@ -68,6 +73,8 @@ it('rejects setting the cover to a photo that does not belong to the pet', funct
     $photos = Mockery::mock(PetPhotoRepositoryInterface::class);
     $photos->shouldReceive('findById')->once()->andReturn(null);
 
-    $handler = new SetPetPhotoCoverHandler($pets, $photos);
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new SetPetPhotoCoverHandler($pets, $photos, $events);
     $handler->handle(new SetPetPhotoCoverCommand($petId->toString(), $photoId->toString(), $ownerId->toString()));
 })->throws(PetPhotoNotFoundException::class);

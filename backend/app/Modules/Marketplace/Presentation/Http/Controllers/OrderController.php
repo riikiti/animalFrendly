@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Marketplace\Presentation\Http\Controllers;
 
+use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as IdentityUser;
 use App\Modules\Marketplace\Application\Commands\CancelOrder\CancelOrderCommand;
 use App\Modules\Marketplace\Application\Commands\CancelOrder\CancelOrderHandler;
@@ -15,6 +16,8 @@ use App\Modules\Marketplace\Application\Queries\GetOrder\GetOrderHandler;
 use App\Modules\Marketplace\Application\Queries\GetOrder\GetOrderQuery;
 use App\Modules\Marketplace\Application\Queries\ListMyOrders\ListMyOrdersHandler;
 use App\Modules\Marketplace\Application\Queries\ListMyOrders\ListMyOrdersQuery;
+use App\Modules\Marketplace\Domain\Entities\Order;
+use App\Modules\Marketplace\Domain\Enums\OrderStatus;
 use App\Modules\Marketplace\Domain\Exceptions\CannotPurchaseOwnListingException;
 use App\Modules\Marketplace\Domain\Exceptions\InvalidOrderStatusTransitionException;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotAvailableException;
@@ -23,6 +26,7 @@ use App\Modules\Marketplace\Domain\Exceptions\NotOrderPartyException;
 use App\Modules\Marketplace\Domain\Exceptions\OrderAlreadyConfirmedException;
 use App\Modules\Marketplace\Domain\Exceptions\OrderNotFoundException;
 use App\Modules\Marketplace\Presentation\Http\Resources\OrderResource;
+use App\Shared\Domain\ValueObjects\Id;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -55,7 +59,7 @@ final class OrderController
         return response()->json(['data' => OrderResource::collection($orders)]);
     }
 
-    public function show(string $orderId, Request $request, GetOrderHandler $handler): JsonResponse
+    public function show(string $orderId, Request $request, GetOrderHandler $handler, UserRepositoryInterface $users): JsonResponse
     {
         try {
             $order = $handler->handle(new GetOrderQuery($orderId, $this->authenticatedUserId($request)));
@@ -65,7 +69,43 @@ final class OrderController
             return response()->json(['message' => $e->getMessage()], 403);
         }
 
-        return response()->json(['data' => new OrderResource($order)]);
+        [$counterpartAddress, $counterpartLocation] = $this->resolveCounterpartLocation(
+            $order,
+            Id::fromString($this->authenticatedUserId($request)),
+            $users,
+        );
+
+        return response()->json(['data' => new OrderResource([
+            'order' => $order,
+            'counterpart_address' => $counterpartAddress,
+            'counterpart_location' => $counterpartLocation,
+        ])]);
+    }
+
+    /**
+     * Точный адрес контрагента виден только участнику сделки и только после оплаты — до этого
+     * момента показывать домашний адрес незнакомому человеку небезопасно, см. Search-фазу.
+     *
+     * @return array{0: ?string, 1: ?array{lat: float, lng: float}}
+     */
+    private function resolveCounterpartLocation(Order $order, Id $actingUserId, UserRepositoryInterface $users): array
+    {
+        if (in_array($order->status(), [OrderStatus::PendingPayment, OrderStatus::Cancelled], true)) {
+            return [null, null];
+        }
+
+        $counterpartId = $order->isBuyer($actingUserId) ? $order->sellerId() : $order->buyerId();
+        $counterpart = $users->findById($counterpartId);
+
+        if ($counterpart === null || $counterpart->address() === null) {
+            return [null, null];
+        }
+
+        $location = $counterpart->hasCoordinates()
+            ? ['lat' => (float) $counterpart->latitude(), 'lng' => (float) $counterpart->longitude()]
+            : null;
+
+        return [$counterpart->address(), $location];
     }
 
     public function confirm(string $orderId, Request $request, ConfirmOrderHandler $handler): JsonResponse
