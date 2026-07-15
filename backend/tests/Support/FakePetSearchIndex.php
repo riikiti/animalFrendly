@@ -39,6 +39,10 @@ final class FakePetSearchIndex implements PetSearchIndexInterface
     public function search(SearchPetsQuery $query, ?float $originLat, ?float $originLng): SearchResultPage
     {
         $documents = array_filter($this->store->all('pets'), function (array $doc) use ($query): bool {
+            if ($query->q !== null && ! str_contains(mb_strtolower((string) $doc['name']), mb_strtolower($query->q))) {
+                return false;
+            }
+
             if ($query->speciesId !== null && $doc['species_id'] !== $query->speciesId) {
                 return false;
             }

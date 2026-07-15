@@ -83,7 +83,7 @@ final class MeilisearchPetIndex implements PetSearchIndexInterface
             $searchParams['sort'] = ['is_boosted:desc'];
         }
 
-        $result = $this->index()->search('', $searchParams);
+        $result = $this->index()->search($query->q ?? '', $searchParams);
 
         $items = array_values(array_map(
             static function (array $hit): PetSearchResult {

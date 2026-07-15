@@ -77,7 +77,7 @@ final class MeilisearchListingIndex implements ListingSearchIndexInterface
             }
         }
 
-        $result = $this->index()->search('', $searchParams);
+        $result = $this->index()->search($query->q ?? '', $searchParams);
 
         $items = array_values(array_map(
             static function (array $hit): ListingSearchResult {

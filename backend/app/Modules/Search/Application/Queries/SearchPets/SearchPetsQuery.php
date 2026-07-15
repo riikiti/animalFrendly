@@ -8,6 +8,7 @@ final class SearchPetsQuery
 {
     public function __construct(
         public readonly string $actingUserId,
+        public readonly ?string $q = null,
         public readonly ?int $speciesId = null,
         public readonly ?int $breedId = null,
         public readonly ?string $sex = null,

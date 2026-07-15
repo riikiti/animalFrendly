@@ -33,6 +33,10 @@ final class FakeListingSearchIndex implements ListingSearchIndexInterface
     public function search(SearchListingsQuery $query, ?float $originLat, ?float $originLng): SearchResultPage
     {
         $documents = array_filter($this->store->all('listings'), function (array $doc) use ($query): bool {
+            if ($query->q !== null && ! str_contains(mb_strtolower((string) $doc['pet_name']), mb_strtolower($query->q))) {
+                return false;
+            }
+
             if ($query->speciesId !== null && $doc['species_id'] !== $query->speciesId) {
                 return false;
             }

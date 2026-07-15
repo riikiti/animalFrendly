@@ -19,6 +19,7 @@ final class SearchPetsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'q' => ['nullable', 'string', 'max:200'],
             'species_id' => ['nullable', 'integer'],
             'breed_id' => ['nullable', 'integer'],
             'sex' => ['nullable', 'string', 'in:male,female'],

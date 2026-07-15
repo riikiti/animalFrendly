@@ -22,6 +22,7 @@ final class SearchController
     {
         $page = $handler->handle(new SearchPetsQuery(
             actingUserId: $this->authenticatedUserId($request),
+            q: $request->string('q')->toString() ?: null,
             speciesId: $request->integer('species_id') ?: null,
             breedId: $request->integer('breed_id') ?: null,
             sex: $request->string('sex')->toString() ?: null,
@@ -43,6 +44,7 @@ final class SearchController
     {
         $page = $handler->handle(new SearchListingsQuery(
             actingUserId: $this->authenticatedUserId($request),
+            q: $request->string('q')->toString() ?: null,
             speciesId: $request->integer('species_id') ?: null,
             breedId: $request->integer('breed_id') ?: null,
             city: $request->string('city')->toString() ?: null,
