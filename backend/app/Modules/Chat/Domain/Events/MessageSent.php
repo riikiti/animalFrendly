@@ -20,6 +20,7 @@ final class MessageSent implements DomainEvent
         public readonly Id $messageId,
         public readonly Id $senderUserId,
         public readonly Id $recipientUserId,
+        public readonly string $body,
         private readonly DateTimeImmutable $occurredAt,
     ) {}
 

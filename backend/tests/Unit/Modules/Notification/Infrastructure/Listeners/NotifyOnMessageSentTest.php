@@ -27,5 +27,5 @@ it('notifies the message recipient', function (): void {
     $emailLookup->shouldReceive('emailFor')->once()->andReturn(null);
 
     $listener = new NotifyOnMessageSent(new NotificationDispatcher($notifications, $deviceTokens, $emailLookup));
-    $listener->handle(new MessageSent(Id::generate(), Id::generate(), Id::generate(), $recipientId, new DateTimeImmutable));
+    $listener->handle(new MessageSent(Id::generate(), Id::generate(), Id::generate(), $recipientId, 'Привет!', new DateTimeImmutable));
 });

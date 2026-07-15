@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Чистый JSON API без сессий/CSRF — авторизация приватных каналов идёт через тот же
+    // Bearer-токен (Sanctum), что и весь остальной API, поэтому явно задаём middleware/prefix
+    // вместо стандартной группы "web", которую подставила бы просто channels: у withRouting().
+    ->withBroadcasting(
+        channels: __DIR__.'/../routes/channels.php',
+        attributes: ['middleware' => ['auth:sanctum'], 'prefix' => 'api'],
+    )
     ->withSchedule(function (Schedule $schedule): void {
         // Эскроу-сделки старше 7 дней без спора — авто-подтверждение, см.
         // docs/rules/04-payments-escrow.md.

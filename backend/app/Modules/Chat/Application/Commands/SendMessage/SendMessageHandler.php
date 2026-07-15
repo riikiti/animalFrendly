@@ -11,7 +11,6 @@ use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
 use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
 use App\Modules\Chat\Domain\Repositories\MessageRepositoryInterface;
 use App\Shared\Domain\ValueObjects\Id;
-use DateTimeImmutable;
 use Illuminate\Contracts\Events\Dispatcher;
 
 final class SendMessageHandler
@@ -46,7 +45,8 @@ final class SendMessageHandler
                 messageId: $message->id(),
                 senderUserId: $actingUserId,
                 recipientUserId: $recipientId,
-                occurredAt: new DateTimeImmutable,
+                body: $message->body(),
+                occurredAt: $message->createdAt(),
             ));
         }
 

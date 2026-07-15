@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Chat\Infrastructure\Providers;
 
+use App\Modules\Chat\Domain\Events\MessageSent;
 use App\Modules\Chat\Domain\Repositories\ConversationRepositoryInterface;
 use App\Modules\Chat\Domain\Repositories\MessageRepositoryInterface;
+use App\Modules\Chat\Infrastructure\Listeners\BroadcastMessageOnMessageSent;
 use App\Modules\Chat\Infrastructure\Listeners\CreateConversationOnAdoptionRequestApproved;
 use App\Modules\Chat\Infrastructure\Listeners\CreateConversationOnPetsMatched;
 use App\Modules\Chat\Infrastructure\Persistence\Eloquent\Repositories\EloquentConversationRepository;
@@ -28,5 +30,6 @@ final class ChatServiceProvider extends ServiceProvider
         $dispatcher = $this->app->make(Dispatcher::class);
         $dispatcher->listen(PetsMatched::class, CreateConversationOnPetsMatched::class);
         $dispatcher->listen(AdoptionRequestApproved::class, CreateConversationOnAdoptionRequestApproved::class);
+        $dispatcher->listen(MessageSent::class, BroadcastMessageOnMessageSent::class);
     }
 }

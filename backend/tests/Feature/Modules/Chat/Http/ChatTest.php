@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Modules\Chat\Infrastructure\Broadcasting\MessageBroadcast;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models\Pet;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 
 function createMutualMatch(): array
@@ -85,6 +87,22 @@ it('lets both participants send and read messages', function (): void {
     $messages->assertJsonCount(2, 'data');
     expect($messages->json('data.0.body'))->toBe('Привет!')
         ->and($messages->json('data.1.body'))->toBe('И тебе привет!');
+});
+
+it('broadcasts a sent message to the conversation channel', function (): void {
+    [$ownerA, , $matchId] = createMutualMatch();
+
+    Sanctum::actingAs($ownerA);
+    $conversationId = $this->getJson("/api/v1/matches/{$matchId}/conversation")->json('data.id');
+
+    Event::fake([MessageBroadcast::class]);
+
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'В эфире!'])
+        ->assertCreated();
+
+    Event::assertDispatched(MessageBroadcast::class, fn (MessageBroadcast $event) => $event->conversationId === $conversationId
+        && $event->senderId === $ownerA->id
+        && $event->body === 'В эфире!');
 });
 
 it('rejects sending messages from a non-participant', function (): void {
