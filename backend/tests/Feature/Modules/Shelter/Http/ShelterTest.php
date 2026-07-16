@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Species;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 
 function publishVerifiedShelterAnimal(User $shelterOwner, int $speciesId): string
@@ -206,4 +208,64 @@ it('rejects access to the adoption conversation for a stranger', function (): vo
 
     Sanctum::actingAs(User::factory()->create());
     $this->getJson("/api/v1/adoption-requests/{$adoptionRequestId}/conversation")->assertForbidden();
+});
+
+it('updates contact info and uploads a photo', function (): void {
+    Storage::fake('public');
+
+    $owner = User::factory()->create();
+    Sanctum::actingAs($owner);
+    $shelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'Добрые лапы'])->json('data.id');
+
+    $updateResponse = $this->patchJson("/api/v1/shelters/{$shelterId}", [
+        'phone' => '+79261234567',
+        'email' => 'shelter@example.com',
+        'address' => 'Непонятный адрес',
+    ]);
+    $updateResponse->assertOk()
+        ->assertJsonPath('data.phone', '+79261234567')
+        ->assertJsonPath('data.email', 'shelter@example.com');
+
+    $photoResponse = $this->postJson("/api/v1/shelters/{$shelterId}/photo", [
+        'photo' => UploadedFile::fake()->image('shelter.jpg', 200, 200),
+    ]);
+    $photoResponse->assertOk();
+    expect($photoResponse->json('data.photo_url'))->not->toBeNull();
+});
+
+it('rejects updating a shelter owned by someone else', function (): void {
+    $owner = User::factory()->create();
+    Sanctum::actingAs($owner);
+    $shelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'Добрые лапы'])->json('data.id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->patchJson("/api/v1/shelters/{$shelterId}", ['phone' => '+79261234567'])->assertForbidden();
+});
+
+it('hides an unverified shelter from strangers but shows it to its owner', function (): void {
+    $owner = User::factory()->create();
+    Sanctum::actingAs($owner);
+    $shelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'Добрые лапы'])->json('data.id');
+
+    $this->getJson("/api/v1/shelters/{$shelterId}")->assertOk();
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->getJson("/api/v1/shelters/{$shelterId}")->assertNotFound();
+});
+
+it('shows a verified shelter with owner contact info to anyone', function (): void {
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+    $owner = User::factory()->create(['name' => 'Иван Иванов']);
+    publishVerifiedShelterAnimal($owner, $dog->id);
+
+    Sanctum::actingAs($owner);
+    $shelterId = $this->getJson('/api/v1/shelters/me')->json('data.id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $response = $this->getJson("/api/v1/shelters/{$shelterId}");
+
+    $response->assertOk()
+        ->assertJsonPath('data.verification_status', 'verified')
+        ->assertJsonPath('data.owner.name', 'Иван Иванов')
+        ->assertJsonPath('data.owner.phone', $owner->phone);
 });

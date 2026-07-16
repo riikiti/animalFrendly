@@ -39,6 +39,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
                 'latitude' => $user->latitude(),
                 'longitude' => $user->longitude(),
                 'name' => $user->name(),
+                'avatar_url' => $user->avatarUrl(),
             ],
         );
     }
@@ -76,6 +77,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
             latitude: $model->latitude,
             longitude: $model->longitude,
             name: $model->name,
+            avatarUrl: $model->avatar_url,
         );
     }
 }

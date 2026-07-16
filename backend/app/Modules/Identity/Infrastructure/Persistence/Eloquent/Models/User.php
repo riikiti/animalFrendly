@@ -34,6 +34,7 @@ final class User extends Authenticatable
         'latitude',
         'longitude',
         'name',
+        'avatar_url',
     ];
 
     protected $hidden = [

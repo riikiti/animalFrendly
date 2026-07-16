@@ -8,6 +8,8 @@ use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserC
 use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserHandler;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserCommand;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserHandler;
+use App\Modules\Identity\Application\Commands\UpdateAvatar\UpdateAvatarCommand;
+use App\Modules\Identity\Application\Commands\UpdateAvatar\UpdateAvatarHandler;
 use App\Modules\Identity\Application\Commands\UpdateProfile\UpdateProfileCommand;
 use App\Modules\Identity\Application\Commands\UpdateProfile\UpdateProfileHandler;
 use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
@@ -16,10 +18,12 @@ use App\Modules\Identity\Domain\Exceptions\PhoneAlreadyRegisteredException;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User as EloquentUser;
 use App\Modules\Identity\Presentation\Http\Requests\LoginRequest;
 use App\Modules\Identity\Presentation\Http\Requests\RegisterRequest;
+use App\Modules\Identity\Presentation\Http\Requests\UpdateAvatarRequest;
 use App\Modules\Identity\Presentation\Http\Requests\UpdateProfileRequest;
 use App\Modules\Identity\Presentation\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 final class AuthController
 {
@@ -98,6 +102,25 @@ final class AuthController
             name: $request->string('name')->toString() ?: null,
             address: $request->string('address')->toString() ?: null,
         ));
+
+        return new UserResource($user->fresh());
+    }
+
+    public function uploadAvatar(UpdateAvatarRequest $request, UpdateAvatarHandler $handler): UserResource
+    {
+        $user = $request->user();
+
+        if (! $user instanceof EloquentUser) {
+            abort(401);
+        }
+
+        $photo = $request->file('photo');
+
+        if (! $photo instanceof UploadedFile) {
+            abort(422, 'Файл не передан.');
+        }
+
+        $handler->handle(new UpdateAvatarCommand(userId: $user->id, photo: $photo));
 
         return new UserResource($user->fresh());
     }

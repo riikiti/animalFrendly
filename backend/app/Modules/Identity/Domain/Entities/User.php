@@ -25,6 +25,7 @@ final class User
         private ?float $latitude = null,
         private ?float $longitude = null,
         private ?string $name = null,
+        private ?string $avatarUrl = null,
     ) {}
 
     /**
@@ -56,6 +57,7 @@ final class User
         ?float $latitude = null,
         ?float $longitude = null,
         ?string $name = null,
+        ?string $avatarUrl = null,
     ): self {
         return new self(
             $id,
@@ -69,6 +71,7 @@ final class User
             $latitude,
             $longitude,
             $name,
+            $avatarUrl,
         );
     }
 
@@ -162,5 +165,15 @@ final class User
     public function setName(?string $name): void
     {
         $this->name = $name;
+    }
+
+    public function avatarUrl(): ?string
+    {
+        return $this->avatarUrl;
+    }
+
+    public function setAvatar(?string $url): void
+    {
+        $this->avatarUrl = $url;
     }
 }

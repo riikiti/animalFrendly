@@ -12,6 +12,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function (): void {
     Route::get('/shelters/me', [ShelterController::class, 'me']);
     Route::get('/shelters/pending-verification', [ShelterController::class, 'pendingVerification']);
     Route::post('/shelters/{shelterId}/verify', [ShelterController::class, 'verify']);
+    Route::patch('/shelters/{shelterId}', [ShelterController::class, 'update']);
+    Route::post('/shelters/{shelterId}/photo', [ShelterController::class, 'photo']);
+    Route::get('/shelters/{shelterId}', [ShelterController::class, 'show']);
     Route::get('/shelters/{shelterId}/animals', [ShelterAnimalController::class, 'mine']);
     Route::post('/shelters/{shelterId}/animals', [ShelterAnimalController::class, 'store']);
     Route::get('/shelters/{shelterId}/adoption-requests/pending', [AdoptionRequestController::class, 'pendingForShelter']);

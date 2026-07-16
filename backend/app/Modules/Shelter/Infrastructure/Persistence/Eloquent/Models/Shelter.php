@@ -24,9 +24,18 @@ final class Shelter extends Model
         'verification_status',
         'verified_at',
         'verified_by',
+        'address',
+        'city',
+        'latitude',
+        'longitude',
+        'phone',
+        'email',
+        'photo_url',
     ];
 
     protected $casts = [
         'verified_at' => 'datetime',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 }

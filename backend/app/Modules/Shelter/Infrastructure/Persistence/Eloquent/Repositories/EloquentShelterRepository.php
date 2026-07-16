@@ -29,6 +29,13 @@ final class EloquentShelterRepository implements ShelterRepositoryInterface
                 'verification_status' => $shelter->verificationStatus()->value,
                 'verified_at' => $shelter->verifiedAt(),
                 'verified_by' => $shelter->verifiedBy()?->toString(),
+                'address' => $shelter->address(),
+                'city' => $shelter->city(),
+                'latitude' => $shelter->latitude(),
+                'longitude' => $shelter->longitude(),
+                'phone' => $shelter->phone(),
+                'email' => $shelter->email(),
+                'photo_url' => $shelter->photoUrl(),
             ],
         );
     }
@@ -79,6 +86,13 @@ final class EloquentShelterRepository implements ShelterRepositoryInterface
             verificationStatus: ShelterVerificationStatus::from($model->verification_status),
             verifiedAt: $model->verified_at?->toDateTimeImmutable(),
             verifiedBy: $model->verified_by !== null ? Id::fromString($model->verified_by) : null,
+            address: $model->address,
+            city: $model->city,
+            latitude: $model->latitude,
+            longitude: $model->longitude,
+            phone: $model->phone,
+            email: $model->email,
+            photoUrl: $model->photo_url,
         );
     }
 }

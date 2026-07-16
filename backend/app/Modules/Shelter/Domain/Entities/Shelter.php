@@ -19,6 +19,13 @@ final class Shelter
         private ShelterVerificationStatus $verificationStatus,
         private ?DateTimeImmutable $verifiedAt,
         private ?Id $verifiedBy,
+        private ?string $address = null,
+        private ?string $city = null,
+        private ?float $latitude = null,
+        private ?float $longitude = null,
+        private ?string $phone = null,
+        private ?string $email = null,
+        private ?string $photoUrl = null,
     ) {}
 
     public static function register(
@@ -46,8 +53,31 @@ final class Shelter
         ShelterVerificationStatus $verificationStatus,
         ?DateTimeImmutable $verifiedAt,
         ?Id $verifiedBy,
+        ?string $address = null,
+        ?string $city = null,
+        ?float $latitude = null,
+        ?float $longitude = null,
+        ?string $phone = null,
+        ?string $email = null,
+        ?string $photoUrl = null,
     ): self {
-        return new self($id, $ownerUserId, $legalName, $inn, $description, $verificationStatus, $verifiedAt, $verifiedBy);
+        return new self(
+            $id,
+            $ownerUserId,
+            $legalName,
+            $inn,
+            $description,
+            $verificationStatus,
+            $verifiedAt,
+            $verifiedBy,
+            $address,
+            $city,
+            $latitude,
+            $longitude,
+            $phone,
+            $email,
+            $photoUrl,
+        );
     }
 
     public function verify(Id $moderatorId): void
@@ -107,5 +137,63 @@ final class Shelter
     public function verifiedBy(): ?Id
     {
         return $this->verifiedBy;
+    }
+
+    public function address(): ?string
+    {
+        return $this->address;
+    }
+
+    public function city(): ?string
+    {
+        return $this->city;
+    }
+
+    public function latitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function longitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function phone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function email(): ?string
+    {
+        return $this->email;
+    }
+
+    public function photoUrl(): ?string
+    {
+        return $this->photoUrl;
+    }
+
+    /**
+     * Город и координаты приходят из геокодера вместе с адресом и всегда согласованы —
+     * тот же приём, что Identity\Domain\Entities\User::setLocation().
+     */
+    public function setLocation(?string $address, ?string $city, ?float $latitude, ?float $longitude): void
+    {
+        $this->address = $address;
+        $this->city = $city;
+        $this->latitude = $latitude;
+        $this->longitude = $longitude;
+    }
+
+    public function setContactInfo(?string $phone, ?string $email): void
+    {
+        $this->phone = $phone;
+        $this->email = $email;
+    }
+
+    public function setPhoto(?string $url): void
+    {
+        $this->photoUrl = $url;
     }
 }
