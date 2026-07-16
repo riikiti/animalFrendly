@@ -5,6 +5,10 @@ export function listAvailableShelterAnimals(): Promise<{ data: ShelterAnimal[] }
   return apiRequest('/api/v1/shelter-animals')
 }
 
+export function listShelters(): Promise<{ data: Shelter[] }> {
+  return apiRequest('/api/v1/shelters')
+}
+
 export function createShelter(payload: {
   legal_name: string
   inn?: string | null

@@ -15,6 +15,7 @@ export interface Shelter {
   phone: string | null
   email: string | null
   photo_url: string | null
+  distance_km: number | null
 }
 
 export interface ShelterOwner {
@@ -41,6 +42,9 @@ export interface ShelterAnimal {
   shelter_id: string
   pet_id: string
   status: ShelterAnimalStatus
+  shelter_name: string | null
+  shelter_city: string | null
+  distance_km: number | null
   pet: ShelterAnimalPet | null
 }
 

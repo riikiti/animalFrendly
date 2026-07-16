@@ -119,13 +119,21 @@ test('a shelter registers, gets verified, publishes an animal and approves an ad
   await adopterPage.waitForURL('/pets/new')
 
   await adopterPage.goto('/shelters')
-  const animalCard = adopterPage.locator('.card', { hasText: animalName })
-  await animalCard.getByRole('button', { name: 'Оставить заявку' }).click()
+  await adopterPage.locator('.card', { hasText: animalName }).click()
+  await adopterPage.waitForURL(/\/shelter-animals\/.+/)
+  await adopterPage.getByRole('button', { name: 'Оставить заявку' }).click()
   await adopterPage
     .getByPlaceholder('Расскажите о себе и опыте содержания животных')
     .fill('Хочу забрать домой')
-  await animalCard.getByRole('button', { name: 'Отправить' }).click()
-  await expect(animalCard.getByText('Заявка отправлена')).toBeVisible()
+  await adopterPage.getByRole('button', { name: 'Отправить' }).click()
+  await expect(adopterPage.getByText('Заявка отправлена')).toBeVisible()
+
+  // Под-таб «Приюты» — тот же приют виден и кликабелен, ведёт на витрину.
+  await adopterPage.goto('/shelters')
+  await adopterPage.getByRole('button', { name: 'Приюты' }).click()
+  await adopterPage.locator('.card', { hasText: shelterName }).click()
+  await adopterPage.waitForURL(/\/shelters\/.+/)
+  await expect(adopterPage.getByText(shelterName)).toBeVisible()
 
   // Приют видит заявку и одобряет её.
   await shelterPage.reload()

@@ -34,6 +34,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/shelter-animals/:id',
+      name: 'shelter-animal-detail',
+      component: () => import('@/pages/shelter/ShelterAnimalDetailPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/adoption-requests',
       name: 'my-adoption-requests',
       component: () => import('@/pages/shelter/MyAdoptionRequestsPage.vue'),
