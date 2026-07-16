@@ -2,11 +2,36 @@
 
 declare(strict_types=1);
 
+use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Species;
 use App\Modules\Chat\Infrastructure\Broadcasting\MessageBroadcast;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models\Pet;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
+
+function createVerifiedShelterWithAnimal(): array
+{
+    $dog = Species::query()->firstOrCreate(['slug' => 'dog'], ['name_ru' => 'Собака', 'is_active' => true]);
+    $shelterOwner = User::factory()->create();
+
+    Sanctum::actingAs($shelterOwner);
+    $shelterId = test()->postJson('/api/v1/shelters', ['legal_name' => 'Добрые лапы'])
+        ->json('data.id');
+
+    $moderator = User::factory()->create(['account_type' => 'moderator']);
+    Sanctum::actingAs($moderator);
+    test()->postJson("/api/v1/shelters/{$shelterId}/verify", ['approve' => true])->assertOk();
+
+    Sanctum::actingAs($shelterOwner);
+    $shelterAnimalId = test()->postJson("/api/v1/shelters/{$shelterId}/animals", [
+        'species_id' => $dog->id,
+        'name' => 'Рыжик',
+        'sex' => 'male',
+        'is_vaccinated' => true,
+    ])->json('data.id');
+
+    return [$shelterOwner, $shelterId, $shelterAnimalId];
+}
 
 function createMutualMatch(): array
 {
@@ -127,4 +152,73 @@ it('lists the conversation for both participants via /conversations', function (
 
     Sanctum::actingAs($ownerB);
     $this->getJson('/api/v1/conversations')->assertOk()->assertJsonCount(1, 'data');
+});
+
+it('creates a direct conversation with a shelter, attaching the animal card', function (): void {
+    [$shelterOwner, $shelterId, $shelterAnimalId] = createVerifiedShelterWithAnimal();
+
+    $visitor = User::factory()->create();
+    Sanctum::actingAs($visitor);
+
+    $response = $this->postJson("/api/v1/shelters/{$shelterId}/conversations", [
+        'shelter_animal_id' => $shelterAnimalId,
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.shelter_id', $shelterId)
+        ->assertJsonPath('data.shelter_animal_id', $shelterAnimalId);
+
+    $conversationId = $response->json('data.id');
+
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Расскажите про Рыжика'])
+        ->assertCreated();
+
+    Sanctum::actingAs($shelterOwner);
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Конечно!'])
+        ->assertCreated();
+
+    $messages = $this->getJson("/api/v1/conversations/{$conversationId}/messages")->assertOk();
+    $messages->assertJsonCount(2, 'data');
+});
+
+it('reuses the same direct shelter conversation on repeated contact', function (): void {
+    [, $shelterId] = createVerifiedShelterWithAnimal();
+
+    $visitor = User::factory()->create();
+    Sanctum::actingAs($visitor);
+
+    $firstId = $this->postJson("/api/v1/shelters/{$shelterId}/conversations")->json('data.id');
+    $secondId = $this->postJson("/api/v1/shelters/{$shelterId}/conversations")->json('data.id');
+
+    expect($secondId)->toBe($firstId);
+});
+
+it('rejects sending messages in a direct shelter conversation from a stranger', function (): void {
+    [, $shelterId] = createVerifiedShelterWithAnimal();
+
+    $visitor = User::factory()->create();
+    Sanctum::actingAs($visitor);
+    $conversationId = $this->postJson("/api/v1/shelters/{$shelterId}/conversations")->json('data.id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Хай'])
+        ->assertForbidden();
+});
+
+it('lists direct shelter conversations for both the visitor and the shelter owner', function (): void {
+    [$shelterOwner, $shelterId] = createVerifiedShelterWithAnimal();
+
+    $visitor = User::factory()->create(['name' => 'Мария']);
+    Sanctum::actingAs($visitor);
+    $this->postJson("/api/v1/shelters/{$shelterId}/conversations")->assertOk();
+
+    $visitorConversations = $this->getJson('/api/v1/conversations')->assertOk();
+    expect(collect($visitorConversations->json('data'))->pluck('shelter_id'))->toContain($shelterId);
+
+    Sanctum::actingAs($shelterOwner);
+    $ownerConversations = $this->getJson('/api/v1/conversations')->assertOk();
+    $listed = collect($ownerConversations->json('data'))->firstWhere('shelter_id', $shelterId);
+
+    expect($listed)->not->toBeNull()
+        ->and($listed['counterpart_name'])->toBe('Мария');
 });

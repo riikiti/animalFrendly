@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Chat\Presentation\Http\Controllers;
 
+use App\Modules\Chat\Application\Commands\CreateConversationForShelterContact\CreateConversationForShelterContactCommand;
+use App\Modules\Chat\Application\Commands\CreateConversationForShelterContact\CreateConversationForShelterContactHandler;
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageCommand;
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageHandler;
 use App\Modules\Chat\Application\Queries\GetConversationForAdoptionRequest\GetConversationForAdoptionRequestHandler;
@@ -15,7 +17,9 @@ use App\Modules\Chat\Application\Queries\ListMessages\ListMessagesQuery;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsHandler;
 use App\Modules\Chat\Application\Queries\ListMyConversations\ListMyConversationsQuery;
 use App\Modules\Chat\Application\Services\AdoptionRequestParticipantGuard;
+use App\Modules\Chat\Application\Services\ConversationAccessGuard;
 use App\Modules\Chat\Application\Services\MatchParticipantGuard;
+use App\Modules\Chat\Domain\Entities\Conversation;
 use App\Modules\Chat\Domain\Exceptions\AdoptionRequestNotFoundException;
 use App\Modules\Chat\Domain\Exceptions\ConversationAccessDeniedException;
 use App\Modules\Chat\Domain\Exceptions\ConversationNotFoundException;
@@ -31,11 +35,40 @@ use Illuminate\Http\Request;
 
 final class ChatController
 {
-    public function index(Request $request, ListMyConversationsHandler $handler): JsonResponse
-    {
-        $conversations = $handler->handle(new ListMyConversationsQuery($this->authenticatedUserId($request)));
+    public function index(
+        Request $request,
+        ListMyConversationsHandler $handler,
+        ConversationAccessGuard $accessGuard,
+    ): JsonResponse {
+        $actingUserId = Id::fromString($this->authenticatedUserId($request));
+        $conversations = $handler->handle(new ListMyConversationsQuery($actingUserId->toString()));
 
-        return response()->json(['data' => ConversationResource::collection($conversations)]);
+        $data = array_map(function (Conversation $conversation) use ($actingUserId, $accessGuard) {
+            $counterpartId = $accessGuard->resolveRecipientId($conversation, $actingUserId);
+            $counterpart = $counterpartId !== null ? IdentityUser::query()->find($counterpartId->toString()) : null;
+
+            return new ConversationResource([
+                'conversation' => $conversation,
+                'counterpart_name' => $counterpart?->name,
+                'counterpart_avatar_url' => $counterpart?->avatar_url,
+            ]);
+        }, $conversations);
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function conversationForShelter(
+        string $shelterId,
+        Request $request,
+        CreateConversationForShelterContactHandler $handler,
+    ): JsonResponse {
+        $conversation = $handler->handle(new CreateConversationForShelterContactCommand(
+            shelterId: $shelterId,
+            initiatorUserId: $this->authenticatedUserId($request),
+            shelterAnimalId: $request->string('shelter_animal_id')->toString() ?: null,
+        ));
+
+        return response()->json(['data' => new ConversationResource(['conversation' => $conversation])]);
     }
 
     public function conversationForMatch(

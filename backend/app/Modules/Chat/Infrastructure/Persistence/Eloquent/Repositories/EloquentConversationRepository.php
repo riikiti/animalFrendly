@@ -23,6 +23,9 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
             [
                 'match_id' => $conversation->matchId()?->toString(),
                 'adoption_request_id' => $conversation->adoptionRequestId()?->toString(),
+                'shelter_id' => $conversation->shelterId()?->toString(),
+                'initiator_user_id' => $conversation->initiatorUserId()?->toString(),
+                'shelter_animal_id' => $conversation->shelterAnimalId()?->toString(),
                 'created_at' => $conversation->createdAt(),
             ],
         );
@@ -46,6 +49,16 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
     {
         $model = EloquentConversation::query()
             ->where('adoption_request_id', $adoptionRequestId->toString())
+            ->first();
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
+    public function findByShelterAndInitiator(Id $shelterId, Id $initiatorUserId): ?DomainConversation
+    {
+        $model = EloquentConversation::query()
+            ->where('shelter_id', $shelterId->toString())
+            ->where('initiator_user_id', $initiatorUserId->toString())
             ->first();
 
         return $model ? $this->toDomain($model) : null;
@@ -87,6 +100,36 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
         );
     }
 
+    public function findByInitiatorUserId(Id $userId): array
+    {
+        return array_values(
+            EloquentConversation::query()
+                ->where('initiator_user_id', $userId->toString())
+                ->orderByDesc('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
+    public function findByShelterIds(array $shelterIds): array
+    {
+        if ($shelterIds === []) {
+            return [];
+        }
+
+        $idStrings = array_map(static fn (Id $id): string => $id->toString(), $shelterIds);
+
+        return array_values(
+            EloquentConversation::query()
+                ->whereIn('shelter_id', $idStrings)
+                ->orderByDesc('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentConversation $model): DomainConversation
     {
         return DomainConversation::reconstitute(
@@ -96,6 +139,9 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
                 ? Id::fromString($model->adoption_request_id)
                 : null,
             createdAt: $model->created_at->toDateTimeImmutable(),
+            shelterId: $model->shelter_id !== null ? Id::fromString($model->shelter_id) : null,
+            initiatorUserId: $model->initiator_user_id !== null ? Id::fromString($model->initiator_user_id) : null,
+            shelterAnimalId: $model->shelter_animal_id !== null ? Id::fromString($model->shelter_animal_id) : null,
         );
     }
 }

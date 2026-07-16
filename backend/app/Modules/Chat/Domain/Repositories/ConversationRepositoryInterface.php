@@ -19,6 +19,8 @@ interface ConversationRepositoryInterface
 
     public function findByAdoptionRequestId(Id $adoptionRequestId): ?Conversation;
 
+    public function findByShelterAndInitiator(Id $shelterId, Id $initiatorUserId): ?Conversation;
+
     /**
      * @param  list<Id>  $matchIds
      * @return list<Conversation>
@@ -30,4 +32,19 @@ interface ConversationRepositoryInterface
      * @return list<Conversation>
      */
     public function findByAdoptionRequestIds(array $adoptionRequestIds): array;
+
+    /**
+     * Мои собственные исходящие прямые обращения в приюты — используется списком бесед.
+     *
+     * @return list<Conversation>
+     */
+    public function findByInitiatorUserId(Id $userId): array;
+
+    /**
+     * Входящие прямые обращения в приюты, которыми я владею.
+     *
+     * @param  list<Id>  $shelterIds
+     * @return list<Conversation>
+     */
+    public function findByShelterIds(array $shelterIds): array;
 }
