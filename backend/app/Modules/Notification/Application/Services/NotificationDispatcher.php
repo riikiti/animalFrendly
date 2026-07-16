@@ -9,6 +9,7 @@ use App\Modules\Notification\Domain\Entities\Notification;
 use App\Modules\Notification\Domain\Enums\NotificationType;
 use App\Modules\Notification\Domain\Repositories\DeviceTokenRepositoryInterface;
 use App\Modules\Notification\Domain\Repositories\NotificationRepositoryInterface;
+use App\Modules\Notification\Infrastructure\Broadcasting\NotificationBroadcast;
 use App\Modules\Notification\Infrastructure\Jobs\SendPushNotificationJob;
 use App\Modules\Notification\Infrastructure\Mail\NotificationMail;
 use App\Shared\Domain\ValueObjects\Id;
@@ -44,6 +45,15 @@ final class NotificationDispatcher
         );
 
         $this->notifications->save($notification);
+
+        broadcast(new NotificationBroadcast(
+            userId: $userId->toString(),
+            notificationId: $notification->id()->toString(),
+            type: $type->value,
+            message: $message,
+            data: $data,
+            createdAt: $notification->createdAt()->format(DATE_ATOM),
+        ));
 
         foreach ($this->deviceTokens->findByUser($userId) as $token) {
             SendPushNotificationJob::dispatch($token->fcmToken(), self::PUSH_TITLE, $message, $data);

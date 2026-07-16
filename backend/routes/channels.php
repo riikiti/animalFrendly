@@ -30,3 +30,9 @@ Broadcast::channel('conversation.{conversationId}', function (User $user, string
         return false;
     }
 });
+
+/**
+ * Личный канал уведомлений — просто сверка id, без обращения к репозиториям (в отличие от
+ * канала беседы, тут нет понятия "участников").
+ */
+Broadcast::channel('user.{userId}', fn (User $user, string $userId): bool => (string) $user->id === $userId);
