@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useCatalogStore } from '@/entities/catalog/model'
 import { socialTagLabel } from '@/entities/pet/socialTags'
 import type { Pet } from '@/entities/pet/types'
@@ -9,6 +9,39 @@ const props = defineProps<{ pet: Pet }>()
 const catalogStore = useCatalogStore()
 
 const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id))
+const breedName = computed(() =>
+  props.pet.breed_id !== null
+    ? catalogStore.breedName(props.pet.species_id, props.pet.breed_id)
+    : null,
+)
+
+function ageLabel(birthdate: string | null): string | null {
+  if (!birthdate) return null
+
+  const ageInDays = (Date.now() - new Date(birthdate).getTime()) / (1000 * 60 * 60 * 24)
+  const years = Math.floor(ageInDays / 365.25)
+
+  if (years < 1) return 'до года'
+
+  const lastDigit = years % 10
+  const lastTwoDigits = years % 100
+  let word = 'лет'
+  if (lastTwoDigits < 11 || lastTwoDigits > 14) {
+    if (lastDigit === 1) word = 'год'
+    else if (lastDigit >= 2 && lastDigit <= 4) word = 'года'
+  }
+
+  return `${years} ${word}`
+}
+
+const age = computed(() => ageLabel(props.pet.birthdate))
+
+async function loadBreed(): Promise<void> {
+  await catalogStore.ensureBreedsLoaded(props.pet.species_id)
+}
+
+onMounted(loadBreed)
+watch(() => props.pet.species_id, loadBreed)
 </script>
 
 <template>
@@ -35,7 +68,9 @@ const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id
       >
         <h3 class="text-xl font-semibold text-ink">{{ pet.name }}</h3>
         <p class="text-sm text-ink-soft">
-          {{ speciesName }}<span v-if="pet.description"> · {{ pet.description }}</span>
+          {{ speciesName }}<span v-if="breedName"> · {{ breedName }}</span
+          ><span v-if="age"> · {{ age }}</span
+          ><span v-if="pet.description"> · {{ pet.description }}</span>
         </p>
         <div v-if="pet.social_tags.length > 0" class="mt-1 flex flex-wrap gap-1">
           <span
