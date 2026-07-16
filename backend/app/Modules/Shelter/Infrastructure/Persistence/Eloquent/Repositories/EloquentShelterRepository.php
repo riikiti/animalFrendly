@@ -75,6 +75,18 @@ final class EloquentShelterRepository implements ShelterRepositoryInterface
         );
     }
 
+    public function findVerified(): array
+    {
+        return array_values(
+            EloquentShelter::query()
+                ->where('verification_status', ShelterVerificationStatus::Verified->value)
+                ->orderBy('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentShelter $model): DomainShelter
     {
         return DomainShelter::reconstitute(

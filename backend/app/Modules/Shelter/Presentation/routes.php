@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function (): void {
     Route::post('/shelters', [ShelterController::class, 'store']);
+    Route::get('/shelters', [ShelterController::class, 'index']);
     Route::get('/shelters/me', [ShelterController::class, 'me']);
     Route::get('/shelters/pending-verification', [ShelterController::class, 'pendingVerification']);
     Route::post('/shelters/{shelterId}/verify', [ShelterController::class, 'verify']);

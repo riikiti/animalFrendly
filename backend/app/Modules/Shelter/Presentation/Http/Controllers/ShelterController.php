@@ -17,6 +17,8 @@ use App\Modules\Shelter\Application\Queries\GetMyShelter\GetMyShelterHandler;
 use App\Modules\Shelter\Application\Queries\GetShelter\GetShelterHandler;
 use App\Modules\Shelter\Application\Queries\GetShelter\GetShelterQuery;
 use App\Modules\Shelter\Application\Queries\ListPendingShelterVerifications\ListPendingShelterVerificationsHandler;
+use App\Modules\Shelter\Application\Queries\ListVerifiedShelters\ListVerifiedSheltersHandler;
+use App\Modules\Shelter\Domain\Entities\Shelter;
 use App\Modules\Shelter\Domain\Exceptions\NotShelterOwnerException;
 use App\Modules\Shelter\Domain\Exceptions\ShelterNotFoundException;
 use App\Modules\Shelter\Presentation\Http\Requests\StoreShelterRequest;
@@ -24,6 +26,7 @@ use App\Modules\Shelter\Presentation\Http\Requests\UpdateShelterPhotoRequest;
 use App\Modules\Shelter\Presentation\Http\Requests\UpdateShelterRequest;
 use App\Modules\Shelter\Presentation\Http\Requests\VerifyShelterRequest;
 use App\Modules\Shelter\Presentation\Http\Resources\ShelterResource;
+use App\Shared\Domain\Support\Haversine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -47,6 +50,32 @@ final class ShelterController
         $shelter = $handler->handle($this->authenticatedUserId($request));
 
         return response()->json(['data' => $shelter ? new ShelterResource($shelter) : null]);
+    }
+
+    public function index(Request $request, ListVerifiedSheltersHandler $handler): JsonResponse
+    {
+        $viewer = $this->authenticatedUser($request);
+
+        $enriched = array_map(
+            fn (Shelter $shelter): array => [
+                'shelter' => $shelter,
+                'owner' => null,
+                'distance_km' => $this->distanceKm($viewer->latitude, $viewer->longitude, $shelter->latitude(), $shelter->longitude()),
+            ],
+            $handler->handle(),
+        );
+
+        usort(
+            $enriched,
+            static fn (array $a, array $b): int => match (true) {
+                $a['distance_km'] === $b['distance_km'] => 0,
+                $a['distance_km'] === null => 1,
+                $b['distance_km'] === null => -1,
+                default => $a['distance_km'] <=> $b['distance_km'],
+            },
+        );
+
+        return response()->json(['data' => array_map(static fn (array $entry) => new ShelterResource($entry), $enriched)]);
     }
 
     public function show(string $shelterId, Request $request, GetShelterHandler $handler): JsonResponse
@@ -144,6 +173,15 @@ final class ShelterController
         }
 
         return response()->json(['data' => new ShelterResource($shelter)]);
+    }
+
+    private function distanceKm(?float $lat1, ?float $lng1, ?float $lat2, ?float $lng2): ?float
+    {
+        if ($lat1 === null || $lng1 === null || $lat2 === null || $lng2 === null) {
+            return null;
+        }
+
+        return Haversine::kilometers($lat1, $lng1, $lat2, $lng2);
     }
 
     private function authenticatedUserId(Request $request): string

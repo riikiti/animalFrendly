@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Species;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
+use App\Modules\Shelter\Infrastructure\Persistence\Eloquent\Models\Shelter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
@@ -68,7 +69,34 @@ it('publishes an animal once the shelter is verified and lists it as available',
 
     expect($listed)->not->toBeNull()
         ->and($listed['pet']['name'])->toBe('Рыжик')
-        ->and($listed['pet']['species_id'])->toBe($dog->id);
+        ->and($listed['pet']['species_id'])->toBe($dog->id)
+        ->and($listed['shelter_name'])->toBe('Добрые лапы')
+        ->and($listed)->toHaveKey('distance_km');
+});
+
+it('sorts the shelter animal feed by distance to the viewer', function (): void {
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+
+    $farOwner = User::factory()->create();
+    $farAnimalId = publishVerifiedShelterAnimal($farOwner, $dog->id);
+    Shelter::query()->where('owner_user_id', $farOwner->id)
+        ->update(['latitude' => 55.75, 'longitude' => 37.62]); // Москва
+
+    $nearOwner = User::factory()->create();
+    $nearAnimalId = publishVerifiedShelterAnimal($nearOwner, $dog->id);
+    Shelter::query()->where('owner_user_id', $nearOwner->id)
+        ->update(['latitude' => 59.94, 'longitude' => 30.31]); // Санкт-Петербург
+
+    $viewer = User::factory()->create();
+    $viewer->forceFill(['latitude' => 59.93, 'longitude' => 30.36])->save(); // рядом с СПб
+
+    Sanctum::actingAs($viewer);
+    $response = $this->getJson('/api/v1/shelter-animals');
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id')->values();
+
+    expect($ids->search($nearAnimalId))->toBeLessThan($ids->search($farAnimalId));
 });
 
 it('runs the full adoption flow: request → approve → reserved → conversation created', function (): void {
@@ -268,4 +296,34 @@ it('shows a verified shelter with owner contact info to anyone', function (): vo
         ->assertJsonPath('data.verification_status', 'verified')
         ->assertJsonPath('data.owner.name', 'Иван Иванов')
         ->assertJsonPath('data.owner.phone', $owner->phone);
+});
+
+it('lists only verified shelters sorted by distance to the viewer', function (): void {
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+
+    $farOwner = User::factory()->create();
+    publishVerifiedShelterAnimal($farOwner, $dog->id);
+    $farShelterId = Shelter::query()->where('owner_user_id', $farOwner->id)->value('id');
+    Shelter::query()->whereKey($farShelterId)->update(['latitude' => 55.75, 'longitude' => 37.62]); // Москва
+
+    $nearOwner = User::factory()->create();
+    publishVerifiedShelterAnimal($nearOwner, $dog->id);
+    $nearShelterId = Shelter::query()->where('owner_user_id', $nearOwner->id)->value('id');
+    Shelter::query()->whereKey($nearShelterId)->update(['latitude' => 59.94, 'longitude' => 30.31]); // Санкт-Петербург
+
+    $pendingOwner = User::factory()->create();
+    Sanctum::actingAs($pendingOwner);
+    $pendingShelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'На рассмотрении'])->json('data.id');
+
+    $viewer = User::factory()->create();
+    $viewer->forceFill(['latitude' => 59.93, 'longitude' => 30.36])->save(); // рядом с СПб
+
+    Sanctum::actingAs($viewer);
+    $response = $this->getJson('/api/v1/shelters');
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id')->values();
+
+    expect($ids)->not->toContain($pendingShelterId)
+        ->and($ids->search($nearShelterId))->toBeLessThan($ids->search($farShelterId));
 });

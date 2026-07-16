@@ -11,8 +11,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Принимает либо Shelter напрямую (create/me/verify/pending-verification — без контактов
- * владельца), либо array{shelter: Shelter, owner: ?EloquentUser} — так отдаёт show() уже
- * после проверки видимости, тот же приём, что ConversationResource/OrderResource.
+ * владельца и без расстояния), либо array{shelter: Shelter, owner: ?EloquentUser,
+ * distance_km?: ?float} — так отдают show()/index() уже после проверки видимости и подсчёта
+ * расстояния, тот же приём, что ConversationResource/OrderResource.
  */
 final class ShelterResource extends JsonResource
 {
@@ -23,6 +24,7 @@ final class ShelterResource extends JsonResource
     {
         $shelter = $this->resource instanceof Shelter ? $this->resource : $this->resource['shelter'];
         $owner = is_array($this->resource) ? $this->resource['owner'] : null;
+        $distanceKm = is_array($this->resource) ? ($this->resource['distance_km'] ?? null) : null;
 
         return [
             'id' => $shelter->id()->toString(),
@@ -37,6 +39,7 @@ final class ShelterResource extends JsonResource
             'phone' => $shelter->phone(),
             'email' => $shelter->email(),
             'photo_url' => $shelter->photoUrl(),
+            'distance_km' => $distanceKm,
             'owner' => $owner instanceof EloquentUser ? [
                 'name' => $owner->name,
                 'phone' => $owner->phone,

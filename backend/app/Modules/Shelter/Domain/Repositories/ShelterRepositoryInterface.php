@@ -26,4 +26,9 @@ interface ShelterRepositoryInterface
      * @return list<Shelter>
      */
     public function findPendingVerification(): array;
+
+    /**
+     * @return list<Shelter>
+     */
+    public function findVerified(): array;
 }
