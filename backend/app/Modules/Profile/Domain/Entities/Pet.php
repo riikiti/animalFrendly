@@ -6,12 +6,16 @@ namespace App\Modules\Profile\Domain\Entities;
 
 use App\Modules\Profile\Domain\Enums\PetPurpose;
 use App\Modules\Profile\Domain\Enums\PetSex;
+use App\Modules\Profile\Domain\Enums\PetSocialTag;
 use App\Modules\Profile\Domain\Enums\PetStatus;
 use App\Shared\Domain\ValueObjects\Id;
 use DateTimeImmutable;
 
 final class Pet
 {
+    /**
+     * @param  list<PetSocialTag>  $socialTags
+     */
     private function __construct(
         private readonly Id $id,
         private readonly Id $ownerId,
@@ -26,8 +30,12 @@ final class Pet
         private PetStatus $status,
         private ?DateTimeImmutable $boostedUntil,
         private ?string $photoUrl,
+        private readonly array $socialTags,
     ) {}
 
+    /**
+     * @param  list<PetSocialTag>  $socialTags
+     */
     public static function create(
         Id $id,
         Id $ownerId,
@@ -39,6 +47,7 @@ final class Pet
         PetPurpose $purpose,
         ?string $description,
         bool $isVaccinated,
+        array $socialTags = [],
     ): self {
         $name = trim($name);
 
@@ -60,9 +69,13 @@ final class Pet
             PetStatus::Active,
             null,
             null,
+            $socialTags,
         );
     }
 
+    /**
+     * @param  list<PetSocialTag>  $socialTags
+     */
     public static function reconstitute(
         Id $id,
         Id $ownerId,
@@ -77,6 +90,7 @@ final class Pet
         PetStatus $status,
         ?DateTimeImmutable $boostedUntil = null,
         ?string $photoUrl = null,
+        array $socialTags = [],
     ): self {
         return new self(
             $id,
@@ -92,6 +106,7 @@ final class Pet
             $status,
             $boostedUntil,
             $photoUrl,
+            $socialTags,
         );
     }
 
@@ -183,5 +198,13 @@ final class Pet
     public function photoUrl(): ?string
     {
         return $this->photoUrl;
+    }
+
+    /**
+     * @return list<PetSocialTag>
+     */
+    public function socialTags(): array
+    {
+        return $this->socialTags;
     }
 }

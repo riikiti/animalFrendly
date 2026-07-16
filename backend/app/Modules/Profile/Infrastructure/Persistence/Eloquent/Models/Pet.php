@@ -33,12 +33,14 @@ final class Pet extends Model
         'status',
         'boosted_until',
         'photo_url',
+        'social_tags',
     ];
 
     protected $casts = [
         'birthdate' => 'date',
         'is_vaccinated' => 'boolean',
         'boosted_until' => 'datetime',
+        'social_tags' => 'array',
     ];
 
     protected static function newFactory(): PetFactory

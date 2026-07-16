@@ -18,6 +18,7 @@ use App\Modules\Profile\Application\Queries\ListMyPets\ListMyPetsHandler;
 use App\Modules\Profile\Application\Queries\ListPetPhotos\ListPetPhotosHandler;
 use App\Modules\Profile\Application\Queries\ListPetPhotos\ListPetPhotosQuery;
 use App\Modules\Profile\Domain\Exceptions\BreedDoesNotBelongToSpeciesException;
+use App\Modules\Profile\Domain\Exceptions\PetLimitExceededException;
 use App\Modules\Profile\Domain\Exceptions\PetNotFoundException;
 use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\PetPhotoNotFoundException;
@@ -57,9 +58,12 @@ final class PetController
                 purpose: $request->string('purpose')->toString(),
                 description: $request->string('description')->toString() ?: null,
                 isVaccinated: $request->boolean('is_vaccinated'),
+                socialTags: $request->input('social_tags', []),
             ));
         } catch (SpeciesNotFoundException|BreedDoesNotBelongToSpeciesException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (PetLimitExceededException $e) {
+            return response()->json(['message' => $e->getMessage(), 'error_code' => 'pet_limit_exceeded'], 402);
         }
 
         return response()->json(['data' => new PetResource($pet)], 201);

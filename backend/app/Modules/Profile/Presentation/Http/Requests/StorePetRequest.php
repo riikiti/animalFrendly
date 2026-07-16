@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Profile\Presentation\Http\Requests;
 
+use App\Modules\Profile\Domain\Enums\PetSocialTag;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class StorePetRequest extends FormRequest
 {
@@ -29,6 +31,8 @@ final class StorePetRequest extends FormRequest
             'purpose' => ['required', 'string', 'in:social,breeding'],
             'description' => ['nullable', 'string', 'max:2000'],
             'is_vaccinated' => ['nullable', 'boolean'],
+            'social_tags' => ['sometimes', 'array'],
+            'social_tags.*' => ['string', Rule::in(array_column(PetSocialTag::cases(), 'value'))],
         ];
     }
 }

@@ -6,6 +6,9 @@ namespace App\Modules\Profile\Application\Commands\CreatePet;
 
 final class CreatePetCommand
 {
+    /**
+     * @param  list<string>  $socialTags
+     */
     public function __construct(
         public readonly string $ownerId,
         public readonly int $speciesId,
@@ -16,5 +19,6 @@ final class CreatePetCommand
         public readonly string $purpose,
         public readonly ?string $description,
         public readonly bool $isVaccinated,
+        public readonly array $socialTags = [],
     ) {}
 }

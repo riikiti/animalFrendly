@@ -8,7 +8,9 @@ use App\Modules\Catalog\Domain\Repositories\BreedRepositoryInterface;
 use App\Modules\Catalog\Domain\Repositories\SpeciesRepositoryInterface;
 use App\Modules\Profile\Application\Commands\CreatePet\CreatePetCommand;
 use App\Modules\Profile\Application\Commands\CreatePet\CreatePetHandler;
+use App\Modules\Profile\Application\Contracts\SubscriptionFeatureGateInterface;
 use App\Modules\Profile\Domain\Exceptions\BreedDoesNotBelongToSpeciesException;
+use App\Modules\Profile\Domain\Exceptions\PetLimitExceededException;
 use App\Modules\Profile\Domain\Exceptions\SpeciesNotFoundException;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
 use App\Shared\Application\DomainEventDispatcherInterface;
@@ -26,12 +28,14 @@ function makeCreatePetCommand(array $overrides = []): CreatePetCommand
         purpose: $overrides['purpose'] ?? 'social',
         description: $overrides['description'] ?? null,
         isVaccinated: $overrides['isVaccinated'] ?? false,
+        socialTags: $overrides['socialTags'] ?? [],
     );
 }
 
 it('creates a pet for a valid species', function (): void {
     $pets = Mockery::mock(PetRepositoryInterface::class);
     $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
+    $pets->shouldReceive('countByOwner')->once()->andReturn(0);
     $pets->shouldReceive('save')->once();
 
     $species = Mockery::mock(SpeciesRepositoryInterface::class);
@@ -42,13 +46,38 @@ it('creates a pet for a valid species', function (): void {
     $breeds = Mockery::mock(BreedRepositoryInterface::class);
     $breeds->shouldNotReceive('findById');
 
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
     $events->shouldReceive('dispatch')->once();
 
-    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
     $pet = $handler->handle(makeCreatePetCommand());
 
     expect($pet->name())->toBe('Рекс');
+});
+
+it('maps social tags into the created pet', function (): void {
+    $pets = Mockery::mock(PetRepositoryInterface::class);
+    $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
+    $pets->shouldReceive('countByOwner')->once()->andReturn(0);
+    $pets->shouldReceive('save')->once();
+
+    $species = Mockery::mock(SpeciesRepositoryInterface::class);
+    $species->shouldReceive('findById')->once()->with(1)->andReturn(
+        new Species(id: 1, slug: 'dog', nameRu: 'Собака', isActive: true),
+    );
+
+    $breeds = Mockery::mock(BreedRepositoryInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
+    $pet = $handler->handle(makeCreatePetCommand(['socialTags' => ['walks', 'friendship']]));
+
+    expect(array_map(fn ($tag) => $tag->value, $pet->socialTags()))->toBe(['walks', 'friendship']);
 });
 
 it('rejects an unknown species', function (): void {
@@ -59,10 +88,11 @@ it('rejects an unknown species', function (): void {
     $species->shouldReceive('findById')->once()->andReturn(null);
 
     $breeds = Mockery::mock(BreedRepositoryInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
 
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
     $handler->handle(makeCreatePetCommand(['speciesId' => 999]));
 })->throws(SpeciesNotFoundException::class);
 
@@ -80,8 +110,55 @@ it('rejects a breed that does not belong to the given species', function (): voi
         new Breed(id: 10, speciesId: 2, slug: 'siamese', nameRu: 'Сиамская', attributes: [], isActive: true),
     );
 
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
     $events = Mockery::mock(DomainEventDispatcherInterface::class);
 
-    $handler = new CreatePetHandler($pets, $species, $breeds, $events);
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
     $handler->handle(makeCreatePetCommand(['speciesId' => 1, 'breedId' => 10]));
 })->throws(BreedDoesNotBelongToSpeciesException::class);
+
+it('rejects a second pet without an active subscription', function (): void {
+    $pets = Mockery::mock(PetRepositoryInterface::class);
+    $pets->shouldReceive('countByOwner')->once()->andReturn(1);
+    $pets->shouldNotReceive('save');
+
+    $species = Mockery::mock(SpeciesRepositoryInterface::class);
+    $species->shouldReceive('findById')->once()->with(1)->andReturn(
+        new Species(id: 1, slug: 'dog', nameRu: 'Собака', isActive: true),
+    );
+
+    $breeds = Mockery::mock(BreedRepositoryInterface::class);
+
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $featureGate->shouldReceive('hasUnlimitedPets')->once()->andReturn(false);
+
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
+    $handler->handle(makeCreatePetCommand());
+})->throws(PetLimitExceededException::class);
+
+it('allows a second pet with an active subscription', function (): void {
+    $pets = Mockery::mock(PetRepositoryInterface::class);
+    $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
+    $pets->shouldReceive('countByOwner')->once()->andReturn(1);
+    $pets->shouldReceive('save')->once();
+
+    $species = Mockery::mock(SpeciesRepositoryInterface::class);
+    $species->shouldReceive('findById')->once()->with(1)->andReturn(
+        new Species(id: 1, slug: 'dog', nameRu: 'Собака', isActive: true),
+    );
+
+    $breeds = Mockery::mock(BreedRepositoryInterface::class);
+
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $featureGate->shouldReceive('hasUnlimitedPets')->once()->andReturn(true);
+
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
+    $pet = $handler->handle(makeCreatePetCommand());
+
+    expect($pet->name())->toBe('Рекс');
+});

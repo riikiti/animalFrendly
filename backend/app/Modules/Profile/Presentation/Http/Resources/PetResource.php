@@ -34,6 +34,7 @@ final class PetResource extends JsonResource
             'is_vaccinated' => $pet->isVaccinated(),
             'status' => $pet->status()->value,
             'photo_url' => $pet->photoUrl(),
+            'social_tags' => array_map(fn ($tag) => $tag->value, $pet->socialTags()),
         ];
     }
 }

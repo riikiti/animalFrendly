@@ -7,6 +7,7 @@ namespace App\Modules\Profile\Infrastructure\Persistence\Eloquent\Repositories;
 use App\Modules\Profile\Domain\Entities\Pet as DomainPet;
 use App\Modules\Profile\Domain\Enums\PetPurpose;
 use App\Modules\Profile\Domain\Enums\PetSex;
+use App\Modules\Profile\Domain\Enums\PetSocialTag;
 use App\Modules\Profile\Domain\Enums\PetStatus;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
 use App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models\Pet as EloquentPet;
@@ -36,8 +37,14 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 'status' => $pet->status()->value,
                 'boosted_until' => $pet->boostedUntil(),
                 'photo_url' => $pet->photoUrl(),
+                'social_tags' => array_map(fn (PetSocialTag $tag): string => $tag->value, $pet->socialTags()),
             ],
         );
+    }
+
+    public function countByOwner(Id $ownerId): int
+    {
+        return EloquentPet::query()->where('owner_id', $ownerId->toString())->count();
     }
 
     public function findById(Id $id): ?DomainPet
@@ -106,6 +113,10 @@ final class EloquentPetRepository implements PetRepositoryInterface
             status: PetStatus::from($model->status),
             boostedUntil: $model->boosted_until?->toDateTimeImmutable(),
             photoUrl: $model->photo_url,
+            socialTags: array_values(array_map(
+                fn (string $tag): PetSocialTag => PetSocialTag::from($tag),
+                $model->social_tags ?? [],
+            )),
         );
     }
 }
