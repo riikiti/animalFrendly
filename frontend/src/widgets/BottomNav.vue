@@ -8,6 +8,7 @@ const tabs = [
   { name: 'shelter-animals', label: 'Приюты' },
   { name: 'my-adoption-requests', label: 'Заявки' },
   { name: 'marketplace', label: 'Маркет' },
+  { name: 'profile', label: 'Профиль' },
 ] as const
 </script>
 

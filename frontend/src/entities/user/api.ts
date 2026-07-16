@@ -38,6 +38,9 @@ export function logout(): Promise<{ message: string }> {
   return apiRequest('/api/v1/auth/logout', { method: 'POST' })
 }
 
-export function updateProfile(payload: { address: string | null }): Promise<User> {
+export function updateProfile(payload: {
+  name?: string | null
+  address?: string | null
+}): Promise<User> {
   return apiRequest<User>('/api/v1/auth/me', { method: 'PATCH', body: payload })
 }

@@ -167,7 +167,7 @@ async function onLogout(): Promise<void> {
         <button
           class="text-lg text-ink-soft"
           title="Адрес"
-          @click="router.push({ name: 'profile-settings' })"
+          @click="router.push({ name: 'profile' })"
         >
           📍
         </button>
