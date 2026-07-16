@@ -1,5 +1,5 @@
 import { apiRequest } from '@/shared/api/http'
-import type { Pet, PetPhoto } from './types'
+import type { Pet, PetPhoto, PetSocialTag } from './types'
 
 export interface CreatePetPayload {
   species_id: number
@@ -10,6 +10,7 @@ export interface CreatePetPayload {
   birthdate?: string | null
   description?: string | null
   is_vaccinated?: boolean
+  social_tags?: PetSocialTag[]
 }
 
 export function listMyPets(): Promise<{ data: Pet[] }> {

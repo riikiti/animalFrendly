@@ -1,6 +1,7 @@
 export type PetSex = 'male' | 'female'
 export type PetPurpose = 'social' | 'breeding' | 'for_sale' | 'shelter'
 export type PetStatus = 'active' | 'hidden' | 'archived'
+export type PetSocialTag = 'walks' | 'friendship' | 'mating' | 'training' | 'pet_sitting'
 
 export interface Pet {
   id: string
@@ -15,6 +16,7 @@ export interface Pet {
   is_vaccinated: boolean
   status: PetStatus
   photo_url: string | null
+  social_tags: PetSocialTag[]
 }
 
 export interface PetPhoto {

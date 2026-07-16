@@ -61,5 +61,15 @@ async function save(): Promise<void> {
         {{ isSaving ? 'Сохраняем…' : 'Сохранить' }}
       </BaseButton>
     </div>
+
+    <div class="mt-4 flex flex-col gap-3 border-t border-hairline px-2 pt-4">
+      <span class="font-display text-lg text-ink">Питомцы</span>
+      <p class="text-xs text-ink-faint">
+        Бесплатно доступна одна анкета питомца. По подписке можно завести сколько угодно.
+      </p>
+      <BaseButton variant="ghost" @click="router.push({ name: 'create-pet' })">
+        Добавить ещё одного питомца
+      </BaseButton>
+    </div>
   </div>
 </template>

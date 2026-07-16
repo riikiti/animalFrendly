@@ -3,12 +3,14 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 import * as catalogApi from '@/entities/catalog/api'
 import { useCatalogStore } from '@/entities/catalog/model'
 import type { Breed } from '@/entities/catalog/types'
 import * as petApi from '@/entities/pet/api'
 import { usePetStore } from '@/entities/pet/model'
-import type { PetPhoto } from '@/entities/pet/types'
+import { socialTagOptions } from '@/entities/pet/socialTags'
+import type { PetPhoto, PetSocialTag } from '@/entities/pet/types'
 import { ApiError } from '@/shared/api/http'
 
 const MAX_PHOTOS = 6
@@ -28,12 +30,16 @@ const form = reactive({
   name: '',
   sex: 'male' as 'male' | 'female',
   purpose: 'social' as (typeof purposes)[number]['value'],
+  description: '',
+  socialTags: [] as PetSocialTag[],
 })
 
 const breeds = ref<Breed[]>([])
 const isSubmitting = ref(false)
 const errors = ref<Record<string, string[]>>({})
 const generalError = ref('')
+const paywallOpen = ref(false)
+const paywallMessage = ref('')
 
 const step = ref<'form' | 'photo'>('form')
 const createdPetId = ref<string | null>(null)
@@ -69,6 +75,15 @@ async function selectSpecies(slug: string, id: number): Promise<void> {
   breeds.value = response.data
 }
 
+function toggleTag(tag: PetSocialTag): void {
+  const index = form.socialTags.indexOf(tag)
+  if (index === -1) {
+    form.socialTags.push(tag)
+  } else {
+    form.socialTags.splice(index, 1)
+  }
+}
+
 async function onSubmit(): Promise<void> {
   if (form.speciesId === null) return
 
@@ -83,11 +98,16 @@ async function onSubmit(): Promise<void> {
       name: form.name,
       sex: form.sex,
       purpose: form.purpose,
+      description: form.description.trim() || null,
+      social_tags: form.socialTags,
     })
     createdPetId.value = pet.id
     step.value = 'photo'
   } catch (error) {
-    if (error instanceof ApiError) {
+    if (error instanceof ApiError && error.status === 402) {
+      paywallMessage.value = error.message
+      paywallOpen.value = true
+    } else if (error instanceof ApiError) {
       errors.value = error.errors ?? {}
       if (!error.errors) generalError.value = error.message
     } else {
@@ -96,6 +116,15 @@ async function onSubmit(): Promise<void> {
   } finally {
     isSubmitting.value = false
   }
+}
+
+function closePaywall(): void {
+  paywallOpen.value = false
+}
+
+async function goToSubscriptionPlans(): Promise<void> {
+  paywallOpen.value = false
+  await router.push({ name: 'subscription-plans' })
 }
 
 async function refreshPhotos(): Promise<void> {
@@ -212,6 +241,36 @@ async function finishPhotoStep(): Promise<void> {
       </div>
     </div>
 
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-semibold text-ink-soft">Для чего ищу общение</span>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="tag in socialTagOptions"
+          :key="tag.value"
+          type="button"
+          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
+          :class="
+            form.socialTags.includes(tag.value)
+              ? 'bg-teal text-white'
+              : 'bg-surface-soft text-ink-soft'
+          "
+          @click="toggleTag(tag.value)"
+        >
+          {{ tag.title }}
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-semibold text-ink-soft">О питомце</span>
+      <textarea
+        v-model="form.description"
+        rows="3"
+        placeholder="Расскажите о характере, привычках…"
+        class="resize-none rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-faint"
+      />
+    </div>
+
     <p v-if="generalError" class="text-xs text-danger">{{ generalError }}</p>
 
     <BaseButton type="submit" :disabled="isSubmitting || form.speciesId === null">
@@ -272,4 +331,11 @@ async function finishPhotoStep(): Promise<void> {
 
     <BaseButton @click="finishPhotoStep">Готово</BaseButton>
   </div>
+
+  <PaywallSheet
+    :open="paywallOpen"
+    :message="paywallMessage"
+    @close="closePaywall"
+    @upgrade="goToSubscriptionPlans"
+  />
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCatalogStore } from '@/entities/catalog/model'
+import { socialTagLabel } from '@/entities/pet/socialTags'
 import type { Pet } from '@/entities/pet/types'
 import ReportButton from '@/shared/ui/components/ReportButton.vue'
 
@@ -36,6 +37,15 @@ const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id
         <p class="text-sm text-ink-soft">
           {{ speciesName }}<span v-if="pet.description"> · {{ pet.description }}</span>
         </p>
+        <div v-if="pet.social_tags.length > 0" class="mt-1 flex flex-wrap gap-1">
+          <span
+            v-for="tag in pet.social_tags"
+            :key="tag"
+            class="rounded-full bg-surface/70 px-2 py-0.5 text-[11px] font-semibold text-ink-soft"
+          >
+            {{ socialTagLabel(tag) }}
+          </span>
+        </div>
         <ReportButton target-type="pet" :target-id="pet.id" />
       </div>
     </div>

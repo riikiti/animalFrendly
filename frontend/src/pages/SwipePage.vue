@@ -69,6 +69,17 @@ async function loadCandidates(): Promise<void> {
   candidates.value = response.data
 }
 
+// Бесплатно доступна одна анкета, по подписке — сколько угодно (см. CreatePetHandler);
+// ListCandidates уже параметризован petId, поэтому переключение — это просто смена активной
+// анкеты и повторная загрузка ленты, без изменений на бэкенде.
+async function switchPet(pet: Pet): Promise<void> {
+  if (myPet.value?.id === pet.id) return
+  myPet.value = pet
+  isLoading.value = true
+  await loadCandidates()
+  isLoading.value = false
+}
+
 async function onSwipe(action: matchApi.SwipeAction): Promise<void> {
   if (!myPet.value || candidates.value.length === 0) return
 
@@ -178,6 +189,19 @@ async function onLogout(): Promise<void> {
         </button>
         <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
       </div>
+    </div>
+
+    <div v-if="petStore.myPets.length > 1" class="flex flex-wrap gap-2 px-2">
+      <button
+        v-for="pet in petStore.myPets"
+        :key="pet.id"
+        type="button"
+        class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
+        :class="myPet?.id === pet.id ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+        @click="switchPet(pet)"
+      >
+        {{ pet.name }}
+      </button>
     </div>
 
     <template v-if="!isLoading">
