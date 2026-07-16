@@ -35,7 +35,7 @@ function makeCreatePetCommand(array $overrides = []): CreatePetCommand
 it('creates a pet for a valid species', function (): void {
     $pets = Mockery::mock(PetRepositoryInterface::class);
     $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
-    $pets->shouldReceive('countByOwner')->once()->andReturn(0);
+    $pets->shouldReceive('countByOwnerForMatching')->once()->andReturn(0);
     $pets->shouldReceive('save')->once();
 
     $species = Mockery::mock(SpeciesRepositoryInterface::class);
@@ -60,7 +60,7 @@ it('creates a pet for a valid species', function (): void {
 it('maps social tags into the created pet', function (): void {
     $pets = Mockery::mock(PetRepositoryInterface::class);
     $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
-    $pets->shouldReceive('countByOwner')->once()->andReturn(0);
+    $pets->shouldReceive('countByOwnerForMatching')->once()->andReturn(0);
     $pets->shouldReceive('save')->once();
 
     $species = Mockery::mock(SpeciesRepositoryInterface::class);
@@ -119,7 +119,7 @@ it('rejects a breed that does not belong to the given species', function (): voi
 
 it('rejects a second pet without an active subscription', function (): void {
     $pets = Mockery::mock(PetRepositoryInterface::class);
-    $pets->shouldReceive('countByOwner')->once()->andReturn(1);
+    $pets->shouldReceive('countByOwnerForMatching')->once()->andReturn(1);
     $pets->shouldNotReceive('save');
 
     $species = Mockery::mock(SpeciesRepositoryInterface::class);
@@ -138,10 +138,60 @@ it('rejects a second pet without an active subscription', function (): void {
     $handler->handle(makeCreatePetCommand());
 })->throws(PetLimitExceededException::class);
 
+it('does not gate for_sale pets even when the owner already has a matching pet', function (): void {
+    // CreateListingHandler (Marketplace) создаёт for_sale-анкеты этим же хендлером — лимит
+    // анкет для мэтчинга не должен мешать продавцу выставлять сколько угодно объявлений.
+    $pets = Mockery::mock(PetRepositoryInterface::class);
+    $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
+    $pets->shouldNotReceive('countByOwnerForMatching');
+    $pets->shouldReceive('save')->once();
+
+    $species = Mockery::mock(SpeciesRepositoryInterface::class);
+    $species->shouldReceive('findById')->once()->with(1)->andReturn(
+        new Species(id: 1, slug: 'dog', nameRu: 'Собака', isActive: true),
+    );
+
+    $breeds = Mockery::mock(BreedRepositoryInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $featureGate->shouldNotReceive('hasUnlimitedPets');
+
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
+    $pet = $handler->handle(makeCreatePetCommand(['purpose' => 'for_sale']));
+
+    expect($pet->purpose()->value)->toBe('for_sale');
+});
+
+it('does not gate shelter pets even when the owner already has a matching pet', function (): void {
+    $pets = Mockery::mock(PetRepositoryInterface::class);
+    $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
+    $pets->shouldNotReceive('countByOwnerForMatching');
+    $pets->shouldReceive('save')->once();
+
+    $species = Mockery::mock(SpeciesRepositoryInterface::class);
+    $species->shouldReceive('findById')->once()->with(1)->andReturn(
+        new Species(id: 1, slug: 'dog', nameRu: 'Собака', isActive: true),
+    );
+
+    $breeds = Mockery::mock(BreedRepositoryInterface::class);
+    $featureGate = Mockery::mock(SubscriptionFeatureGateInterface::class);
+    $featureGate->shouldNotReceive('hasUnlimitedPets');
+
+    $events = Mockery::mock(DomainEventDispatcherInterface::class);
+    $events->shouldReceive('dispatch')->once();
+
+    $handler = new CreatePetHandler($pets, $species, $breeds, $featureGate, $events);
+    $pet = $handler->handle(makeCreatePetCommand(['purpose' => 'shelter']));
+
+    expect($pet->purpose()->value)->toBe('shelter');
+});
+
 it('allows a second pet with an active subscription', function (): void {
     $pets = Mockery::mock(PetRepositoryInterface::class);
     $pets->shouldReceive('nextIdentity')->once()->andReturn(Id::generate());
-    $pets->shouldReceive('countByOwner')->once()->andReturn(1);
+    $pets->shouldReceive('countByOwnerForMatching')->once()->andReturn(1);
     $pets->shouldReceive('save')->once();
 
     $species = Mockery::mock(SpeciesRepositoryInterface::class);

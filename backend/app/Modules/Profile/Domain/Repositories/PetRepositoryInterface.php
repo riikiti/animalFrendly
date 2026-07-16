@@ -21,10 +21,13 @@ interface PetRepositoryInterface
     public function findByOwner(Id $ownerId): array;
 
     /**
-     * Количество анкет владельца — используется для лимита бесплатного тарифа
-     * (см. CreatePetHandler), дешевле, чем count(findByOwner()).
+     * Количество анкет владельца с purpose social/breeding — то есть "анкет для мэтчинга",
+     * используется для лимита бесплатного тарифа (см. CreatePetHandler). Не учитывает
+     * for_sale/shelter — те создаются тем же CreatePetHandler из Marketplace/Shelter модулей
+     * (см. CreateListingHandler/PublishShelterAnimalHandler) и лимиту не подчиняются: продавец
+     * или приют должны иметь возможность завести сколько угодно объявлений/подопечных.
      */
-    public function countByOwner(Id $ownerId): int;
+    public function countByOwnerForMatching(Id $ownerId): int;
 
     /**
      * Активные анкеты не указанного владельца и не из списка исключений — используется

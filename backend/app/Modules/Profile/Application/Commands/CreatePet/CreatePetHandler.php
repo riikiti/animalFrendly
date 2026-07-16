@@ -46,9 +46,17 @@ final class CreatePetHandler
 
         $ownerId = Id::fromString($command->ownerId);
 
-        // Бесплатный тариф — одна анкета на пользователя; подписка снимает ограничение, см.
-        // Subscription\Infrastructure\Adapters\ProfileFeatureGateAdapter.
-        if ($this->pets->countByOwner($ownerId) >= 1 && ! $this->featureGate->hasUnlimitedPets($ownerId)) {
+        // Бесплатный тариф — одна анкета для мэтчинга на пользователя; подписка снимает
+        // ограничение (см. ProfileFeatureGateAdapter). Лимит касается только social/breeding —
+        // for_sale/shelter создаются этим же хендлером из Marketplace/Shelter
+        // (CreateListingHandler/PublishShelterAnimalHandler) и не должны на него натыкаться:
+        // продавец или приют заводят сколько угодно объявлений/подопечных.
+        $isMatchingPurpose = in_array($command->purpose, ['social', 'breeding'], true);
+
+        if ($isMatchingPurpose
+            && $this->pets->countByOwnerForMatching($ownerId) >= 1
+            && ! $this->featureGate->hasUnlimitedPets($ownerId)
+        ) {
             throw PetLimitExceededException::create();
         }
 

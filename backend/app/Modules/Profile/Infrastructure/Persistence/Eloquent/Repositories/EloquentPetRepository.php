@@ -42,9 +42,12 @@ final class EloquentPetRepository implements PetRepositoryInterface
         );
     }
 
-    public function countByOwner(Id $ownerId): int
+    public function countByOwnerForMatching(Id $ownerId): int
     {
-        return EloquentPet::query()->where('owner_id', $ownerId->toString())->count();
+        return EloquentPet::query()
+            ->where('owner_id', $ownerId->toString())
+            ->whereIn('purpose', ['social', 'breeding'])
+            ->count();
     }
 
     public function findById(Id $id): ?DomainPet
