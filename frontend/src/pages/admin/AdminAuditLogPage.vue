@@ -25,7 +25,9 @@ function formatDate(value: string): string {
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6">
+  <div
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
+  >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.push({ name: 'admin-dashboard' })">
         ←

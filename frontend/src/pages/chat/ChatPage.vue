@@ -70,7 +70,7 @@ async function send(): Promise<void> {
 </script>
 
 <template>
-  <div class="mx-auto flex h-screen max-w-sm flex-col px-4 py-4">
+  <div class="mx-auto flex h-screen max-w-sm flex-col px-4 py-4 md:max-w-lg lg:max-w-2xl lg:px-8">
     <div class="flex items-center gap-2 pb-2">
       <button class="text-ink-soft" @click="router.back()">←</button>
       <span class="text-sm font-semibold text-ink">Чат</span>

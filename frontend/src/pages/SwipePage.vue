@@ -145,7 +145,9 @@ async function onLogout(): Promise<void> {
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6">
+  <div
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
+  >
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">AnimalFriendly</span>
       <div class="flex items-center gap-3">
@@ -205,41 +207,45 @@ async function onLogout(): Promise<void> {
     </div>
 
     <template v-if="!isLoading">
-      <PetCard v-if="candidates.length > 0" :pet="candidates[0]" />
-      <div
-        v-else
-        class="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl bg-surface-soft text-center text-sm text-ink-faint"
-      >
-        Пока новых анкет рядом нет — загляните позже
-      </div>
+      <!-- Tinder-карточка остаётся компактной и по центру даже на широком десктопном
+      экране — растягивать её до ширины страницы (см. лимиты выше) выглядело бы не по-Tinder'ски. -->
+      <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4">
+        <PetCard v-if="candidates.length > 0" :pet="candidates[0]" />
+        <div
+          v-else
+          class="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl bg-surface-soft text-center text-sm text-ink-faint"
+        >
+          Пока новых анкет рядом нет — загляните позже
+        </div>
 
-      <button
-        class="self-center text-xs font-semibold text-accent-ink disabled:opacity-50"
-        :disabled="isBoosting"
-        @click="onBoost"
-      >
-        {{ isBoosting ? 'Бустим…' : '✨ Забустить анкету' }}
-      </button>
+        <button
+          class="self-center text-xs font-semibold text-accent-ink disabled:opacity-50"
+          :disabled="isBoosting"
+          @click="onBoost"
+        >
+          {{ isBoosting ? 'Бустим…' : '✨ Забустить анкету' }}
+        </button>
 
-      <div class="flex justify-center gap-4 py-2">
-        <button
-          class="flex h-14 w-14 items-center justify-center rounded-full border border-clay-soft text-lg text-clay"
-          @click="onSwipe('dislike')"
-        >
-          ✕
-        </button>
-        <button
-          class="flex h-14 w-14 items-center justify-center rounded-full border border-hairline text-lg text-accent"
-          @click="onSwipe('super_like')"
-        >
-          ★
-        </button>
-        <button
-          class="flex h-[58px] w-[58px] items-center justify-center rounded-full bg-teal text-lg text-white"
-          @click="onSwipe('like')"
-        >
-          ♥
-        </button>
+        <div class="flex justify-center gap-4 py-2">
+          <button
+            class="flex h-14 w-14 items-center justify-center rounded-full border border-clay-soft text-lg text-clay"
+            @click="onSwipe('dislike')"
+          >
+            ✕
+          </button>
+          <button
+            class="flex h-14 w-14 items-center justify-center rounded-full border border-hairline text-lg text-accent"
+            @click="onSwipe('super_like')"
+          >
+            ★
+          </button>
+          <button
+            class="flex h-[58px] w-[58px] items-center justify-center rounded-full bg-teal text-lg text-white"
+            @click="onSwipe('like')"
+          >
+            ♥
+          </button>
+        </div>
       </div>
     </template>
 

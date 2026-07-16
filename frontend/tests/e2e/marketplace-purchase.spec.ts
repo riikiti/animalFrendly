@@ -34,6 +34,12 @@ async function registerWithThrowawayPet(context: BrowserContext, petName: string
 }
 
 test('листинг → покупка → эскроу-оплата → подтверждение обеими сторонами', async ({ browser }) => {
+  // Под полной параллельной нагрузкой всего E2E-набора (8 браузеров Chromium одновременно)
+  // на этой машине заметно возрастает джиттер CPU-шедулинга — обработка вебхука/финального
+  // подтверждения через очередь может занять заметно дольше, чем в изолированном прогоне
+  // (см. тот же приём в matching-and-chat.spec.ts — тест стабилен и один, и при малой нагрузке).
+  test.setTimeout(60_000)
+
   const contextSeller = await browser.newContext()
   const contextBuyer = await browser.newContext()
 
@@ -84,5 +90,5 @@ test('листинг → покупка → эскроу-оплата → под
   await sellerPage.getByText('Оплачено, на удержании').click()
 
   await sellerPage.getByRole('button', { name: 'Подтвердить получение' }).click()
-  await expect(sellerPage.getByText('Завершена')).toBeVisible()
+  await expect(sellerPage.getByText('Завершена')).toBeVisible({ timeout: 45_000 })
 })
