@@ -9,7 +9,6 @@ it('registers a new user and returns an api token', function (): void {
         'phone' => '+7 926 123-45-67',
         'password' => 'correct-password',
         'password_confirmation' => 'correct-password',
-        'account_type' => 'owner',
         'personal_data_consent' => true,
     ]);
 
@@ -26,7 +25,6 @@ it('rejects registration without personal data consent', function (): void {
         'phone' => '+79261234567',
         'password' => 'correct-password',
         'password_confirmation' => 'correct-password',
-        'account_type' => 'owner',
         'personal_data_consent' => false,
     ]);
 
@@ -40,7 +38,6 @@ it('rejects registration with a duplicate phone number', function (): void {
         'phone' => '+79261234567',
         'password' => 'correct-password',
         'password_confirmation' => 'correct-password',
-        'account_type' => 'owner',
         'personal_data_consent' => true,
     ]);
 
@@ -49,7 +46,7 @@ it('rejects registration with a duplicate phone number', function (): void {
     });
 });
 
-it('rejects registration with an elevated account type', function (): void {
+it('ignores an account_type sent by the client and always registers as owner', function (): void {
     $response = $this->postJson('/api/v1/auth/register', [
         'phone' => '+79261234567',
         'password' => 'correct-password',
@@ -58,5 +55,5 @@ it('rejects registration with an elevated account type', function (): void {
         'personal_data_consent' => true,
     ]);
 
-    $response->assertUnprocessable()->assertJsonValidationErrors('account_type');
+    $response->assertCreated()->assertJsonPath('user.account_type', 'owner');
 });

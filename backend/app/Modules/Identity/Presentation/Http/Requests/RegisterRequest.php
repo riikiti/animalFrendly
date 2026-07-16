@@ -22,8 +22,6 @@ final class RegisterRequest extends FormRequest
         return [
             'phone' => ['required', 'string'],
             'password' => ['required', 'string', 'confirmed', Password::min(8)],
-            // 'admin'/'moderator' нельзя выбрать через публичную регистрацию.
-            'account_type' => ['required', 'string', 'in:owner,breeder,shelter'],
             'personal_data_consent' => ['required', 'accepted'],
         ];
     }

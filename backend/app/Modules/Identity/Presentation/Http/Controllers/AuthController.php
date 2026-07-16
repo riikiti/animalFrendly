@@ -30,10 +30,12 @@ final class AuthController
     public function register(RegisterRequest $request, RegisterUserHandler $handler): JsonResponse
     {
         try {
+            // Регистрация двухшаговая: шаг 1 создаёт обычный аккаунт без выбора роли, режим
+            // (приют/заводчик) пользователь выбирает отдельно после неё — см. OnboardingModePage.
             $user = $handler->handle(new RegisterUserCommand(
                 phone: $request->string('phone')->toString(),
                 password: $request->string('password')->toString(),
-                accountType: $request->string('account_type')->toString(),
+                accountType: 'owner',
                 personalDataConsentGiven: $request->boolean('personal_data_consent'),
             ));
         } catch (PhoneAlreadyRegisteredException $e) {
