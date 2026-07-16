@@ -36,6 +36,14 @@ export const useNotificationStore = defineStore('notification', () => {
     unreadCount.value = 0
   }
 
+  // Дедуп по id — на случай повторной доставки WS-события после переподключения (тот же
+  // приём, что appendMessage в ChatPage.vue).
+  function pushIncoming(notification: Notification): void {
+    if (items.value.some((n) => n.id === notification.id)) return
+    items.value.unshift(notification)
+    if (notification.read_at === null) unreadCount.value++
+  }
+
   return {
     items,
     unreadCount,
@@ -44,5 +52,6 @@ export const useNotificationStore = defineStore('notification', () => {
     refreshUnreadCount,
     markRead,
     markAllRead,
+    pushIncoming,
   }
 })

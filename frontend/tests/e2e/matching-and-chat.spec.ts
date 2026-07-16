@@ -91,6 +91,11 @@ test('two pet owners mutually like each other, get matched, and chat', async ({ 
   await swipeUntilFound(pageB, petNameA)
   await expect(pageB.getByText('Это мэтч!')).toBeVisible()
 
+  // A всё это время оставался на '/', не обновляя страницу — бейдж непрочитанных должен
+  // обновиться живьём через приватный канал user.{id} (см. App.vue), без перезагрузки.
+  const bellButtonA = pageA.getByRole('button').filter({ hasText: '🔔' })
+  await expect(bellButtonA.getByText('1', { exact: true })).toBeVisible({ timeout: 15_000 })
+
   await pageB.getByRole('button', { name: 'Написать сообщение' }).click()
   await pageB.waitForURL(/\/chat\//)
 

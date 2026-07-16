@@ -35,11 +35,9 @@ const isBoosting = ref(false)
 // тогда токен уже очищен, и последующие запросы закономерно получат 401. Не считаем это
 // необработанной ошибкой: страница уже покидается, реагировать не на что.
 let isMounted = true
-let unreadPollTimer: ReturnType<typeof setInterval> | null = null
 
 onUnmounted(() => {
   isMounted = false
-  if (unreadPollTimer) clearInterval(unreadPollTimer)
 })
 
 onMounted(async () => {
@@ -57,8 +55,9 @@ onMounted(async () => {
     await loadCandidates()
     isLoading.value = false
 
+    // Разовая гидратация — дальнейшие уведомления приходят живьём через App.vue
+    // (подписка на приватный канал user.{id}, см. shared/lib/echo.ts).
     await notificationStore.refreshUnreadCount()
-    unreadPollTimer = setInterval(() => notificationStore.refreshUnreadCount(), 30000)
   } catch (error) {
     if (isMounted) throw error
   }
