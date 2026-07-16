@@ -50,6 +50,11 @@ async function onAvatarSelected(event: Event): Promise<void> {
   }
 }
 
+async function onLogout(): Promise<void> {
+  await userStore.logout()
+  await router.push({ name: 'login' })
+}
+
 async function save(): Promise<void> {
   error.value = ''
   saved.value = false
@@ -161,6 +166,10 @@ async function save(): Promise<void> {
       <BaseButton variant="ghost" @click="router.push({ name: 'create-pet' })">
         Добавить ещё одного питомца
       </BaseButton>
+    </div>
+
+    <div class="border-t border-hairline px-2 pb-4 pt-4">
+      <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
     </div>
 
     <div class="-mx-4 mt-auto">

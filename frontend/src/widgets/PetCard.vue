@@ -1,12 +1,57 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useCatalogStore } from '@/entities/catalog/model'
 import { socialTagLabel } from '@/entities/pet/socialTags'
 import type { Pet } from '@/entities/pet/types'
 import ReportButton from '@/shared/ui/components/ReportButton.vue'
 
 const props = defineProps<{ pet: Pet }>()
+const emit = defineEmits<{ swipe: [action: 'like' | 'dislike'] }>()
 const catalogStore = useCatalogStore()
+
+const SWIPE_THRESHOLD = 100
+
+const isDragging = ref(false)
+const dragX = ref(0)
+const dragY = ref(0)
+const startX = ref(0)
+const startY = ref(0)
+
+function onPointerDown(event: PointerEvent): void {
+  if ((event.target as HTMLElement).closest('button')) return
+
+  isDragging.value = true
+  startX.value = event.clientX
+  startY.value = event.clientY
+  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+}
+
+function onPointerMove(event: PointerEvent): void {
+  if (!isDragging.value) return
+  dragX.value = event.clientX - startX.value
+  dragY.value = event.clientY - startY.value
+}
+
+function onPointerUp(): void {
+  if (!isDragging.value) return
+  isDragging.value = false
+
+  if (Math.abs(dragX.value) > SWIPE_THRESHOLD) {
+    emit('swipe', dragX.value > 0 ? 'like' : 'dislike')
+  }
+
+  dragX.value = 0
+  dragY.value = 0
+}
+
+const cardStyle = computed(() => ({
+  transform: `translate(${dragX.value}px, ${dragY.value}px) rotate(${dragX.value / 20}deg)`,
+  transition: isDragging.value ? 'none' : 'transform 0.3s ease',
+  touchAction: 'none',
+}))
+
+const likeOpacity = computed(() => Math.min(Math.max(dragX.value / SWIPE_THRESHOLD, 0), 1))
+const nopeOpacity = computed(() => Math.min(Math.max(-dragX.value / SWIPE_THRESHOLD, 0), 1))
 
 const speciesName = computed(() => catalogStore.speciesName(props.pet.species_id))
 const breedName = computed(() =>
@@ -46,13 +91,33 @@ watch(() => props.pet.species_id, loadBreed)
 
 <template>
   <div
-    class="relative min-h-[420px] flex-1 overflow-hidden rounded-[20px]"
-    style="background: linear-gradient(165deg, var(--teal-soft), var(--surface-soft))"
+    class="relative min-h-[420px] flex-1 select-none overflow-hidden rounded-[20px]"
+    :style="[
+      { background: 'linear-gradient(165deg, var(--teal-soft), var(--surface-soft))' },
+      cardStyle,
+    ]"
+    @pointerdown="onPointerDown"
+    @pointermove="onPointerMove"
+    @pointerup="onPointerUp"
+    @pointercancel="onPointerUp"
   >
+    <div
+      class="pointer-events-none absolute left-4 top-4 z-10 rounded-lg border-4 border-teal px-3 py-1 text-xl font-bold uppercase text-teal"
+      :style="{ opacity: likeOpacity }"
+    >
+      Like
+    </div>
+    <div
+      class="pointer-events-none absolute right-4 top-4 z-10 rounded-lg border-4 border-clay px-3 py-1 text-xl font-bold uppercase text-clay"
+      :style="{ opacity: nopeOpacity }"
+    >
+      Nope
+    </div>
+
     <img
       v-if="pet.photo_url"
       :src="pet.photo_url"
-      class="absolute inset-0 h-full w-full object-cover"
+      class="pointer-events-none absolute inset-0 h-full w-full object-cover"
       alt=""
     />
     <div class="absolute inset-x-0 bottom-0">

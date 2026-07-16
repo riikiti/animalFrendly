@@ -117,3 +117,45 @@ test('two pet owners mutually like each other, get matched, and chat', async ({ 
   // test.setTimeout выше).
   await expect(pageB.getByText('С радостью!')).toBeVisible({ timeout: 45_000 })
 })
+
+test('dragging the card right triggers the same swipe as the ♥ button', async ({ browser }) => {
+  const context = await browser.newContext()
+  const petName = `Дрэг${Date.now()}`
+  const page = await registerWithPet(context, petName)
+
+  const emptyState = page.getByText('Пока новых анкет рядом нет')
+  if (await emptyState.isVisible().catch(() => false)) {
+    // Общая dev-БД — если лента пуста прямо сейчас, механику драга проверять не на чем,
+    // остальной набор E2E (регистрация, публикация анкет) уже гарантирует, что кандидаты
+    // обычно есть.
+    return
+  }
+
+  const nameEl = page.locator('h3').first()
+  const nameBefore = await nameEl.textContent()
+  const box = await nameEl.boundingBox()
+  if (!box) throw new Error('Карточка кандидата не найдена')
+
+  const startX = box.x + box.width / 2
+  const startY = box.y + box.height / 2
+
+  const swipeResponse = page.waitForResponse(
+    (res) => res.url().includes('/swipes') && res.request().method() === 'POST',
+  )
+
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(startX + 150, startY, { steps: 10 })
+  await page.mouse.up()
+
+  const response = await swipeResponse
+  expect(response.ok()).toBeTruthy()
+  expect(JSON.parse(response.request().postData() ?? '{}').action).toBe('like')
+
+  // Карточка сменилась (или лента закончилась) — тот же результат, что после клика по ♥.
+  await expect(async () => {
+    const nameAfter = await nameEl.textContent().catch(() => null)
+    const emptyNow = await emptyState.isVisible().catch(() => false)
+    expect(nameAfter !== nameBefore || emptyNow).toBeTruthy()
+  }).toPass()
+})

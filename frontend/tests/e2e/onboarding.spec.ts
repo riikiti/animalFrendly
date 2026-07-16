@@ -32,6 +32,7 @@ test.describe('онбординг: регистрация, анкета пито
     await page.waitForURL('/')
     await expect(page.getByText('AnimalFriendly')).toBeVisible()
 
+    await page.goto('/profile')
     await page.getByRole('button', { name: 'Выйти' }).click()
     await page.waitForURL('/login')
 

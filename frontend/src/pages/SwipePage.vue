@@ -10,16 +10,13 @@ import type { PetMatch } from '@/entities/match/types'
 import { useNotificationStore } from '@/entities/notification/model'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
-import { useUserStore } from '@/entities/user/model'
 import { ApiError } from '@/shared/api/http'
-import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 import { useStaff } from '@/shared/lib/useStaff'
 
 const router = useRouter()
 const petStore = usePetStore()
 const catalogStore = useCatalogStore()
-const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 const { isStaff } = useStaff()
 
@@ -31,9 +28,9 @@ const paywallOpen = ref(false)
 const paywallMessage = ref('')
 const isBoosting = ref(false)
 
-// Пользователь может выйти (см. onLogout) прежде, чем эта цепочка успеет завершиться —
-// тогда токен уже очищен, и последующие запросы закономерно получат 401. Не считаем это
-// необработанной ошибкой: страница уже покидается, реагировать не на что.
+// Пользователь может выйти со страницы профиля прежде, чем эта цепочка успеет
+// завершиться — тогда токен уже очищен, и последующие запросы закономерно получат 401.
+// Не считаем это необработанной ошибкой: страница уже покидается, реагировать не на что.
 let isMounted = true
 
 onUnmounted(() => {
@@ -137,11 +134,6 @@ async function goToChat(): Promise<void> {
   if (!currentMatch.value) return
   await router.push({ name: 'chat', params: { kind: 'match', id: currentMatch.value.id } })
 }
-
-async function onLogout(): Promise<void> {
-  await userStore.logout()
-  await router.push({ name: 'login' })
-}
 </script>
 
 <template>
@@ -150,46 +142,54 @@ async function onLogout(): Promise<void> {
   >
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">AnimalFriendly</span>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1">
         <button
           v-if="isStaff"
-          class="text-xs font-semibold text-danger"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-danger hover:bg-surface-soft"
+          aria-label="Админ"
+          title="Админ"
           @click="router.push({ name: 'admin-dashboard' })"
         >
-          Админ
+          🛡️
         </button>
         <button
-          class="text-xs font-semibold text-teal"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          aria-label="Искать"
+          title="Искать"
           @click="router.push({ name: 'search-pets' })"
         >
-          🔍 Искать
+          🔍
         </button>
         <button
-          class="text-lg text-ink-soft"
-          title="Адрес"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          aria-label="Профиль"
+          title="Профиль"
           @click="router.push({ name: 'profile' })"
         >
-          📍
+          👤
         </button>
         <button
-          class="text-xs font-semibold text-teal"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          aria-label="Тариф"
+          title="Тариф"
           @click="router.push({ name: 'subscription-status' })"
         >
-          Тариф
+          💎
         </button>
         <button
-          class="relative text-lg text-ink-soft"
+          class="relative flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          aria-label="Уведомления"
+          title="Уведомления"
           @click="router.push({ name: 'notifications' })"
         >
           🔔
           <span
             v-if="notificationStore.unreadCount > 0"
-            class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-accent-ink"
+            class="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-accent-ink"
           >
             {{ notificationStore.unreadCount > 9 ? '9+' : notificationStore.unreadCount }}
           </span>
         </button>
-        <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
       </div>
     </div>
 
@@ -210,7 +210,12 @@ async function onLogout(): Promise<void> {
       <!-- Tinder-карточка остаётся компактной и по центру даже на широком десктопном
       экране — растягивать её до ширины страницы (см. лимиты выше) выглядело бы не по-Tinder'ски. -->
       <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4">
-        <PetCard v-if="candidates.length > 0" :pet="candidates[0]" />
+        <PetCard
+          v-if="candidates.length > 0"
+          :key="candidates[0].id"
+          :pet="candidates[0]"
+          @swipe="onSwipe"
+        />
         <div
           v-else
           class="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl bg-surface-soft text-center text-sm text-ink-faint"

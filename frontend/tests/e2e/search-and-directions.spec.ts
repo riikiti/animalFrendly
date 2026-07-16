@@ -38,7 +38,7 @@ test('a user sets their address, creates a pet and finds it via search', async (
 
   // Нет реального ключа Yandex Geocoder в dev-окружении (null-фолбэк, см. NullGeocoderClient) —
   // проверяем, что адрес сохраняется, не то, что геокодер его распознал.
-  await page.getByTitle('Адрес').click()
+  await page.getByTitle('Профиль').click()
   await page.waitForURL('/profile')
   const saveResponse = page.waitForResponse(
     (res) => res.url().includes('/auth/me') && res.request().method() === 'PATCH',
@@ -51,7 +51,7 @@ test('a user sets their address, creates a pet and finds it via search', async (
   reindexSearch()
 
   await page.goto('/')
-  await page.getByRole('button', { name: '🔍 Искать' }).click()
+  await page.getByRole('button', { name: 'Искать' }).click()
   await page.waitForURL('/search/pets')
 
   // Лента поиска общая для всей dev-БД — вместо просмотра всех страниц ищем по уникальной
