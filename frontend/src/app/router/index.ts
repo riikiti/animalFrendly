@@ -103,6 +103,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/shelter/mine',
+      name: 'my-shelter',
+      component: () => import('@/pages/shelter/MyShelterPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/admin',
       name: 'admin-dashboard',
       component: () => import('@/pages/admin/AdminDashboardPage.vue'),
@@ -118,6 +124,12 @@ const router = createRouter({
       path: '/admin/audit-log',
       name: 'admin-audit-log',
       component: () => import('@/pages/admin/AdminAuditLogPage.vue'),
+      meta: { requiresAuth: true, requiresStaff: true },
+    },
+    {
+      path: '/admin/shelters',
+      name: 'admin-shelter-verifications',
+      component: () => import('@/pages/admin/AdminShelterVerificationsPage.vue'),
       meta: { requiresAuth: true, requiresStaff: true },
     },
   ],

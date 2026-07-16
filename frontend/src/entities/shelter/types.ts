@@ -1,5 +1,16 @@
 export type ShelterAnimalStatus = 'available' | 'reserved' | 'adopted' | 'removed'
 export type AdoptionRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+export type ShelterVerificationStatus = 'pending' | 'verified' | 'rejected'
+
+export interface Shelter {
+  id: string
+  owner_user_id: string
+  legal_name: string
+  inn: string | null
+  description: string | null
+  verification_status: ShelterVerificationStatus
+  verified_at: string | null
+}
 
 export interface ShelterAnimalPet {
   name: string

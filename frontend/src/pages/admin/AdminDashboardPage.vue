@@ -33,12 +33,15 @@ onMounted(async () => {
         <span class="text-lg font-semibold text-teal">{{ summary.pending_reports }}</span>
       </button>
 
-      <div class="flex items-center justify-between rounded-2xl border border-hairline p-4">
+      <button
+        class="flex items-center justify-between rounded-2xl border border-hairline p-4 text-left"
+        @click="router.push({ name: 'admin-shelter-verifications' })"
+      >
         <span class="text-sm text-ink">Приюты ждут верификации</span>
-        <span class="text-lg font-semibold text-ink">{{
+        <span class="text-lg font-semibold text-teal">{{
           summary.pending_shelter_verifications
         }}</span>
-      </div>
+      </button>
 
       <div class="flex items-center justify-between rounded-2xl border border-hairline p-4">
         <span class="text-sm text-ink">Открытые споры</span>
