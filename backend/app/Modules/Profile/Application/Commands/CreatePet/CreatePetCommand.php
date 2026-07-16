@@ -20,5 +20,6 @@ final class CreatePetCommand
         public readonly ?string $description,
         public readonly bool $isVaccinated,
         public readonly array $socialTags = [],
+        public readonly ?string $parentPetId = null,
     ) {}
 }

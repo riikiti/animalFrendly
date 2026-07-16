@@ -75,3 +75,54 @@ it('lists the seller’s own listings regardless of status', function (): void {
     Sanctum::actingAs($seller);
     $this->getJson('/api/v1/listings/me')->assertOk()->assertJsonCount(1, 'data');
 });
+
+it('links a puppy listing to a parent pet owned by the same seller', function (): void {
+    $dog = Species::query()->firstOrCreate(['slug' => 'dog'], ['name_ru' => 'Собака', 'is_active' => true]);
+    $seller = User::factory()->create(['name' => 'Мария']);
+
+    Sanctum::actingAs($seller);
+    $parentId = $this->postJson('/api/v1/listings', [
+        'species_id' => $dog->id,
+        'name' => 'Мама',
+        'sex' => 'female',
+        'is_vaccinated' => true,
+        'price_amount' => 100_000,
+    ])->json('data.pet_id');
+
+    $response = $this->postJson('/api/v1/listings', [
+        'species_id' => $dog->id,
+        'name' => 'Щенок',
+        'sex' => 'male',
+        'is_vaccinated' => true,
+        'price_amount' => 50_000,
+        'parent_pet_id' => $parentId,
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.pet.parent_pet_id', $parentId)
+        ->assertJsonPath('data.pet.parent_name', 'Мама')
+        ->assertJsonPath('data.seller_name', 'Мария');
+});
+
+it('rejects linking a parent pet owned by someone else', function (): void {
+    $dog = Species::query()->firstOrCreate(['slug' => 'dog'], ['name_ru' => 'Собака', 'is_active' => true]);
+
+    Sanctum::actingAs(User::factory()->create());
+    $strangerParentId = $this->postJson('/api/v1/listings', [
+        'species_id' => $dog->id,
+        'name' => 'Чужая мама',
+        'sex' => 'female',
+        'is_vaccinated' => true,
+        'price_amount' => 100_000,
+    ])->json('data.pet_id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->postJson('/api/v1/listings', [
+        'species_id' => $dog->id,
+        'name' => 'Щенок',
+        'sex' => 'male',
+        'is_vaccinated' => true,
+        'price_amount' => 50_000,
+        'parent_pet_id' => $strangerParentId,
+    ])->assertForbidden();
+});

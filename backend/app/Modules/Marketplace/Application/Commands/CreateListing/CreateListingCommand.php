@@ -17,5 +17,6 @@ final class CreateListingCommand
         public readonly bool $isVaccinated,
         public readonly int $priceAmount,
         public readonly string $currency = 'RUB',
+        public readonly ?string $parentPetId = null,
     ) {}
 }

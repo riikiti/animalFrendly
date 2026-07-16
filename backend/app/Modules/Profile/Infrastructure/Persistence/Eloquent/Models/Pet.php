@@ -23,6 +23,7 @@ final class Pet extends Model
         'owner_id',
         'species_id',
         'breed_id',
+        'parent_pet_id',
         'name',
         'sex',
         'birthdate',

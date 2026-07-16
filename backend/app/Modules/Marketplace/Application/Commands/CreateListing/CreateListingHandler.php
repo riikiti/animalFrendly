@@ -39,6 +39,7 @@ final class CreateListingHandler
             purpose: 'for_sale',
             description: $command->description,
             isVaccinated: $command->isVaccinated,
+            parentPetId: $command->parentPetId,
         ));
 
         $listing = Listing::create(

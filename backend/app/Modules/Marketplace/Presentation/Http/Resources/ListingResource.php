@@ -10,8 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Ожидает на входе array{listing: Listing, pet: ?Pet} — как ShelterAnimalResource, см.
- * Shelter\Presentation\Http\Resources\ShelterAnimalResource.
+ * Ожидает на входе array{listing: Listing, pet: ?Pet, parent_name?: ?string,
+ * seller_name?: ?string, seller_avatar_url?: ?string} — как ShelterAnimalResource, см.
+ * Shelter\Presentation\Http\Resources\ShelterAnimalResource. Опциональные ключи по
+ * умолчанию null для мест, где они ещё не подгружены.
  */
 final class ListingResource extends JsonResource
 {
@@ -20,7 +22,7 @@ final class ListingResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var array{listing: Listing, pet: ?Pet} $data */
+        /** @var array{listing: Listing, pet: ?Pet, parent_name?: ?string, seller_name?: ?string, seller_avatar_url?: ?string} $data */
         $data = $this->resource;
         $listing = $data['listing'];
         $pet = $data['pet'];
@@ -28,6 +30,8 @@ final class ListingResource extends JsonResource
         return [
             'id' => $listing->id()->toString(),
             'seller_id' => $listing->sellerId()->toString(),
+            'seller_name' => $data['seller_name'] ?? null,
+            'seller_avatar_url' => $data['seller_avatar_url'] ?? null,
             'pet_id' => $listing->petId()->toString(),
             'price_amount' => $listing->price()->minorUnits,
             'currency' => $listing->price()->currency,
@@ -39,6 +43,8 @@ final class ListingResource extends JsonResource
                 'sex' => $pet->sex()->value,
                 'description' => $pet->description(),
                 'is_vaccinated' => $pet->isVaccinated(),
+                'parent_pet_id' => $pet->parentId()?->toString(),
+                'parent_name' => $data['parent_name'] ?? null,
             ] : null,
         ];
     }

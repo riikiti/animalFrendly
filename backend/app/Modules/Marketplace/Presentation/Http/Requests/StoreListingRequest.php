@@ -26,6 +26,7 @@ final class StoreListingRequest extends FormRequest
             'birthdate' => ['nullable', 'date', 'before_or_equal:today'],
             'description' => ['nullable', 'string', 'max:2000'],
             'is_vaccinated' => ['nullable', 'boolean'],
+            'parent_pet_id' => ['nullable', 'string'],
             'price_amount' => ['required', 'integer', 'min:100'],
             'currency' => ['nullable', 'string', 'size:3'],
         ];

@@ -28,6 +28,7 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 'owner_id' => $pet->ownerId()->toString(),
                 'species_id' => $pet->speciesId(),
                 'breed_id' => $pet->breedId(),
+                'parent_pet_id' => $pet->parentId()?->toString(),
                 'name' => $pet->name(),
                 'sex' => $pet->sex()->value,
                 'birthdate' => $pet->birthdate()?->format('Y-m-d'),
@@ -120,6 +121,7 @@ final class EloquentPetRepository implements PetRepositoryInterface
                 fn (string $tag): PetSocialTag => PetSocialTag::from($tag),
                 $model->social_tags ?? [],
             )),
+            parentId: $model->parent_pet_id !== null ? Id::fromString($model->parent_pet_id) : null,
         );
     }
 }

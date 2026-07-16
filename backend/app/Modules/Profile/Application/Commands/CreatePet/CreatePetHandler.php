@@ -14,6 +14,8 @@ use App\Modules\Profile\Domain\Enums\PetSocialTag;
 use App\Modules\Profile\Domain\Events\PetSaved;
 use App\Modules\Profile\Domain\Exceptions\BreedDoesNotBelongToSpeciesException;
 use App\Modules\Profile\Domain\Exceptions\PetLimitExceededException;
+use App\Modules\Profile\Domain\Exceptions\PetNotFoundException;
+use App\Modules\Profile\Domain\Exceptions\PetNotOwnedByActorException;
 use App\Modules\Profile\Domain\Exceptions\SpeciesNotFoundException;
 use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
 use App\Shared\Application\DomainEventDispatcherInterface;
@@ -46,6 +48,22 @@ final class CreatePetHandler
 
         $ownerId = Id::fromString($command->ownerId);
 
+        $parentId = null;
+
+        if ($command->parentPetId !== null) {
+            $parent = $this->pets->findById(Id::fromString($command->parentPetId));
+
+            if ($parent === null) {
+                throw PetNotFoundException::forId($command->parentPetId);
+            }
+
+            if (! $parent->ownerId()->equals($ownerId)) {
+                throw PetNotOwnedByActorException::create();
+            }
+
+            $parentId = $parent->id();
+        }
+
         // Бесплатный тариф — одна анкета для мэтчинга на пользователя; подписка снимает
         // ограничение (см. ProfileFeatureGateAdapter). Лимит касается только social/breeding —
         // for_sale/shelter создаются этим же хендлером из Marketplace/Shelter
@@ -72,6 +90,7 @@ final class CreatePetHandler
             description: $command->description,
             isVaccinated: $command->isVaccinated,
             socialTags: array_map(PetSocialTag::from(...), $command->socialTags),
+            parentId: $parentId,
         );
 
         $this->pets->save($pet);

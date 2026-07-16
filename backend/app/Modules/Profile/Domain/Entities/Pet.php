@@ -31,6 +31,7 @@ final class Pet
         private ?DateTimeImmutable $boostedUntil,
         private ?string $photoUrl,
         private readonly array $socialTags,
+        private readonly ?Id $parentId = null,
     ) {}
 
     /**
@@ -48,6 +49,7 @@ final class Pet
         ?string $description,
         bool $isVaccinated,
         array $socialTags = [],
+        ?Id $parentId = null,
     ): self {
         $name = trim($name);
 
@@ -70,6 +72,7 @@ final class Pet
             null,
             null,
             $socialTags,
+            $parentId,
         );
     }
 
@@ -91,6 +94,7 @@ final class Pet
         ?DateTimeImmutable $boostedUntil = null,
         ?string $photoUrl = null,
         array $socialTags = [],
+        ?Id $parentId = null,
     ): self {
         return new self(
             $id,
@@ -107,6 +111,7 @@ final class Pet
             $boostedUntil,
             $photoUrl,
             $socialTags,
+            $parentId,
         );
     }
 
@@ -128,6 +133,11 @@ final class Pet
     public function breedId(): ?int
     {
         return $this->breedId;
+    }
+
+    public function parentId(): ?Id
+    {
+        return $this->parentId;
     }
 
     public function name(): string
