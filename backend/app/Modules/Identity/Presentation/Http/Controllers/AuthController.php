@@ -8,8 +8,8 @@ use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserC
 use App\Modules\Identity\Application\Commands\AuthenticateUser\AuthenticateUserHandler;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserCommand;
 use App\Modules\Identity\Application\Commands\RegisterUser\RegisterUserHandler;
-use App\Modules\Identity\Application\Commands\UpdateUserAddress\UpdateUserAddressCommand;
-use App\Modules\Identity\Application\Commands\UpdateUserAddress\UpdateUserAddressHandler;
+use App\Modules\Identity\Application\Commands\UpdateProfile\UpdateProfileCommand;
+use App\Modules\Identity\Application\Commands\UpdateProfile\UpdateProfileHandler;
 use App\Modules\Identity\Domain\Exceptions\AccountBlockedException;
 use App\Modules\Identity\Domain\Exceptions\InvalidCredentialsException;
 use App\Modules\Identity\Domain\Exceptions\PhoneAlreadyRegisteredException;
@@ -85,7 +85,7 @@ final class AuthController
 
     public function updateProfile(
         UpdateProfileRequest $request,
-        UpdateUserAddressHandler $handler,
+        UpdateProfileHandler $handler,
     ): UserResource {
         $user = $request->user();
 
@@ -93,8 +93,9 @@ final class AuthController
             abort(401);
         }
 
-        $handler->handle(new UpdateUserAddressCommand(
+        $handler->handle(new UpdateProfileCommand(
             userId: $user->id,
+            name: $request->string('name')->toString() ?: null,
             address: $request->string('address')->toString() ?: null,
         ));
 

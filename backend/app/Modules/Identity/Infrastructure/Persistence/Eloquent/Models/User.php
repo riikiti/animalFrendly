@@ -33,6 +33,7 @@ final class User extends Authenticatable
         'city',
         'latitude',
         'longitude',
+        'name',
     ];
 
     protected $hidden = [

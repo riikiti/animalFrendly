@@ -24,6 +24,7 @@ final class User
         private ?string $city = null,
         private ?float $latitude = null,
         private ?float $longitude = null,
+        private ?string $name = null,
     ) {}
 
     /**
@@ -54,6 +55,7 @@ final class User
         ?string $city = null,
         ?float $latitude = null,
         ?float $longitude = null,
+        ?string $name = null,
     ): self {
         return new self(
             $id,
@@ -66,6 +68,7 @@ final class User
             $city,
             $latitude,
             $longitude,
+            $name,
         );
     }
 
@@ -149,5 +152,15 @@ final class User
         $this->city = $city;
         $this->latitude = $latitude;
         $this->longitude = $longitude;
+    }
+
+    public function name(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): void
+    {
+        $this->name = $name;
     }
 }

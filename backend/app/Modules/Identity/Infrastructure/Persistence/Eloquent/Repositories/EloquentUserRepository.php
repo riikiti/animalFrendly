@@ -38,6 +38,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
                 'city' => $user->city(),
                 'latitude' => $user->latitude(),
                 'longitude' => $user->longitude(),
+                'name' => $user->name(),
             ],
         );
     }
@@ -74,6 +75,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
             city: $model->city,
             latitude: $model->latitude,
             longitude: $model->longitude,
+            name: $model->name,
         );
     }
 }

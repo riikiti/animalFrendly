@@ -41,3 +41,14 @@ it('resolves city and coordinates through the geocoder when it succeeds', functi
 it('rejects unauthenticated profile updates', function (): void {
     $this->patchJson('/api/v1/auth/me', ['address' => 'Любой адрес'])->assertUnauthorized();
 });
+
+it('sets the name', function (): void {
+    $user = User::factory()->create();
+    $token = $user->createToken('api')->plainTextToken;
+
+    $response = $this->withHeader('Authorization', "Bearer {$token}")
+        ->patchJson('/api/v1/auth/me', ['name' => 'Иван Иванов']);
+
+    $response->assertOk()->assertJsonPath('name', 'Иван Иванов');
+    expect($user->fresh()->name)->toBe('Иван Иванов');
+});
