@@ -136,6 +136,61 @@ it('rejects a decision from someone other than the shelter owner', function (): 
         ->assertForbidden();
 });
 
+it("lists the shelter owner's own animals", function (): void {
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+    $shelterOwner = User::factory()->create();
+    $shelterAnimalId = publishVerifiedShelterAnimal($shelterOwner, $dog->id);
+
+    Sanctum::actingAs($shelterOwner);
+    $shelterId = $this->getJson('/api/v1/shelters/me')->json('data.id');
+
+    $response = $this->getJson("/api/v1/shelters/{$shelterId}/animals");
+
+    $response->assertOk()->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $shelterAnimalId)
+        ->assertJsonPath('data.0.pet.name', 'Рыжик');
+});
+
+it("rejects listing another shelter's animals", function (): void {
+    $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
+    $shelterOwner = User::factory()->create();
+    publishVerifiedShelterAnimal($shelterOwner, $dog->id);
+
+    Sanctum::actingAs($shelterOwner);
+    $shelterId = $this->getJson('/api/v1/shelters/me')->json('data.id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->getJson("/api/v1/shelters/{$shelterId}/animals")->assertForbidden();
+});
+
+it('lists shelters pending verification for moderators', function (): void {
+    $verifiedOwner = User::factory()->create();
+    Sanctum::actingAs($verifiedOwner);
+    $verifiedShelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'Верифицированный приют'])
+        ->json('data.id');
+
+    $pendingOwner = User::factory()->create();
+    Sanctum::actingAs($pendingOwner);
+    $pendingShelterId = $this->postJson('/api/v1/shelters', ['legal_name' => 'Приют на рассмотрении'])
+        ->json('data.id');
+
+    $moderator = User::factory()->create(['account_type' => 'moderator']);
+    Sanctum::actingAs($moderator);
+    $this->postJson("/api/v1/shelters/{$verifiedShelterId}/verify", ['approve' => true])->assertOk();
+
+    $response = $this->getJson('/api/v1/shelters/pending-verification');
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id');
+    expect($ids)->toContain($pendingShelterId)
+        ->and($ids)->not->toContain($verifiedShelterId);
+});
+
+it('rejects listing pending shelter verifications from a non-moderator', function (): void {
+    Sanctum::actingAs(User::factory()->create());
+    $this->getJson('/api/v1/shelters/pending-verification')->assertForbidden();
+});
+
 it('rejects access to the adoption conversation for a stranger', function (): void {
     $dog = Species::query()->create(['slug' => 'dog', 'name_ru' => 'Собака', 'is_active' => true]);
     $shelterOwner = User::factory()->create();

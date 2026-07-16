@@ -10,6 +10,7 @@ use App\Modules\Shelter\Application\Commands\RegisterShelter\RegisterShelterHand
 use App\Modules\Shelter\Application\Commands\VerifyShelter\VerifyShelterCommand;
 use App\Modules\Shelter\Application\Commands\VerifyShelter\VerifyShelterHandler;
 use App\Modules\Shelter\Application\Queries\GetMyShelter\GetMyShelterHandler;
+use App\Modules\Shelter\Application\Queries\ListPendingShelterVerifications\ListPendingShelterVerificationsHandler;
 use App\Modules\Shelter\Domain\Exceptions\ShelterNotFoundException;
 use App\Modules\Shelter\Presentation\Http\Requests\StoreShelterRequest;
 use App\Modules\Shelter\Presentation\Http\Requests\VerifyShelterRequest;
@@ -36,6 +37,17 @@ final class ShelterController
         $shelter = $handler->handle($this->authenticatedUserId($request));
 
         return response()->json(['data' => $shelter ? new ShelterResource($shelter) : null]);
+    }
+
+    public function pendingVerification(Request $request, ListPendingShelterVerificationsHandler $handler): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        if (! in_array($user->account_type, ['moderator', 'admin'], true)) {
+            abort(403, 'Доступно только модераторам.');
+        }
+
+        return response()->json(['data' => ShelterResource::collection($handler->handle())]);
     }
 
     public function verify(string $shelterId, VerifyShelterRequest $request, VerifyShelterHandler $handler): JsonResponse

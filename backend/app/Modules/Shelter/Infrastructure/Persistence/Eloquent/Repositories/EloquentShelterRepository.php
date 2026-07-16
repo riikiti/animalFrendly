@@ -56,6 +56,18 @@ final class EloquentShelterRepository implements ShelterRepositoryInterface
         return EloquentShelter::query()->where('verification_status', ShelterVerificationStatus::Pending->value)->count();
     }
 
+    public function findPendingVerification(): array
+    {
+        return array_values(
+            EloquentShelter::query()
+                ->where('verification_status', ShelterVerificationStatus::Pending->value)
+                ->orderBy('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentShelter $model): DomainShelter
     {
         return DomainShelter::reconstitute(

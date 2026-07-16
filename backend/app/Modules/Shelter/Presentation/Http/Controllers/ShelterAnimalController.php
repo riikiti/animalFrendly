@@ -9,6 +9,8 @@ use App\Modules\Profile\Domain\Repositories\PetRepositoryInterface;
 use App\Modules\Shelter\Application\Commands\PublishShelterAnimal\PublishShelterAnimalCommand;
 use App\Modules\Shelter\Application\Commands\PublishShelterAnimal\PublishShelterAnimalHandler;
 use App\Modules\Shelter\Application\Queries\ListAvailableShelterAnimals\ListAvailableShelterAnimalsHandler;
+use App\Modules\Shelter\Application\Queries\ListMyShelterAnimals\ListMyShelterAnimalsHandler;
+use App\Modules\Shelter\Application\Queries\ListMyShelterAnimals\ListMyShelterAnimalsQuery;
 use App\Modules\Shelter\Domain\Entities\ShelterAnimal;
 use App\Modules\Shelter\Domain\Exceptions\NotShelterOwnerException;
 use App\Modules\Shelter\Domain\Exceptions\ShelterNotFoundException;
@@ -61,6 +63,34 @@ final class ShelterAnimalController
         return response()->json([
             'data' => new ShelterAnimalResource(['animal' => $shelterAnimal, 'pet' => null]),
         ], 201);
+    }
+
+    public function mine(
+        string $shelterId,
+        Request $request,
+        ListMyShelterAnimalsHandler $handler,
+        PetRepositoryInterface $pets,
+    ): JsonResponse {
+        try {
+            $animals = $handler->handle(new ListMyShelterAnimalsQuery(
+                shelterId: $shelterId,
+                actingUserId: $this->authenticatedUserId($request),
+            ));
+        } catch (ShelterNotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (NotShelterOwnerException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
+
+        $data = array_map(
+            static fn (ShelterAnimal $animal) => new ShelterAnimalResource([
+                'animal' => $animal,
+                'pet' => $pets->findById($animal->petId()),
+            ]),
+            $animals,
+        );
+
+        return response()->json(['data' => $data]);
     }
 
     private function authenticatedUserId(Request $request): string

@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->middleware('auth:sanctum')->group(function (): void {
     Route::post('/shelters', [ShelterController::class, 'store']);
     Route::get('/shelters/me', [ShelterController::class, 'me']);
+    Route::get('/shelters/pending-verification', [ShelterController::class, 'pendingVerification']);
     Route::post('/shelters/{shelterId}/verify', [ShelterController::class, 'verify']);
+    Route::get('/shelters/{shelterId}/animals', [ShelterAnimalController::class, 'mine']);
     Route::post('/shelters/{shelterId}/animals', [ShelterAnimalController::class, 'store']);
     Route::get('/shelters/{shelterId}/adoption-requests/pending', [AdoptionRequestController::class, 'pendingForShelter']);
 
