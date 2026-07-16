@@ -160,6 +160,17 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
             >
               {{ listing.seller_name }}
             </button>
+            <span
+              v-if="listing.seller_name"
+              class="block text-[11px]"
+              :class="listing.seller_verified ? 'text-teal' : 'text-ink-faint'"
+            >
+              {{
+                listing.seller_verified
+                  ? '✓ Подтверждённый заводчик'
+                  : 'Заводчик не подтвердил данные'
+              }}
+            </span>
           </div>
           <span
             class="chip rounded-full bg-accent/20 px-2 py-1 text-xs font-semibold text-accent-ink"

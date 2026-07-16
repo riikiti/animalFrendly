@@ -69,7 +69,17 @@ function formatPrice(minorUnits: number, currency: string): string {
           />
           <span v-else>{{ (seller.seller_name ?? '?').charAt(0) }}</span>
         </div>
-        <span class="font-display text-xl text-ink">{{ seller.seller_name ?? 'Продавец' }}</span>
+        <div class="flex flex-col">
+          <span class="font-display text-xl text-ink">{{ seller.seller_name ?? 'Продавец' }}</span>
+          <span
+            class="text-xs font-semibold"
+            :class="seller.seller_verified ? 'text-teal' : 'text-ink-faint'"
+          >
+            {{
+              seller.seller_verified ? '✓ Подтверждённый заводчик' : 'Заводчик не подтвердил данные'
+            }}
+          </span>
+        </div>
       </div>
 
       <div class="flex flex-col gap-2 border-t border-hairline px-2 pt-4">

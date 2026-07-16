@@ -1,10 +1,19 @@
+import { execFileSync } from 'node:child_process'
 import { test, expect } from '@playwright/test'
 
 function randomPhone(): string {
   return `+7926${Math.floor(1000000 + Math.random() * 8999999)}`
 }
 
-test('заводчик привязывает щенка к родителю, посторонний видит витрину продавца', async ({
+function createStaffAccount(phone: string, password: string): void {
+  const phpPath =
+    'C:\\Users\\Ruslan\\AppData\\Local\\Microsoft\\WinGet\\Packages\\PHP.PHP.8.5_Microsoft.Winget.Source_8wekyb3d8bbwe\\php.exe'
+  execFileSync(phpPath, ['artisan', 'identity:create-staff', phone, password, '--role=moderator'], {
+    cwd: '../backend',
+  })
+}
+
+test('заводчик привязывает щенка к родителю, проходит верификацию, посторонний видит бейдж', async ({
   browser,
 }) => {
   test.setTimeout(60_000)
@@ -26,6 +35,12 @@ test('заводчик привязывает щенка к родителю, п
 
   await breederPage.waitForURL('/onboarding/mode')
   await breederPage.getByText('Стать заводчиком').click()
+  await breederPage.waitForURL('/breeder/mine')
+
+  await breederPage.getByRole('button', { name: 'Подать заявку на верификацию' }).click()
+  await expect(breederPage.getByText('На рассмотрении модератора')).toBeVisible()
+
+  await breederPage.getByRole('button', { name: 'Мои объявления' }).click()
   await breederPage.waitForURL('/marketplace/my-listings')
 
   // Первый листинг — родитель.
@@ -52,7 +67,8 @@ test('заводчик привязывает щенка к родителю, п
   })
   const breederId = (await meResponse.json()).id
 
-  // Посторонний открывает витрину продавца и видит оба листинга.
+  // Посторонний открывает витрину продавца ещё до верификации — видит оба листинга, но бейдж
+  // «не подтвердил данные».
   const strangerContext = await browser.newContext()
   const strangerPage = await strangerContext.newPage()
   const strangerPhone = randomPhone()
@@ -72,4 +88,32 @@ test('заводчик привязывает щенка к родителю, п
   await expect(strangerPage.getByText(parentName, { exact: true })).toBeVisible()
   await expect(strangerPage.getByText(puppyName, { exact: true })).toBeVisible()
   await expect(strangerPage.getByText(`Щенок от ${parentName}`)).toBeVisible()
+  await expect(strangerPage.getByText('Заводчик не подтвердил данные')).toBeVisible()
+
+  // Модератор подтверждает заявку заводчика.
+  const staffPhone = randomPhone()
+  createStaffAccount(staffPhone, 'staff-password')
+
+  const staffContext = await browser.newContext()
+  const staffPage = await staffContext.newPage()
+  await staffPage.goto('/login')
+  await staffPage.getByPlaceholder('+7 926 123-45-67').fill(staffPhone)
+  await staffPage.locator('input[type="password"]').fill('staff-password')
+  await staffPage.getByRole('button', { name: 'Войти' }).click()
+  await staffPage.waitForURL('/')
+
+  await staffPage.getByRole('button', { name: 'Админ' }).click()
+  await staffPage.waitForURL('/admin')
+  await staffPage.getByText('Заводчики ждут верификации').click()
+  await staffPage.waitForURL('/admin/breeders')
+  await staffPage.getByRole('button', { name: 'Подтвердить' }).click()
+  await expect(staffPage.getByRole('button', { name: 'Подтвердить' })).not.toBeVisible()
+
+  // Заводчик видит обновлённый статус.
+  await breederPage.goto('/breeder/mine')
+  await expect(breederPage.getByText('Подтверждён')).toBeVisible()
+
+  // Посторонний перезаходит на витрину — теперь видит бейдж подтверждённого заводчика.
+  await strangerPage.goto(`/marketplace/sellers/${breederId}`)
+  await expect(strangerPage.getByText('✓ Подтверждённый заводчик')).toBeVisible()
 })

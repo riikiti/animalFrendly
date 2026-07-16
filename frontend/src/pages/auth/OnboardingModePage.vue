@@ -17,7 +17,7 @@ const modes = [
   {
     title: 'Стать заводчиком',
     description: 'Продажа щенков/котят',
-    route: 'my-listings',
+    route: 'my-breeder',
   },
 ] as const
 </script>

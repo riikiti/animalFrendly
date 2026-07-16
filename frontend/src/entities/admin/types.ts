@@ -1,6 +1,7 @@
 export interface AdminSummary {
   pending_reports: number
   pending_shelter_verifications: number
+  pending_breeder_verifications: number
   open_disputes: number
 }
 

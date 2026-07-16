@@ -43,6 +43,16 @@ onMounted(async () => {
         }}</span>
       </button>
 
+      <button
+        class="flex items-center justify-between rounded-2xl border border-hairline p-4 text-left"
+        @click="router.push({ name: 'admin-breeder-verifications' })"
+      >
+        <span class="text-sm text-ink">Заводчики ждут верификации</span>
+        <span class="text-lg font-semibold text-teal">{{
+          summary.pending_breeder_verifications
+        }}</span>
+      </button>
+
       <div class="flex items-center justify-between rounded-2xl border border-hairline p-4">
         <span class="text-sm text-ink">Открытые споры</span>
         <span class="text-lg font-semibold text-ink">{{ summary.open_disputes }}</span>

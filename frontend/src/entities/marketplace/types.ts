@@ -20,6 +20,7 @@ export interface Listing {
   seller_id: string
   seller_name: string | null
   seller_avatar_url: string | null
+  seller_verified: boolean
   pet_id: string
   price_amount: number
   currency: string

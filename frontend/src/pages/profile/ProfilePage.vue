@@ -148,8 +148,8 @@ async function save(): Promise<void> {
 
     <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
       <span class="font-display text-lg text-ink">Заводчик</span>
-      <BaseButton variant="ghost" @click="router.push({ name: 'my-listings' })">
-        Мои объявления
+      <BaseButton variant="ghost" @click="router.push({ name: 'my-breeder' })">
+        Управление заводчиком
       </BaseButton>
     </div>
 

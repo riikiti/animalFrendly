@@ -127,6 +127,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/breeder/mine',
+      name: 'my-breeder',
+      component: () => import('@/pages/breeder/MyBreederPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/shelters/:id',
       name: 'shelter-detail',
       component: () => import('@/pages/shelter/ShelterPage.vue'),
@@ -154,6 +160,12 @@ const router = createRouter({
       path: '/admin/shelters',
       name: 'admin-shelter-verifications',
       component: () => import('@/pages/admin/AdminShelterVerificationsPage.vue'),
+      meta: { requiresAuth: true, requiresStaff: true },
+    },
+    {
+      path: '/admin/breeders',
+      name: 'admin-breeder-verifications',
+      component: () => import('@/pages/admin/AdminBreederVerificationsPage.vue'),
       meta: { requiresAuth: true, requiresStaff: true },
     },
   ],
