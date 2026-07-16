@@ -18,6 +18,7 @@ use App\Modules\Marketplace\Domain\Entities\Listing;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotAvailableException;
 use App\Modules\Marketplace\Domain\Exceptions\ListingNotFoundException;
 use App\Modules\Marketplace\Domain\Exceptions\NotListingOwnerException;
+use App\Modules\Marketplace\Domain\Repositories\BreederRepositoryInterface;
 use App\Modules\Marketplace\Presentation\Http\Requests\StoreListingRequest;
 use App\Modules\Marketplace\Presentation\Http\Resources\ListingResource;
 use App\Modules\Profile\Domain\Entities\Pet;
@@ -29,22 +30,29 @@ use Illuminate\Http\Request;
 
 final class ListingController
 {
-    public function index(ListPublishedListingsHandler $handler, PetRepositoryInterface $pets): JsonResponse
-    {
+    public function index(
+        ListPublishedListingsHandler $handler,
+        PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
+    ): JsonResponse {
         $data = array_map(
-            fn (Listing $listing) => $this->buildResource($listing, $pets),
+            fn (Listing $listing) => $this->buildResource($listing, $pets, $breeders),
             $handler->handle(),
         );
 
         return response()->json(['data' => $data]);
     }
 
-    public function mine(Request $request, ListMyListingsHandler $handler, PetRepositoryInterface $pets): JsonResponse
-    {
+    public function mine(
+        Request $request,
+        ListMyListingsHandler $handler,
+        PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
+    ): JsonResponse {
         $listings = $handler->handle(new ListMyListingsQuery($this->authenticatedUserId($request)));
 
         $data = array_map(
-            fn (Listing $listing) => $this->buildResource($listing, $pets),
+            fn (Listing $listing) => $this->buildResource($listing, $pets, $breeders),
             $listings,
         );
 
@@ -55,6 +63,7 @@ final class ListingController
         StoreListingRequest $request,
         CreateListingHandler $handler,
         PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
     ): JsonResponse {
         try {
             $result = $handler->handle(new CreateListingCommand(
@@ -77,12 +86,17 @@ final class ListingController
         }
 
         return response()->json([
-            'data' => $this->buildResource($result->listing, $pets, $result->pet),
+            'data' => $this->buildResource($result->listing, $pets, $breeders, $result->pet),
         ], 201);
     }
 
-    public function publish(string $listingId, Request $request, PublishListingHandler $handler, PetRepositoryInterface $pets): JsonResponse
-    {
+    public function publish(
+        string $listingId,
+        Request $request,
+        PublishListingHandler $handler,
+        PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
+    ): JsonResponse {
         try {
             $listing = $handler->handle(new PublishListingCommand($listingId, $this->authenticatedUserId($request)));
         } catch (ListingNotFoundException $e) {
@@ -93,11 +107,16 @@ final class ListingController
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return response()->json(['data' => $this->buildResource($listing, $pets)]);
+        return response()->json(['data' => $this->buildResource($listing, $pets, $breeders)]);
     }
 
-    public function archive(string $listingId, Request $request, ArchiveListingHandler $handler, PetRepositoryInterface $pets): JsonResponse
-    {
+    public function archive(
+        string $listingId,
+        Request $request,
+        ArchiveListingHandler $handler,
+        PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
+    ): JsonResponse {
         try {
             $listing = $handler->handle(new ArchiveListingCommand($listingId, $this->authenticatedUserId($request)));
         } catch (ListingNotFoundException $e) {
@@ -108,14 +127,19 @@ final class ListingController
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return response()->json(['data' => $this->buildResource($listing, $pets)]);
+        return response()->json(['data' => $this->buildResource($listing, $pets, $breeders)]);
     }
 
-    private function buildResource(Listing $listing, PetRepositoryInterface $pets, ?Pet $pet = null): ListingResource
-    {
+    private function buildResource(
+        Listing $listing,
+        PetRepositoryInterface $pets,
+        BreederRepositoryInterface $breeders,
+        ?Pet $pet = null,
+    ): ListingResource {
         $pet ??= $pets->findById($listing->petId());
         $seller = IdentityUser::query()->find($listing->sellerId()->toString());
         $parent = $pet?->parentId() !== null ? $pets->findById($pet->parentId()) : null;
+        $breeder = $breeders->findByOwnerUserId($listing->sellerId());
 
         return new ListingResource([
             'listing' => $listing,
@@ -123,6 +147,7 @@ final class ListingController
             'parent_name' => $parent?->name(),
             'seller_name' => $seller?->name,
             'seller_avatar_url' => $seller?->avatar_url,
+            'seller_verified' => $breeder?->isVerified() ?? false,
         ]);
     }
 

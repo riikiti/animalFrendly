@@ -126,3 +126,23 @@ it('rejects linking a parent pet owned by someone else', function (): void {
         'parent_pet_id' => $strangerParentId,
     ])->assertForbidden();
 });
+
+it('marks a listing seller_verified only once the breeder profile is verified', function (): void {
+    ['seller' => $seller, 'listingId' => $listingId] = createTestListing();
+
+    Sanctum::actingAs($seller);
+    $this->postJson("/api/v1/listings/{$listingId}/publish")->assertOk();
+    $breederId = $this->postJson('/api/v1/breeders')->json('data.id');
+
+    Sanctum::actingAs(User::factory()->create());
+    $listedBefore = collect($this->getJson('/api/v1/listings')->json('data'))->firstWhere('id', $listingId);
+    expect($listedBefore['seller_verified'])->toBeFalse();
+
+    $moderator = User::factory()->create(['account_type' => 'moderator']);
+    Sanctum::actingAs($moderator);
+    $this->postJson("/api/v1/breeders/{$breederId}/verify", ['approve' => true])->assertOk();
+
+    Sanctum::actingAs(User::factory()->create());
+    $listedAfter = collect($this->getJson('/api/v1/listings')->json('data'))->firstWhere('id', $listingId);
+    expect($listedAfter['seller_verified'])->toBeTrue();
+});
