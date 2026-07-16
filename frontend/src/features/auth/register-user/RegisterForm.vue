@@ -10,17 +10,10 @@ import { ApiError } from '@/shared/api/http'
 const router = useRouter()
 const userStore = useUserStore()
 
-const roles = [
-  { value: 'owner', title: 'Я — владелец', description: 'Знакомства, приюты, покупки' },
-  { value: 'breeder', title: 'Я — заводчик', description: 'Продажа щенков/котят' },
-  { value: 'shelter', title: 'Я — приют', description: 'Пристройство животных' },
-] as const
-
 const form = reactive({
   phone: '',
   password: '',
   password_confirmation: '',
-  account_type: 'owner' as (typeof roles)[number]['value'],
   personal_data_consent: false,
 })
 
@@ -35,7 +28,7 @@ async function onSubmit(): Promise<void> {
 
   try {
     await userStore.register(form)
-    await router.push({ name: 'home' })
+    await router.push({ name: 'onboarding-mode' })
   } catch (error) {
     if (error instanceof ApiError) {
       errors.value = error.errors ?? {}
@@ -51,28 +44,6 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
-    <div class="flex flex-col gap-2">
-      <span class="text-xs font-semibold text-ink-soft">Кто вы?</span>
-      <button
-        v-for="role in roles"
-        :key="role.value"
-        type="button"
-        class="flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition"
-        :class="
-          form.account_type === role.value
-            ? 'border-teal bg-teal-soft'
-            : 'border-hairline hover:bg-surface-soft'
-        "
-        @click="form.account_type = role.value"
-      >
-        <span>
-          <span class="block text-sm font-semibold text-ink">{{ role.title }}</span>
-          <span class="block text-xs text-ink-faint">{{ role.description }}</span>
-        </span>
-      </button>
-      <p v-if="errors.account_type" class="text-xs text-danger">{{ errors.account_type[0] }}</p>
-    </div>
-
     <BaseInput
       v-model="form.phone"
       label="Номер телефона"

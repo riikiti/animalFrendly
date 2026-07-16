@@ -25,6 +25,7 @@ const form = reactive({
   name: '',
   sex: 'male' as 'male' | 'female',
   priceRub: '',
+  parentPetId: null as string | null,
 })
 
 const breeds = ref<Breed[]>([])
@@ -77,9 +78,11 @@ async function onSubmit(): Promise<void> {
       name: form.name,
       sex: form.sex,
       price_amount: Math.round(parseFloat(form.priceRub.replace(',', '.')) * 100),
+      parent_pet_id: form.parentPetId,
     })
     form.name = ''
     form.priceRub = ''
+    form.parentPetId = null
     showForm.value = false
     await refresh()
   } catch (error) {
@@ -201,6 +204,20 @@ const statusLabels: Record<string, string> = {
           :error="errors.price_amount?.[0]"
         />
 
+        <div v-if="listings.length > 0" class="flex flex-col gap-2">
+          <span class="text-xs font-semibold text-ink-soft">Родитель (если есть)</span>
+          <select
+            v-model="form.parentPetId"
+            aria-label="Родитель"
+            class="rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none"
+          >
+            <option :value="null">Не указан</option>
+            <option v-for="l in listings" :key="l.pet_id" :value="l.pet_id">
+              {{ l.pet?.name ?? 'Питомец' }}
+            </option>
+          </select>
+        </div>
+
         <p v-if="generalError" class="text-xs text-danger">{{ generalError }}</p>
 
         <div class="flex gap-2">
@@ -229,6 +246,9 @@ const statusLabels: Record<string, string> = {
             {{ statusLabels[listing.status] }}
           </span>
         </div>
+        <p v-if="listing.pet?.parent_name" class="text-xs text-ink-faint">
+          Родитель: {{ listing.pet.parent_name }}
+        </p>
 
         <BaseButton
           v-if="listing.status === 'draft'"

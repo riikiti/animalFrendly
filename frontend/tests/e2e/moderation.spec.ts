@@ -26,7 +26,6 @@ test('a user reports a pet, a moderator reviews it and bans the reporter target'
   const reporterPhone = randomPhone()
 
   await reporterPage.goto('/register')
-  await reporterPage.getByText('Я — владелец').click()
   await reporterPage.getByPlaceholder('+7 926 123-45-67').fill(reporterPhone)
   const passwordInputs = reporterPage.locator('input[type="password"]')
   await passwordInputs.nth(0).fill('correct-password')
@@ -34,6 +33,8 @@ test('a user reports a pet, a moderator reviews it and bans the reporter target'
   await reporterPage.locator('input[type="checkbox"]').check()
   await reporterPage.getByRole('button', { name: 'Продолжить' }).click()
 
+  await reporterPage.waitForURL('/onboarding/mode')
+  await reporterPage.getByText('Обычный профиль').click()
   await reporterPage.waitForURL('/pets/new')
   await reporterPage.getByPlaceholder('Рекс').fill(`Жертва${Date.now()}`)
   await reporterPage.getByRole('button', { name: 'Создать анкету' }).click()

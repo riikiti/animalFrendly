@@ -11,6 +11,7 @@ export interface CreateListingPayload {
   is_vaccinated?: boolean
   price_amount: number
   currency?: string
+  parent_pet_id?: string | null
 }
 
 export function listListings(): Promise<{ data: Listing[] }> {

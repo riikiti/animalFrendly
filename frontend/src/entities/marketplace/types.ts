@@ -11,11 +11,15 @@ export interface ListingPet {
   sex: 'male' | 'female'
   description: string | null
   is_vaccinated: boolean
+  parent_pet_id: string | null
+  parent_name: string | null
 }
 
 export interface Listing {
   id: string
   seller_id: string
+  seller_name: string | null
+  seller_avatar_url: string | null
   pet_id: string
   price_amount: number
   currency: string

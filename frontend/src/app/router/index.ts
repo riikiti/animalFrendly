@@ -22,6 +22,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/onboarding/mode',
+      name: 'onboarding-mode',
+      component: () => import('@/pages/auth/OnboardingModePage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/pets/new',
       name: 'create-pet',
       component: () => import('@/pages/pets/CreatePetPage.vue'),
@@ -62,6 +68,12 @@ const router = createRouter({
       path: '/marketplace/my-listings',
       name: 'my-listings',
       component: () => import('@/pages/marketplace/MyListingsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/marketplace/sellers/:id',
+      name: 'seller-detail',
+      component: () => import('@/pages/marketplace/SellerPage.vue'),
       meta: { requiresAuth: true },
     },
     {

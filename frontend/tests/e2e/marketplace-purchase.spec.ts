@@ -15,7 +15,6 @@ async function registerWithThrowawayPet(context: BrowserContext, petName: string
   const phone = randomPhone()
 
   await page.goto('/register')
-  await page.getByText('Я — владелец').click()
   await page.getByPlaceholder('+7 926 123-45-67').fill(phone)
 
   const passwordInputs = page.locator('input[type="password"]')
@@ -24,6 +23,8 @@ async function registerWithThrowawayPet(context: BrowserContext, petName: string
   await page.locator('input[type="checkbox"]').check()
   await page.getByRole('button', { name: 'Продолжить' }).click()
 
+  await page.waitForURL('/onboarding/mode')
+  await page.getByText('Обычный профиль').click()
   await page.waitForURL('/pets/new')
   await page.getByPlaceholder('Рекс').fill(petName)
   await page.getByRole('button', { name: 'Создать анкету' }).click()

@@ -152,6 +152,14 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
               {{ listing.pet ? speciesName(listing.pet.species_id) : '' }}
               <span v-if="listing.pet?.is_vaccinated"> · привит</span>
             </p>
+            <button
+              v-if="listing.seller_name"
+              type="button"
+              class="text-xs font-semibold text-teal"
+              @click="router.push({ name: 'seller-detail', params: { id: listing.seller_id } })"
+            >
+              {{ listing.seller_name }}
+            </button>
           </div>
           <span
             class="chip rounded-full bg-accent/20 px-2 py-1 text-xs font-semibold text-accent-ink"
@@ -161,6 +169,9 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
         </div>
         <p v-if="listing.pet?.description" class="text-xs text-ink-soft">
           {{ listing.pet.description }}
+        </p>
+        <p v-if="listing.pet?.parent_name" class="text-xs text-ink-faint">
+          Щенок от {{ listing.pet.parent_name }}
         </p>
 
         <BaseButton :disabled="purchasingId === listing.id" @click="purchase(listing.id)">

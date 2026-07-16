@@ -139,13 +139,17 @@ async function save(): Promise<void> {
       </BaseButton>
     </div>
 
-    <div
-      v-if="userStore.currentUser?.account_type === 'shelter'"
-      class="flex flex-col gap-3 border-t border-hairline px-2 pt-4"
-    >
+    <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
       <span class="font-display text-lg text-ink">Приют</span>
       <BaseButton variant="ghost" @click="router.push({ name: 'my-shelter' })">
         Управление приютом
+      </BaseButton>
+    </div>
+
+    <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
+      <span class="font-display text-lg text-ink">Заводчик</span>
+      <BaseButton variant="ghost" @click="router.push({ name: 'my-listings' })">
+        Мои объявления
       </BaseButton>
     </div>
 

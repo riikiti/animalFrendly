@@ -5,7 +5,6 @@ export interface RegisterPayload {
   phone: string
   password: string
   password_confirmation: string
-  account_type: 'owner' | 'breeder' | 'shelter'
   personal_data_consent: boolean
 }
 
