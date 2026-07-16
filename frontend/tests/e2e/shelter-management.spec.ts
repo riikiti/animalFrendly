@@ -67,6 +67,37 @@ test('a shelter registers, gets verified, publishes an animal and approves an ad
   await shelterPage.reload()
   await expect(shelterPage.getByText('Верифицирован')).toBeVisible()
 
+  // Владелец заполняет своё имя (для блока владельца на витрине) и контакты приюта, а также
+  // загружает фото приюта.
+  await shelterPage.goto('/profile')
+  await shelterPage.getByPlaceholder('Как вас называть').fill('Иван Иванов')
+  await shelterPage.getByRole('button', { name: 'Сохранить' }).click()
+  await expect(shelterPage.getByText('Сохранено')).toBeVisible()
+
+  await shelterPage.goto('/shelter/mine')
+  await shelterPage.getByPlaceholder('+7 926 123-45-67').fill('+79261234567')
+  await shelterPage.getByPlaceholder('shelter@example.com').fill('shelter@example.com')
+  await shelterPage.getByPlaceholder('Город, улица, дом').fill('Москва, ул. Тверская, 1')
+  await shelterPage.getByRole('button', { name: 'Сохранить контакты' }).click()
+  await expect(shelterPage.getByText('Сохранено')).toBeVisible()
+
+  // Минимальный валидный PNG (1×1 прозрачный пиксель) — бэкенд валидирует image через
+  // getimagesize(), обрезанные "похожие на JPEG" байты этого не проходят.
+  const onePixelPng = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64',
+  )
+  const photoUploadResponse = shelterPage.waitForResponse(
+    (res) => res.url().includes('/photo') && res.request().method() === 'POST',
+  )
+  await shelterPage.setInputFiles('input[type="file"]', {
+    name: 'shelter.png',
+    mimeType: 'image/png',
+    buffer: onePixelPng,
+  })
+  const photoResponse = await photoUploadResponse
+  expect(photoResponse.ok()).toBeTruthy()
+
   await shelterPage.getByPlaceholder('Рыжик').fill(animalName)
   await shelterPage.getByRole('button', { name: 'Собака' }).click()
   await shelterPage.getByRole('button', { name: 'Добавить животное' }).click()
@@ -101,4 +132,18 @@ test('a shelter registers, gets verified, publishes an animal and approves an ad
   await expect(shelterPage.getByText('Хочу забрать домой')).toBeVisible()
   await shelterPage.getByRole('button', { name: 'Одобрить' }).click()
   await expect(shelterPage.getByText('Хочу забрать домой')).not.toBeVisible()
+
+  // Витрина приюта доступна постороннему (усыновителю) — видны адрес, контакты и владелец,
+  // раз приют верифицирован.
+  const shelterToken = await shelterPage.evaluate(() => localStorage.getItem('af_token'))
+  const meResponse = await shelterPage.request.get('http://localhost:8000/api/v1/shelters/me', {
+    headers: { Authorization: `Bearer ${shelterToken}` },
+  })
+  const shelterId = (await meResponse.json()).data.id
+
+  await adopterPage.goto(`/shelters/${shelterId}`)
+  await expect(adopterPage.getByText(shelterName)).toBeVisible()
+  await expect(adopterPage.getByText('Москва, ул. Тверская, 1')).toBeVisible()
+  await expect(adopterPage.getByText('+79261234567')).toBeVisible()
+  await expect(adopterPage.getByText('Иван Иванов')).toBeVisible()
 })

@@ -109,6 +109,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/shelters/:id',
+      name: 'shelter-detail',
+      component: () => import('@/pages/shelter/ShelterPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/admin',
       name: 'admin-dashboard',
       component: () => import('@/pages/admin/AdminDashboardPage.vue'),

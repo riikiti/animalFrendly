@@ -45,5 +45,18 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value = await userApi.updateProfile(payload)
   }
 
-  return { currentUser, isLoading, register, login, logout, fetchCurrentUser, updateProfile }
+  async function uploadAvatar(file: File): Promise<void> {
+    currentUser.value = await userApi.uploadAvatar(file)
+  }
+
+  return {
+    currentUser,
+    isLoading,
+    register,
+    login,
+    logout,
+    fetchCurrentUser,
+    updateProfile,
+    uploadAvatar,
+  }
 })

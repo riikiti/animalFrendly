@@ -10,6 +10,21 @@ export interface Shelter {
   description: string | null
   verification_status: ShelterVerificationStatus
   verified_at: string | null
+  address: string | null
+  city: string | null
+  phone: string | null
+  email: string | null
+  photo_url: string | null
+}
+
+export interface ShelterOwner {
+  name: string | null
+  phone: string
+  avatar_url: string | null
+}
+
+export interface ShelterDetails extends Shelter {
+  owner: ShelterOwner | null
 }
 
 export interface ShelterAnimalPet {

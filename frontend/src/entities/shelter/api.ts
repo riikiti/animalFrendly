@@ -1,5 +1,5 @@
 import { apiRequest } from '@/shared/api/http'
-import type { AdoptionRequest, Shelter, ShelterAnimal } from './types'
+import type { AdoptionRequest, Shelter, ShelterAnimal, ShelterDetails } from './types'
 
 export function listAvailableShelterAnimals(): Promise<{ data: ShelterAnimal[] }> {
   return apiRequest('/api/v1/shelter-animals')
@@ -15,6 +15,24 @@ export function createShelter(payload: {
 
 export function getMyShelter(): Promise<{ data: Shelter | null }> {
   return apiRequest('/api/v1/shelters/me')
+}
+
+export function getShelter(shelterId: string): Promise<{ data: ShelterDetails }> {
+  return apiRequest(`/api/v1/shelters/${shelterId}`)
+}
+
+export function updateShelter(
+  shelterId: string,
+  payload: { phone?: string | null; email?: string | null; address?: string | null },
+): Promise<{ data: Shelter }> {
+  return apiRequest(`/api/v1/shelters/${shelterId}`, { method: 'PATCH', body: payload })
+}
+
+export function uploadShelterPhoto(shelterId: string, file: File): Promise<{ data: Shelter }> {
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  return apiRequest(`/api/v1/shelters/${shelterId}/photo`, { method: 'POST', body: formData })
 }
 
 export function listMyShelterAnimals(shelterId: string): Promise<{ data: ShelterAnimal[] }> {

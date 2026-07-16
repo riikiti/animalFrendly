@@ -44,3 +44,10 @@ export function updateProfile(payload: {
 }): Promise<User> {
   return apiRequest<User>('/api/v1/auth/me', { method: 'PATCH', body: payload })
 }
+
+export function uploadAvatar(file: File): Promise<User> {
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  return apiRequest<User>('/api/v1/auth/me/avatar', { method: 'POST', body: formData })
+}

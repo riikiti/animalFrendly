@@ -33,6 +33,14 @@ const createForm = reactive({ legal_name: '', inn: '', description: '' })
 const isCreating = ref(false)
 const createError = ref('')
 
+const contactForm = reactive({ phone: '', email: '', address: '' })
+const isSavingContact = ref(false)
+const contactError = ref('')
+const contactSaved = ref(false)
+
+const isUploadingPhoto = ref(false)
+const photoError = ref('')
+
 const animals = ref<ShelterAnimal[]>([])
 const pendingRequests = ref<AdoptionRequest[]>([])
 
@@ -57,6 +65,12 @@ onMounted(async () => {
 async function refreshShelter(): Promise<void> {
   const response = await shelterApi.getMyShelter()
   shelter.value = response.data
+
+  if (shelter.value) {
+    contactForm.phone = shelter.value.phone ?? ''
+    contactForm.email = shelter.value.email ?? ''
+    contactForm.address = shelter.value.address ?? ''
+  }
 
   if (shelter.value?.verification_status === 'verified') {
     await catalogStore.ensureSpeciesLoaded()
@@ -95,6 +109,48 @@ async function createShelter(): Promise<void> {
       e instanceof ApiError ? e.message : 'Что-то пошло не так. Попробуйте ещё раз.'
   } finally {
     isCreating.value = false
+  }
+}
+
+async function saveContact(): Promise<void> {
+  if (!shelter.value) return
+
+  contactError.value = ''
+  contactSaved.value = false
+  isSavingContact.value = true
+
+  try {
+    const response = await shelterApi.updateShelter(shelter.value.id, {
+      phone: contactForm.phone.trim() || null,
+      email: contactForm.email.trim() || null,
+      address: contactForm.address.trim() || null,
+    })
+    shelter.value = response.data
+    contactSaved.value = true
+  } catch (e) {
+    contactError.value =
+      e instanceof ApiError ? e.message : 'Что-то пошло не так. Попробуйте ещё раз.'
+  } finally {
+    isSavingContact.value = false
+  }
+}
+
+async function onPhotoSelected(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || !shelter.value) return
+
+  photoError.value = ''
+  isUploadingPhoto.value = true
+
+  try {
+    const response = await shelterApi.uploadShelterPhoto(shelter.value.id, file)
+    shelter.value = response.data
+  } catch (e) {
+    photoError.value = e instanceof ApiError ? e.message : 'Не удалось загрузить фото.'
+  } finally {
+    isUploadingPhoto.value = false
   }
 }
 
@@ -194,6 +250,45 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
           </div>
           <p v-if="shelter.description" class="text-xs text-ink-soft">{{ shelter.description }}</p>
         </div>
+
+        <div class="flex items-center gap-3 px-2">
+          <div
+            class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-teal-soft text-lg font-semibold text-teal"
+          >
+            <img
+              v-if="shelter.photo_url"
+              :src="shelter.photo_url"
+              class="h-full w-full object-cover"
+              alt=""
+            />
+            <span v-else>{{ shelter.legal_name.charAt(0) }}</span>
+          </div>
+          <label class="text-xs font-semibold text-teal">
+            {{ isUploadingPhoto ? 'Загрузка…' : 'Изменить фото приюта' }}
+            <input
+              type="file"
+              accept="image/*"
+              class="hidden"
+              :disabled="isUploadingPhoto"
+              @change="onPhotoSelected"
+            />
+          </label>
+        </div>
+        <p v-if="photoError" class="px-2 text-xs text-danger">{{ photoError }}</p>
+
+        <form class="flex flex-col gap-3 px-2" @submit.prevent="saveContact">
+          <BaseInput v-model="contactForm.phone" label="Телефон" placeholder="+7 926 123-45-67" />
+          <BaseInput v-model="contactForm.email" label="Почта" placeholder="shelter@example.com" />
+          <BaseInput v-model="contactForm.address" label="Адрес" placeholder="Город, улица, дом" />
+          <p v-if="shelter.city" class="text-xs text-ink-faint">
+            Распознанный город: {{ shelter.city }}
+          </p>
+          <p v-if="contactError" class="text-xs text-danger">{{ contactError }}</p>
+          <p v-if="contactSaved" class="text-xs text-teal">Сохранено</p>
+          <BaseButton type="submit" variant="outline" :disabled="isSavingContact">
+            {{ isSavingContact ? 'Сохраняем…' : 'Сохранить контакты' }}
+          </BaseButton>
+        </form>
 
         <p
           v-if="shelter.verification_status !== 'verified'"
