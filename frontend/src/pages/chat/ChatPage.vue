@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as conversationApi from '@/entities/conversation/api'
 import type { Message } from '@/entities/conversation/types'
+import { useCatalogStore } from '@/entities/catalog/model'
+import * as shelterApi from '@/entities/shelter/api'
+import type { ShelterAnimal } from '@/entities/shelter/types'
 import { useUserStore } from '@/entities/user/model'
 import { echo } from '@/shared/lib/echo'
 import { yandexRouteUrl } from '@/shared/lib/directions'
@@ -10,24 +13,47 @@ import { yandexRouteUrl } from '@/shared/lib/directions'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const catalogStore = useCatalogStore()
 
 const conversationId = ref<string | null>(null)
 const messages = ref<Message[]>([])
 const draft = ref('')
 const counterpartAddress = ref<string | null>(null)
 const counterpartLocation = ref<{ lat: number; lng: number } | null>(null)
+const attachedAnimal = ref<ShelterAnimal | null>(null)
+
+const attachedAnimalSpecies = computed(() =>
+  attachedAnimal.value?.pet ? catalogStore.speciesName(attachedAnimal.value.pet.species_id) : '',
+)
 
 onMounted(async () => {
   const kind = String(route.params.kind)
   const id = String(route.params.id)
 
-  const conversation =
-    kind === 'adoption'
-      ? await conversationApi.getConversationForAdoptionRequest(id)
-      : await conversationApi.getConversationForMatch(id)
-  conversationId.value = conversation.data.id
-  counterpartAddress.value = conversation.data.counterpart_address
-  counterpartLocation.value = conversation.data.counterpart_location
+  if (kind === 'shelter') {
+    // Беседа уже создана до перехода сюда (см. «Написать в приют»/«Связаться») — сам id
+    // из роута это id беседы, отдельный лукап по shelterId не нужен. Метаданные (кто
+    // собеседник, прикреплено ли животное) берём из общего списка бесед клиентской
+    // фильтрацией — тот же приём, что уже на ShelterAnimalDetailPage.vue.
+    conversationId.value = id
+    const list = await conversationApi.listConversations()
+    const conversation = list.data.find((c) => c.id === id)
+
+    if (conversation?.shelter_animal_id) {
+      await catalogStore.ensureSpeciesLoaded()
+      const animals = await shelterApi.listAvailableShelterAnimals()
+      attachedAnimal.value =
+        animals.data.find((a) => a.id === conversation.shelter_animal_id) ?? null
+    }
+  } else {
+    const conversation =
+      kind === 'adoption'
+        ? await conversationApi.getConversationForAdoptionRequest(id)
+        : await conversationApi.getConversationForMatch(id)
+    conversationId.value = conversation.data.id
+    counterpartAddress.value = conversation.data.counterpart_address
+    counterpartLocation.value = conversation.data.counterpart_location
+  }
 
   await refreshMessages()
 
@@ -74,6 +100,18 @@ async function send(): Promise<void> {
     <div class="flex items-center gap-2 pb-2">
       <button class="text-ink-soft" @click="router.back()">←</button>
       <span class="text-sm font-semibold text-ink">Чат</span>
+    </div>
+
+    <div v-if="attachedAnimal" class="flex items-center gap-3 rounded-2xl bg-surface-soft p-2">
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
+      >
+        {{ (attachedAnimal.pet?.name ?? '?').charAt(0) }}
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-ink">{{ attachedAnimal.pet?.name ?? 'Питомец' }}</p>
+        <p class="text-xs text-ink-faint">{{ attachedAnimalSpecies }}</p>
+      </div>
     </div>
 
     <div

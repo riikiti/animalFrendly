@@ -2,8 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/entities/catalog/model'
+import * as conversationApi from '@/entities/conversation/api'
 import * as shelterApi from '@/entities/shelter/api'
 import type { ShelterAnimal, ShelterDetails } from '@/entities/shelter/types'
+import BaseButton from '@/shared/ui/components/BaseButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +15,7 @@ const shelter = ref<ShelterDetails | null>(null)
 const animals = ref<ShelterAnimal[]>([])
 const isLoading = ref(true)
 const notFound = ref(false)
+const isContacting = ref(false)
 
 const shelterAnimals = computed(() =>
   animals.value.filter((animal) => animal.shelter_id === shelter.value?.id),
@@ -38,6 +41,18 @@ onMounted(async () => {
 
 function speciesName(speciesId: number): string {
   return catalogStore.speciesName(speciesId)
+}
+
+async function contactShelter(): Promise<void> {
+  if (!shelter.value || isContacting.value) return
+  isContacting.value = true
+
+  try {
+    const response = await conversationApi.createShelterConversation(shelter.value.id)
+    await router.push({ name: 'chat', params: { kind: 'shelter', id: response.data.id } })
+  } finally {
+    isContacting.value = false
+  }
 }
 </script>
 
@@ -99,6 +114,12 @@ function speciesName(speciesId: number): string {
           }}</span>
           <span class="text-xs text-ink-faint">{{ shelter.owner.phone }}</span>
         </div>
+      </div>
+
+      <div class="px-2">
+        <BaseButton :disabled="isContacting" @click="contactShelter">
+          {{ isContacting ? 'Открываем чат…' : 'Написать в приют' }}
+        </BaseButton>
       </div>
 
       <div class="flex flex-col gap-2 border-t border-hairline px-2 pt-4">

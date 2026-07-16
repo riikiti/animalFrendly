@@ -106,8 +106,12 @@ test('заводчик привязывает щенка к родителю, п
   await staffPage.waitForURL('/admin')
   await staffPage.getByText('Заводчики ждут верификации').click()
   await staffPage.waitForURL('/admin/breeders')
-  await staffPage.getByRole('button', { name: 'Подтвердить' }).click()
-  await expect(staffPage.getByRole('button', { name: 'Подтвердить' })).not.toBeVisible()
+  // Очередь верификации общая для всей dev-БД (не изолирована миграциями между прогонами,
+  // как и другие модерационные ленты в этом наборе) — скоупим клик на карточку именно
+  // нашего заводчика по owner_user_id, а не берём первую попавшуюся кнопку.
+  const breederCard = staffPage.locator('div', { hasText: breederId }).last()
+  await breederCard.getByRole('button', { name: 'Подтвердить' }).click()
+  await expect(breederCard).not.toBeVisible()
 
   // Заводчик видит обновлённый статус.
   await breederPage.goto('/breeder/mine')

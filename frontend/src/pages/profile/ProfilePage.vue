@@ -80,6 +80,13 @@ async function save(): Promise<void> {
   >
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">Профиль</span>
+      <button
+        class="text-lg text-ink-faint"
+        aria-label="Закрыть"
+        @click="router.push({ name: 'home' })"
+      >
+        ✕
+      </button>
     </div>
 
     <div class="flex flex-col gap-3 px-2">

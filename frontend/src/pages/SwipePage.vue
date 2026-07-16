@@ -162,6 +162,14 @@ async function goToChat(): Promise<void> {
         </button>
         <button
           class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          aria-label="Чаты"
+          title="Чаты"
+          @click="router.push({ name: 'conversations-list' })"
+        >
+          💬
+        </button>
+        <button
+          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Профиль"
           title="Профиль"
           @click="router.push({ name: 'profile' })"

@@ -15,6 +15,16 @@ export function getConversationForAdoptionRequest(
   return apiRequest(`/api/v1/adoption-requests/${adoptionRequestId}/conversation`)
 }
 
+export function createShelterConversation(
+  shelterId: string,
+  shelterAnimalId?: string | null,
+): Promise<{ data: Conversation }> {
+  return apiRequest(`/api/v1/shelters/${shelterId}/conversations`, {
+    method: 'POST',
+    body: { shelter_animal_id: shelterAnimalId ?? undefined },
+  })
+}
+
 export function listMessages(conversationId: string): Promise<{ data: Message[] }> {
   return apiRequest(`/api/v1/conversations/${conversationId}/messages`)
 }

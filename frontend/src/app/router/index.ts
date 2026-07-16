@@ -52,10 +52,16 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      // kind: 'match' | 'adoption' — см. src/pages/chat/ChatPage.vue.
+      // kind: 'match' | 'adoption' | 'shelter' — см. src/pages/chat/ChatPage.vue.
       path: '/chat/:kind/:id',
       name: 'chat',
       component: () => import('@/pages/chat/ChatPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/chats',
+      name: 'conversations-list',
+      component: () => import('@/pages/chat/ConversationsListPage.vue'),
       meta: { requiresAuth: true },
     },
     {

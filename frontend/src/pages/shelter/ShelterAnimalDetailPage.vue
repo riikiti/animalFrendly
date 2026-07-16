@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/entities/catalog/model'
+import * as conversationApi from '@/entities/conversation/api'
 import * as shelterApi from '@/entities/shelter/api'
 import type { ShelterAnimal } from '@/entities/shelter/types'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
@@ -14,6 +15,7 @@ const catalogStore = useCatalogStore()
 const animal = ref<ShelterAnimal | null>(null)
 const isLoading = ref(true)
 const notFound = ref(false)
+const isContacting = ref(false)
 
 const isRequestFormOpen = ref(false)
 const message = ref('')
@@ -52,9 +54,19 @@ const distanceLabel = computed(() =>
     : `${animal.value.distance_km} км`,
 )
 
-function contactShelter(): void {
-  if (!animal.value) return
-  router.push({ name: 'shelter-detail', params: { id: animal.value.shelter_id } })
+async function contactShelter(): Promise<void> {
+  if (!animal.value || isContacting.value) return
+  isContacting.value = true
+
+  try {
+    const response = await conversationApi.createShelterConversation(
+      animal.value.shelter_id,
+      animal.value.id,
+    )
+    await router.push({ name: 'chat', params: { kind: 'shelter', id: response.data.id } })
+  } finally {
+    isContacting.value = false
+  }
 }
 
 function openRequestForm(): void {
@@ -119,7 +131,9 @@ async function submitRequest(): Promise<void> {
       </div>
 
       <div class="flex flex-col gap-2 px-2">
-        <BaseButton @click="contactShelter">Связаться</BaseButton>
+        <BaseButton :disabled="isContacting" @click="contactShelter">
+          {{ isContacting ? 'Открываем чат…' : 'Связаться' }}
+        </BaseButton>
 
         <p v-if="isSubmitted" class="text-xs font-semibold text-teal">Заявка отправлена</p>
         <BaseButton v-else-if="!isRequestFormOpen" variant="outline" @click="openRequestForm">

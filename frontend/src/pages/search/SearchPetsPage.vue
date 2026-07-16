@@ -65,9 +65,9 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
   <div
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
-    <div class="flex items-center gap-3 px-2">
-      <button class="text-sm text-ink-faint" @click="router.back()">←</button>
+    <div class="flex items-center justify-between px-2">
       <span class="font-display text-lg text-ink">Поиск питомцев</span>
+      <button class="text-lg text-ink-faint" aria-label="Закрыть" @click="router.back()">✕</button>
     </div>
 
     <div class="flex flex-col gap-3 px-2">
