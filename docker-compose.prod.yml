@@ -1,0 +1,143 @@
+# Явное имя проекта — без него Compose берёт его из имени директории и по умолчанию совпадает
+# с dev-стеком (docker-compose.yml), из-за чего `up` на этом файле подменяет уже запущенные
+# dev-контейнеры postgres/redis/meilisearch/minio (те же имена контейнеров, те же именованные
+# volume'ы) вместо того, чтобы поднять отдельный набор.
+name: animalfriendly-prod
+
+services:
+  api:
+    build:
+      context: ./backend
+    image: animalfriendly-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      CONTAINER_ROLE: api
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  queue:
+    build:
+      context: ./backend
+    image: animalfriendly-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      CONTAINER_ROLE: queue
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: ./backend
+    image: animalfriendly-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      CONTAINER_ROLE: scheduler
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  websocket:
+    build:
+      context: ./backend
+    image: animalfriendly-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      CONTAINER_ROLE: websocket
+    env_file: .env
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: https://${DOMAIN}
+        VITE_APP_NAME: ${APP_NAME:-AnimalFriendly}
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY}
+        VITE_REVERB_HOST: ${DOMAIN}
+        VITE_REVERB_PORT: 443
+        VITE_REVERB_SCHEME: https
+    image: animalfriendly-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - frontend
+      - websocket
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY}
+      MEILI_ENV: production
+    volumes:
+      - meili_data:/meili_data
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  meili_data:
+  minio_data:
+  caddy_data:
+  caddy_config:

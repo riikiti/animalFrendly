@@ -1,0 +1,25 @@
+{$DOMAIN} {
+    # /app/* — путь, на который Pusher-протокол (и Reverb как его совместимая реализация)
+    # подключается по умолчанию ({scheme}://{host}/app/{key}). reverse_proxy сам апгрейдит
+    # соединение до WebSocket. Серверный /apps/{id}/events (публикация broadcast) наружу не
+    # проксируется — backend-контейнеры обращаются к websocket:8080 напрямую по внутренней
+    # docker-сети.
+    handle /api/* {
+        reverse_proxy api:8080
+    }
+
+    # Health-check живёт на /up без префикса /api (см. backend/bootstrap/app.php,
+    # health: '/up') — отдельный маршрут, чтобы внешний uptime-мониторинг (см.
+    # docs/deploy/04-operations.md) мог достучаться, не полагаясь на внутреннюю docker-сеть.
+    handle /up {
+        reverse_proxy api:8080
+    }
+
+    handle /app/* {
+        reverse_proxy websocket:8080
+    }
+
+    handle {
+        reverse_proxy frontend:80
+    }
+}

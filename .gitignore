@@ -2,3 +2,7 @@
 .claude/settings.local.json
 .DS_Store
 Thumbs.db
+
+# docker-compose.prod.yml — единый .env для всего прод-стека, см. .env.example
+.env
+.env.prod.test
