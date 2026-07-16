@@ -70,13 +70,14 @@ final class EloquentPetRepository implements PetRepositoryInterface
         );
     }
 
-    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $limit): array
+    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $speciesId, int $limit): array
     {
         $excludeIdStrings = array_map(static fn (Id $id): string => $id->toString(), $excludeIds);
 
         return array_values(
             EloquentPet::query()
                 ->where('status', 'active')
+                ->where('species_id', $speciesId)
                 ->where('owner_id', '!=', $excludeOwnerId->toString())
                 ->when($excludeIdStrings !== [], fn ($query) => $query->whereNotIn('id', $excludeIdStrings))
                 ->orderByRaw('CASE WHEN boosted_until IS NOT NULL AND boosted_until > ? THEN 0 ELSE 1 END', [now()])

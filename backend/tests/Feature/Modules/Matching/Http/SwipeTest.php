@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Breed;
+use App\Modules\Catalog\Infrastructure\Persistence\Eloquent\Models\Species;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Profile\Infrastructure\Persistence\Eloquent\Models\Pet;
 use App\Modules\Subscription\Infrastructure\Persistence\Eloquent\Models\SubscriptionPlan as EloquentSubscriptionPlan;
@@ -15,12 +17,16 @@ it('rejects unauthenticated access', function (): void {
     $this->postJson("/api/v1/pets/{$petId}/swipes", [])->assertUnauthorized();
 });
 
-it('excludes own pets and already-swiped pets from the candidate feed', function (): void {
+it('excludes own pets, already-swiped pets and other species from the candidate feed', function (): void {
+    $dog = Species::factory()->create();
+    $cat = Species::factory()->create();
+
     $owner = User::factory()->create();
-    $myPet = Pet::factory()->create(['owner_id' => $owner->id]);
-    $myOtherPet = Pet::factory()->create(['owner_id' => $owner->id]);
-    $strangerPet = Pet::factory()->create();
-    $alreadySwipedPet = Pet::factory()->create();
+    $myPet = Pet::factory()->create(['owner_id' => $owner->id, 'species_id' => $dog->id]);
+    $myOtherPet = Pet::factory()->create(['owner_id' => $owner->id, 'species_id' => $dog->id]);
+    $strangerPet = Pet::factory()->create(['species_id' => $dog->id]);
+    $alreadySwipedPet = Pet::factory()->create(['species_id' => $dog->id]);
+    $differentSpeciesPet = Pet::factory()->create(['species_id' => $cat->id]);
 
     DB::table('swipes')->insert([
         'swiper_pet_id' => $myPet->id,
@@ -39,7 +45,8 @@ it('excludes own pets and already-swiped pets from the candidate feed', function
     expect($ids)->toContain($strangerPet->id)
         ->not->toContain($myPet->id)
         ->not->toContain($myOtherPet->id)
-        ->not->toContain($alreadySwipedPet->id);
+        ->not->toContain($alreadySwipedPet->id)
+        ->not->toContain($differentSpeciesPet->id);
 });
 
 it('creates a match when two pet owners like each other', function (): void {
@@ -94,6 +101,30 @@ it('rejects a duplicate swipe on the same target', function (): void {
         'target_pet_id' => $target->id,
         'action' => 'like',
     ])->assertUnprocessable();
+});
+
+it('ranks a candidate with a matching breed above one without', function (): void {
+    $dog = Species::factory()->create();
+    $breed = Breed::query()->create([
+        'species_id' => $dog->id,
+        'slug' => 'corgi',
+        'name_ru' => 'Корги',
+        'is_active' => true,
+    ]);
+
+    $owner = User::factory()->create();
+    $myPet = Pet::factory()->create(['owner_id' => $owner->id, 'species_id' => $dog->id, 'breed_id' => $breed->id]);
+
+    $matchingBreedPet = Pet::factory()->create(['species_id' => $dog->id, 'breed_id' => $breed->id]);
+    $otherBreedPet = Pet::factory()->create(['species_id' => $dog->id, 'breed_id' => null]);
+
+    Sanctum::actingAs($owner);
+    $response = $this->getJson("/api/v1/pets/{$myPet->id}/candidates");
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id')->values();
+
+    expect($ids->search($matchingBreedPet->id))->toBeLessThan($ids->search($otherBreedPet->id));
 });
 
 it('blocks liking once the free tariff daily limit is exhausted', function (): void {

@@ -30,13 +30,15 @@ interface PetRepositoryInterface
     public function countByOwnerForMatching(Id $ownerId): int;
 
     /**
-     * Активные анкеты не указанного владельца и не из списка исключений — используется
-     * лентой подбора модуля Matching (см. docs/plan/07-flow-matching-shelter.md).
+     * Активные анкеты указанного вида, не у указанного владельца и не из списка исключений —
+     * используется лентой подбора модуля Matching (см. docs/plan/07-flow-matching-shelter.md).
+     * `$limit` — размер пула кандидатов для скоринга в ListCandidatesHandler, не финальная
+     * выдача (шире, чем нужно вернуть пользователю).
      *
      * @param  list<Id>  $excludeIds
      * @return list<Pet>
      */
-    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $limit): array;
+    public function findActiveExcluding(Id $excludeOwnerId, array $excludeIds, int $speciesId, int $limit): array;
 
     /**
      * Курсорная постраничная выборка всех питомцев (включая неактивных — переиндексация
