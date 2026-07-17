@@ -240,11 +240,27 @@ const statusLabels: Record<string, string> = {
         :key="listing.id"
         class="flex flex-col gap-2 rounded-2xl border border-hairline p-3"
       >
-        <div class="flex items-center justify-between">
-          <p class="text-sm font-semibold text-ink">{{ listing.pet?.name ?? 'Питомец' }}</p>
-          <span class="rounded-full bg-surface-soft px-2 py-1 text-xs font-semibold text-ink-soft">
-            {{ statusLabels[listing.status] }}
-          </span>
+        <div class="flex items-center gap-3">
+          <img
+            v-if="listing.pet?.photo_url"
+            :src="listing.pet.photo_url"
+            class="h-11 w-11 shrink-0 rounded-xl object-cover"
+            alt=""
+          />
+          <div
+            v-else
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
+          >
+            {{ (listing.pet?.name ?? '?').charAt(0) }}
+          </div>
+          <div class="flex flex-1 items-center justify-between">
+            <p class="text-sm font-semibold text-ink">{{ listing.pet?.name ?? 'Питомец' }}</p>
+            <span
+              class="rounded-full bg-surface-soft px-2 py-1 text-xs font-semibold text-ink-soft"
+            >
+              {{ statusLabels[listing.status] }}
+            </span>
+          </div>
         </div>
         <p v-if="listing.pet?.parent_name" class="text-xs text-ink-faint">
           Родитель: {{ listing.pet.parent_name }}

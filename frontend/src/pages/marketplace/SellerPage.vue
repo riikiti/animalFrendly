@@ -111,22 +111,36 @@ async function contactSeller(): Promise<void> {
         <div
           v-for="listing in sellerListings"
           :key="listing.id"
-          class="flex flex-col gap-1 rounded-2xl border border-hairline p-3"
+          class="flex gap-3 rounded-2xl border border-hairline p-3"
         >
-          <div class="flex items-center justify-between">
-            <p class="text-sm font-semibold text-ink">{{ listing.pet?.name ?? 'Питомец' }}</p>
-            <span
-              class="chip rounded-full bg-accent/20 px-2 py-1 text-xs font-semibold text-accent-ink"
-            >
-              {{ formatPrice(listing.price_amount, listing.currency) }}
-            </span>
+          <img
+            v-if="listing.pet?.photo_url"
+            :src="listing.pet.photo_url"
+            class="h-13 w-13 shrink-0 rounded-xl object-cover"
+            alt=""
+          />
+          <div
+            v-else
+            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+          >
+            {{ (listing.pet?.name ?? '?').charAt(0) }}
           </div>
-          <p class="text-xs text-ink-faint">
-            {{ listing.pet ? speciesName(listing.pet.species_id) : '' }}
-          </p>
-          <p v-if="listing.pet?.parent_name" class="text-xs text-ink-faint">
-            Щенок от {{ listing.pet.parent_name }}
-          </p>
+          <div class="flex flex-1 flex-col gap-1">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-semibold text-ink">{{ listing.pet?.name ?? 'Питомец' }}</p>
+              <span
+                class="chip rounded-full bg-accent/20 px-2 py-1 text-xs font-semibold text-accent-ink"
+              >
+                {{ formatPrice(listing.price_amount, listing.currency) }}
+              </span>
+            </div>
+            <p class="text-xs text-ink-faint">
+              {{ listing.pet ? speciesName(listing.pet.species_id) : '' }}
+            </p>
+            <p v-if="listing.pet?.parent_name" class="text-xs text-ink-faint">
+              Щенок от {{ listing.pet.parent_name }}
+            </p>
+          </div>
         </div>
       </div>
     </template>

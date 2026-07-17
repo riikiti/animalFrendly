@@ -141,7 +141,14 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
         class="card flex flex-col gap-2 rounded-2xl border border-hairline p-3"
       >
         <div class="flex items-center gap-3">
+          <img
+            v-if="listing.pet?.photo_url"
+            :src="listing.pet.photo_url"
+            class="h-13 w-13 shrink-0 rounded-xl object-cover"
+            alt=""
+          />
           <div
+            v-else
             class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
           >
             {{ (listing.pet?.name ?? '?').charAt(0) }}

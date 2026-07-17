@@ -103,7 +103,14 @@ async function submitRequest(): Promise<void> {
     </p>
 
     <template v-else-if="!isLoading && animal">
+      <img
+        v-if="animal.pet?.photo_url"
+        :src="animal.pet.photo_url"
+        class="h-40 w-full rounded-2xl object-cover"
+        alt=""
+      />
       <div
+        v-else
         class="flex h-40 w-full items-center justify-center rounded-2xl bg-teal-soft text-3xl font-semibold text-teal"
       >
         {{ (animal.pet?.name ?? '?').charAt(0) }}

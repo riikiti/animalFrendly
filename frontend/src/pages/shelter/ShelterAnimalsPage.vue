@@ -86,7 +86,14 @@ const hasShelters = computed(() => shelters.value.length > 0)
         class="card flex items-center gap-3 rounded-2xl border border-hairline p-3 text-left"
         @click="openAnimal(animal.id)"
       >
+        <img
+          v-if="animal.pet?.photo_url"
+          :src="animal.pet.photo_url"
+          class="h-13 w-13 shrink-0 rounded-xl object-cover"
+          alt=""
+        />
         <div
+          v-else
           class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
         >
           {{ (animal.pet?.name ?? '?').charAt(0) }}

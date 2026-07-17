@@ -11,6 +11,7 @@ export interface ListingPet {
   sex: 'male' | 'female'
   description: string | null
   is_vaccinated: boolean
+  photo_url: string | null
   parent_pet_id: string | null
   parent_name: string | null
 }

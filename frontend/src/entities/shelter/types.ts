@@ -35,6 +35,7 @@ export interface ShelterAnimalPet {
   sex: 'male' | 'female'
   description: string | null
   is_vaccinated: boolean
+  photo_url: string | null
 }
 
 export interface ShelterAnimal {

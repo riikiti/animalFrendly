@@ -132,7 +132,14 @@ async function contactShelter(): Promise<void> {
           :key="animal.id"
           class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
         >
+          <img
+            v-if="animal.pet?.photo_url"
+            :src="animal.pet.photo_url"
+            class="h-11 w-11 shrink-0 rounded-xl object-cover"
+            alt=""
+          />
           <div
+            v-else
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
           >
             {{ (animal.pet?.name ?? '?').charAt(0) }}
