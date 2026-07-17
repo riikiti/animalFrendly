@@ -141,11 +141,14 @@ async function goToChat(): Promise<void> {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">AnimalFriendly</span>
-      <div class="flex items-center gap-1">
+      <span class="shrink-0 font-display text-lg text-ink">AnimalFriendly</span>
+      <!-- min-w-0 позволяет этому flex-item'у сжаться меньше суммарной ширины иконок,
+      иначе overflow-x-auto не сработал бы, а сам ряд просто раздвигал бы родителя — на узких
+      экранах (320-360px) шести-семи иконок уже не хватает по ширине без прокрутки. -->
+      <div class="flex min-w-0 items-center gap-1 overflow-x-auto">
         <button
           v-if="isStaff"
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-danger hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-danger hover:bg-surface-soft"
           aria-label="Админ"
           title="Админ"
           @click="router.push({ name: 'admin-dashboard' })"
@@ -153,7 +156,7 @@ async function goToChat(): Promise<void> {
           🛡️
         </button>
         <button
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Искать"
           title="Искать"
           @click="router.push({ name: 'search-pets' })"
@@ -161,7 +164,7 @@ async function goToChat(): Promise<void> {
           🔍
         </button>
         <button
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Чаты"
           title="Чаты"
           @click="router.push({ name: 'conversations-list' })"
@@ -169,7 +172,7 @@ async function goToChat(): Promise<void> {
           💬
         </button>
         <button
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Лайки"
           title="Лайки"
           @click="router.push({ name: 'pending-likes' })"
@@ -177,7 +180,7 @@ async function goToChat(): Promise<void> {
           ❤️
         </button>
         <button
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Профиль"
           title="Профиль"
           @click="router.push({ name: 'profile' })"
@@ -185,7 +188,7 @@ async function goToChat(): Promise<void> {
           👤
         </button>
         <button
-          class="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Тариф"
           title="Тариф"
           @click="router.push({ name: 'subscription-status' })"
@@ -193,7 +196,7 @@ async function goToChat(): Promise<void> {
           💎
         </button>
         <button
-          class="relative flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
           aria-label="Уведомления"
           title="Уведомления"
           @click="router.push({ name: 'notifications' })"
