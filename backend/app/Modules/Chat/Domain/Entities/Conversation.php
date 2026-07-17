@@ -8,11 +8,12 @@ use App\Shared\Domain\ValueObjects\Id;
 use DateTimeImmutable;
 
 /**
- * Беседа привязана ровно к одному из трёх источников — мэтчу, заявке на усыновление или
- * прямому обращению в приют (см. docs/database/03-matching-chat.md). Прямое обращение
- * дополнительно хранит initiatorUserId (в отличие от match/adoption-request, у него нет
- * отдельной сущности-источника участников) и опциональный shelterAnimalId — «прикреплённая
- * карточка» животного, о котором идёт речь, если разговор начат с его анкеты.
+ * Беседа привязана ровно к одному из четырёх источников — мэтчу, заявке на усыновление,
+ * прямому обращению в приют или прямому обращению к любому пользователю (например,
+ * продавцу на маркетплейсе) — см. docs/database/03-matching-chat.md. Оба вида прямого
+ * контакта хранят initiatorUserId (в отличие от match/adoption-request, у них нет
+ * отдельной сущности-источника участников); shelterAnimalId — опциональная «прикреплённая
+ * карточка» животного для контакта с приютом.
  */
 final class Conversation
 {
@@ -24,6 +25,7 @@ final class Conversation
         private readonly ?Id $shelterId = null,
         private readonly ?Id $initiatorUserId = null,
         private readonly ?Id $shelterAnimalId = null,
+        private readonly ?Id $recipientUserId = null,
     ) {}
 
     public static function createForMatch(Id $id, Id $matchId): self
@@ -45,6 +47,14 @@ final class Conversation
         return new self($id, null, null, new DateTimeImmutable, $shelterId, $initiatorUserId, $shelterAnimalId);
     }
 
+    public static function createForDirectContact(
+        Id $id,
+        Id $recipientUserId,
+        Id $initiatorUserId,
+    ): self {
+        return new self($id, null, null, new DateTimeImmutable, null, $initiatorUserId, null, $recipientUserId);
+    }
+
     public static function reconstitute(
         Id $id,
         ?Id $matchId,
@@ -53,8 +63,9 @@ final class Conversation
         ?Id $shelterId = null,
         ?Id $initiatorUserId = null,
         ?Id $shelterAnimalId = null,
+        ?Id $recipientUserId = null,
     ): self {
-        return new self($id, $matchId, $adoptionRequestId, $createdAt, $shelterId, $initiatorUserId, $shelterAnimalId);
+        return new self($id, $matchId, $adoptionRequestId, $createdAt, $shelterId, $initiatorUserId, $shelterAnimalId, $recipientUserId);
     }
 
     public function id(): Id
@@ -85,6 +96,11 @@ final class Conversation
     public function shelterAnimalId(): ?Id
     {
         return $this->shelterAnimalId;
+    }
+
+    public function recipientUserId(): ?Id
+    {
+        return $this->recipientUserId;
     }
 
     public function createdAt(): DateTimeImmutable

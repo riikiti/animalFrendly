@@ -21,6 +21,7 @@ final class Conversation extends Model
         'shelter_id',
         'initiator_user_id',
         'shelter_animal_id',
+        'recipient_user_id',
         'created_at',
     ];
 

@@ -222,3 +222,54 @@ it('lists direct shelter conversations for both the visitor and the shelter owne
     expect($listed)->not->toBeNull()
         ->and($listed['counterpart_name'])->toBe('Мария');
 });
+
+it('creates a direct conversation with any user and reuses it on repeated contact', function (): void {
+    $seller = User::factory()->create();
+    $buyer = User::factory()->create();
+
+    Sanctum::actingAs($buyer);
+    $firstResponse = $this->postJson("/api/v1/users/{$seller->id}/conversations");
+    $firstResponse->assertOk()->assertJsonPath('data.recipient_user_id', $seller->id);
+
+    $secondId = $this->postJson("/api/v1/users/{$seller->id}/conversations")->json('data.id');
+
+    expect($secondId)->toBe($firstResponse->json('data.id'));
+});
+
+it('lets the recipient of a direct conversation reply but rejects a stranger', function (): void {
+    $seller = User::factory()->create();
+    $buyer = User::factory()->create();
+
+    Sanctum::actingAs($buyer);
+    $conversationId = $this->postJson("/api/v1/users/{$seller->id}/conversations")->json('data.id');
+
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Ещё продаёте?'])
+        ->assertCreated();
+
+    Sanctum::actingAs($seller);
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Да, актуально'])
+        ->assertCreated();
+
+    Sanctum::actingAs(User::factory()->create());
+    $this->postJson("/api/v1/conversations/{$conversationId}/messages", ['body' => 'Хай'])
+        ->assertForbidden();
+});
+
+it('lists direct user conversations for both the initiator and the recipient', function (): void {
+    $seller = User::factory()->create(['name' => 'Продавец']);
+    $buyer = User::factory()->create(['name' => 'Покупатель']);
+
+    Sanctum::actingAs($buyer);
+    $conversationId = $this->postJson("/api/v1/users/{$seller->id}/conversations")->json('data.id');
+
+    $buyerConversations = $this->getJson('/api/v1/conversations')->assertOk();
+    $listedForBuyer = collect($buyerConversations->json('data'))->firstWhere('id', $conversationId);
+    expect($listedForBuyer)->not->toBeNull()
+        ->and($listedForBuyer['counterpart_name'])->toBe('Продавец');
+
+    Sanctum::actingAs($seller);
+    $sellerConversations = $this->getJson('/api/v1/conversations')->assertOk();
+    $listedForSeller = collect($sellerConversations->json('data'))->firstWhere('id', $conversationId);
+    expect($listedForSeller)->not->toBeNull()
+        ->and($listedForSeller['counterpart_name'])->toBe('Покупатель');
+});

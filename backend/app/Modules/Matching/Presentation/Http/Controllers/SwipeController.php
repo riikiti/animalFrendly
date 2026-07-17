@@ -11,6 +11,8 @@ use App\Modules\Matching\Application\Queries\ListCandidates\ListCandidatesHandle
 use App\Modules\Matching\Application\Queries\ListCandidates\ListCandidatesQuery;
 use App\Modules\Matching\Application\Queries\ListMatches\ListMatchesHandler;
 use App\Modules\Matching\Application\Queries\ListMatches\ListMatchesQuery;
+use App\Modules\Matching\Application\Queries\ListPendingLikes\ListPendingLikesHandler;
+use App\Modules\Matching\Application\Queries\ListPendingLikes\ListPendingLikesQuery;
 use App\Modules\Matching\Domain\Exceptions\CannotSwipeOwnPetException;
 use App\Modules\Matching\Domain\Exceptions\PetAlreadySwipedException;
 use App\Modules\Matching\Domain\Exceptions\PetNotFoundException;
@@ -79,6 +81,25 @@ final class SwipeController
         }
 
         return response()->json(['data' => MatchResource::collection($matches)]);
+    }
+
+    public function pendingLikes(string $petId, Request $request, ListPendingLikesHandler $handler): JsonResponse
+    {
+        try {
+            $result = $handler->handle(new ListPendingLikesQuery(
+                actingUserId: $this->authenticatedUserId($request),
+                petId: $petId,
+            ));
+        } catch (PetNotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (PetNotOwnedByActorException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
+
+        return response()->json(['data' => [
+            'received' => PetResource::collection($result->received),
+            'sent' => PetResource::collection($result->sent),
+        ]]);
     }
 
     private function authenticatedUserId(Request $request): string

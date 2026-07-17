@@ -26,6 +26,7 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
                 'shelter_id' => $conversation->shelterId()?->toString(),
                 'initiator_user_id' => $conversation->initiatorUserId()?->toString(),
                 'shelter_animal_id' => $conversation->shelterAnimalId()?->toString(),
+                'recipient_user_id' => $conversation->recipientUserId()?->toString(),
                 'created_at' => $conversation->createdAt(),
             ],
         );
@@ -58,6 +59,16 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
     {
         $model = EloquentConversation::query()
             ->where('shelter_id', $shelterId->toString())
+            ->where('initiator_user_id', $initiatorUserId->toString())
+            ->first();
+
+        return $model ? $this->toDomain($model) : null;
+    }
+
+    public function findByRecipientAndInitiator(Id $recipientUserId, Id $initiatorUserId): ?DomainConversation
+    {
+        $model = EloquentConversation::query()
+            ->where('recipient_user_id', $recipientUserId->toString())
             ->where('initiator_user_id', $initiatorUserId->toString())
             ->first();
 
@@ -130,6 +141,18 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
         );
     }
 
+    public function findByRecipientUserId(Id $userId): array
+    {
+        return array_values(
+            EloquentConversation::query()
+                ->where('recipient_user_id', $userId->toString())
+                ->orderByDesc('created_at')
+                ->get()
+                ->map($this->toDomain(...))
+                ->all(),
+        );
+    }
+
     private function toDomain(EloquentConversation $model): DomainConversation
     {
         return DomainConversation::reconstitute(
@@ -142,6 +165,7 @@ final class EloquentConversationRepository implements ConversationRepositoryInte
             shelterId: $model->shelter_id !== null ? Id::fromString($model->shelter_id) : null,
             initiatorUserId: $model->initiator_user_id !== null ? Id::fromString($model->initiator_user_id) : null,
             shelterAnimalId: $model->shelter_animal_id !== null ? Id::fromString($model->shelter_animal_id) : null,
+            recipientUserId: $model->recipient_user_id !== null ? Id::fromString($model->recipient_user_id) : null,
         );
     }
 }

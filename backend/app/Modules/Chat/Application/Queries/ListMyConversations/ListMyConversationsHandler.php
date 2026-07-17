@@ -17,7 +17,8 @@ use App\Shared\Domain\ValueObjects\Id;
  * Композиция через явные Domain-контракты нескольких модулей:
  * — мои питомцы (Profile) → их мэтчи (Matching) → беседы этих мэтчей;
  * — мои заявки на усыновление и заявки на животных из моих приютов (Shelter) → их беседы;
- * — мои исходящие прямые обращения в приюты + входящие в приюты, которыми я владею.
+ * — мои исходящие прямые обращения (в приюты и к другим пользователям) + входящие в
+ *   приюты, которыми я владею, + входящие ко мне лично.
  * См. docs/plan/03-architecture.md.
  */
 final class ListMyConversationsHandler
@@ -68,6 +69,7 @@ final class ListMyConversationsHandler
             ...$this->conversations->findByAdoptionRequestIds(array_values($adoptionRequestIds)),
             ...$this->conversations->findByInitiatorUserId($userId),
             ...$this->conversations->findByShelterIds($myShelterIds),
+            ...$this->conversations->findByRecipientUserId($userId),
         ];
     }
 }

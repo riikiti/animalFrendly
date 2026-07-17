@@ -23,4 +23,20 @@ interface SwipeRepositoryInterface
      * @return list<Id>
      */
     public function swipedTargetIds(Id $swiperPetId): array;
+
+    /**
+     * Анкеты, лайкнувшие/суперлайкнувшие $targetPetId, которым ещё не был дан ответный
+     * свайп (ни лайк, ни дизлайк) — используется вкладкой «кто кого лайкнул».
+     *
+     * @return list<Id>
+     */
+    public function pendingIncomingLikes(Id $targetPetId): array;
+
+    /**
+     * Анкеты, которых лайкнула/суперлайкнула $swiperPetId, но которые ещё не ответили
+     * встречным свайпом — используется вкладкой «кто кого лайкнул».
+     *
+     * @return list<Id>
+     */
+    public function pendingOutgoingLikes(Id $swiperPetId): array;
 }

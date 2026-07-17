@@ -35,6 +35,7 @@ final class ConversationResource extends JsonResource
             'adoption_request_id' => $conversation->adoptionRequestId()?->toString(),
             'shelter_id' => $conversation->shelterId()?->toString(),
             'shelter_animal_id' => $conversation->shelterAnimalId()?->toString(),
+            'recipient_user_id' => $conversation->recipientUserId()?->toString(),
             'created_at' => $conversation->createdAt()->format(DATE_ATOM),
             'counterpart_address' => $counterpartAddress,
             'counterpart_location' => $counterpartLocation,

@@ -6,6 +6,7 @@ use App\Modules\Chat\Application\Commands\SendMessage\SendMessageCommand;
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageHandler;
 use App\Modules\Chat\Application\Services\AdoptionRequestParticipantGuard;
 use App\Modules\Chat\Application\Services\ConversationAccessGuard;
+use App\Modules\Chat\Application\Services\DirectContactParticipantGuard;
 use App\Modules\Chat\Application\Services\MatchParticipantGuard;
 use App\Modules\Chat\Application\Services\ShelterConversationParticipantGuard;
 use App\Modules\Chat\Domain\Entities\Conversation;
@@ -59,8 +60,9 @@ it('dispatches MessageSent with the message body when a recipient can be resolve
     $shelters = Mockery::mock(ShelterRepositoryInterface::class);
     $adoptionGuard = new AdoptionRequestParticipantGuard($adoptionRequests, $shelterAnimals, $shelters);
     $shelterGuard = new ShelterConversationParticipantGuard($shelters);
+    $directGuard = new DirectContactParticipantGuard;
 
-    $accessGuard = new ConversationAccessGuard($matchGuard, $adoptionGuard, $shelterGuard);
+    $accessGuard = new ConversationAccessGuard($matchGuard, $adoptionGuard, $shelterGuard, $directGuard);
 
     $events = Mockery::mock(Dispatcher::class);
     $events->shouldReceive('dispatch')->once()->with(Mockery::on(

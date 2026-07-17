@@ -14,6 +14,7 @@ final class ConversationAccessGuard
         private readonly MatchParticipantGuard $matchGuard,
         private readonly AdoptionRequestParticipantGuard $adoptionGuard,
         private readonly ShelterConversationParticipantGuard $shelterGuard,
+        private readonly DirectContactParticipantGuard $directGuard,
     ) {}
 
     public function assertParticipant(Conversation $conversation, Id $actingUserId): void
@@ -32,6 +33,12 @@ final class ConversationAccessGuard
 
         if ($conversation->shelterId() !== null) {
             $this->shelterGuard->assertParticipant($conversation, $actingUserId);
+
+            return;
+        }
+
+        if ($conversation->recipientUserId() !== null) {
+            $this->directGuard->assertParticipant($conversation, $actingUserId);
 
             return;
         }
@@ -62,6 +69,12 @@ final class ConversationAccessGuard
             $this->shelterGuard->assertParticipant($conversation, $senderId);
 
             return $this->shelterGuard->otherParticipantId($conversation, $senderId);
+        }
+
+        if ($conversation->recipientUserId() !== null) {
+            $this->directGuard->assertParticipant($conversation, $senderId);
+
+            return $this->directGuard->otherParticipantId($conversation, $senderId);
         }
 
         return null;

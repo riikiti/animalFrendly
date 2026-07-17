@@ -156,3 +156,42 @@ it('blocks liking once the free tariff daily limit is exhausted', function (): v
         'action' => 'like',
     ])->assertStatus(402)->assertJsonPath('error_code', 'quota_exceeded');
 });
+
+it('lists a one-sided like under sent/received until the like is returned', function (): void {
+    $ownerA = User::factory()->create();
+    $petA = Pet::factory()->create(['owner_id' => $ownerA->id]);
+
+    $ownerB = User::factory()->create();
+    $petB = Pet::factory()->create(['owner_id' => $ownerB->id]);
+
+    Sanctum::actingAs($ownerA);
+    $this->postJson("/api/v1/pets/{$petA->id}/swipes", [
+        'target_pet_id' => $petB->id,
+        'action' => 'like',
+    ])->assertCreated()->assertJsonPath('is_match', false);
+
+    Sanctum::actingAs($ownerA);
+    $sentResponse = $this->getJson("/api/v1/pets/{$petA->id}/pending-likes")->assertOk();
+    expect(collect($sentResponse->json('data.sent'))->pluck('id'))->toContain($petB->id);
+    expect($sentResponse->json('data.received'))->toBe([]);
+
+    Sanctum::actingAs($ownerB);
+    $receivedResponse = $this->getJson("/api/v1/pets/{$petB->id}/pending-likes")->assertOk();
+    expect(collect($receivedResponse->json('data.received'))->pluck('id'))->toContain($petA->id);
+    expect($receivedResponse->json('data.sent'))->toBe([]);
+
+    $this->postJson("/api/v1/pets/{$petB->id}/swipes", [
+        'target_pet_id' => $petA->id,
+        'action' => 'like',
+    ])->assertCreated()->assertJsonPath('is_match', true);
+
+    Sanctum::actingAs($ownerA);
+    $afterMatchA = $this->getJson("/api/v1/pets/{$petA->id}/pending-likes")->assertOk();
+    expect($afterMatchA->json('data.sent'))->toBe([]);
+    expect($afterMatchA->json('data.received'))->toBe([]);
+
+    Sanctum::actingAs($ownerB);
+    $afterMatchB = $this->getJson("/api/v1/pets/{$petB->id}/pending-likes")->assertOk();
+    expect($afterMatchB->json('data.sent'))->toBe([]);
+    expect($afterMatchB->json('data.received'))->toBe([]);
+});

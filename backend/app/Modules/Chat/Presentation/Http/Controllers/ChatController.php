@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Chat\Presentation\Http\Controllers;
 
+use App\Modules\Chat\Application\Commands\CreateConversationForDirectContact\CreateConversationForDirectContactCommand;
+use App\Modules\Chat\Application\Commands\CreateConversationForDirectContact\CreateConversationForDirectContactHandler;
 use App\Modules\Chat\Application\Commands\CreateConversationForShelterContact\CreateConversationForShelterContactCommand;
 use App\Modules\Chat\Application\Commands\CreateConversationForShelterContact\CreateConversationForShelterContactHandler;
 use App\Modules\Chat\Application\Commands\SendMessage\SendMessageCommand;
@@ -66,6 +68,19 @@ final class ChatController
             shelterId: $shelterId,
             initiatorUserId: $this->authenticatedUserId($request),
             shelterAnimalId: $request->string('shelter_animal_id')->toString() ?: null,
+        ));
+
+        return response()->json(['data' => new ConversationResource(['conversation' => $conversation])]);
+    }
+
+    public function conversationForUser(
+        string $userId,
+        Request $request,
+        CreateConversationForDirectContactHandler $handler,
+    ): JsonResponse {
+        $conversation = $handler->handle(new CreateConversationForDirectContactCommand(
+            recipientUserId: $userId,
+            initiatorUserId: $this->authenticatedUserId($request),
         ));
 
         return response()->json(['data' => new ConversationResource(['conversation' => $conversation])]);
