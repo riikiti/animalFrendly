@@ -44,6 +44,7 @@ final class ListingResource extends JsonResource
                 'sex' => $pet->sex()->value,
                 'description' => $pet->description(),
                 'is_vaccinated' => $pet->isVaccinated(),
+                'photo_url' => $pet->photoUrl(),
                 'parent_pet_id' => $pet->parentId()?->toString(),
                 'parent_name' => $data['parent_name'] ?? null,
             ] : null,

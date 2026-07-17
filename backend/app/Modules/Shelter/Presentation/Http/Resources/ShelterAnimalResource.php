@@ -45,6 +45,7 @@ final class ShelterAnimalResource extends JsonResource
                 'sex' => $pet->sex()->value,
                 'description' => $pet->description(),
                 'is_vaccinated' => $pet->isVaccinated(),
+                'photo_url' => $pet->photoUrl(),
             ] : null,
         ];
     }
