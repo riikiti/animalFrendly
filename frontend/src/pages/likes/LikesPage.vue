@@ -7,6 +7,8 @@ import * as matchApi from '@/entities/match/api'
 import type { PetMatch } from '@/entities/match/types'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
+import { ApiError } from '@/shared/api/http'
+import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 
 const router = useRouter()
 const petStore = usePetStore()
@@ -21,6 +23,8 @@ const sent = ref<Pet[]>([])
 const isLoading = ref(true)
 const respondingPetId = ref<string | null>(null)
 const currentMatch = ref<PetMatch | null>(null)
+const paywallOpen = ref(false)
+const paywallMessage = ref('')
 
 onMounted(async () => {
   await catalogStore.ensureSpeciesLoaded()
@@ -58,6 +62,13 @@ async function respond(target: Pet, action: 'like' | 'dislike'): Promise<void> {
     if (result.is_match) {
       currentMatch.value = result.match
     }
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 402) {
+      paywallMessage.value = e.message
+      paywallOpen.value = true
+      return
+    }
+    throw e
   } finally {
     respondingPetId.value = null
   }
@@ -70,6 +81,15 @@ function dismissMatch(): void {
 async function goToChat(): Promise<void> {
   if (!currentMatch.value) return
   await router.push({ name: 'chat', params: { kind: 'match', id: currentMatch.value.id } })
+}
+
+function closePaywall(): void {
+  paywallOpen.value = false
+}
+
+async function goToSubscriptionPlans(): Promise<void> {
+  paywallOpen.value = false
+  await router.push({ name: 'subscription-plans' })
 }
 </script>
 
@@ -187,5 +207,11 @@ async function goToChat(): Promise<void> {
     </div>
 
     <MatchModal :open="currentMatch !== null" @continue="dismissMatch" @chat="goToChat" />
+    <PaywallSheet
+      :open="paywallOpen"
+      :message="paywallMessage"
+      @close="closePaywall"
+      @upgrade="goToSubscriptionPlans"
+    />
   </div>
 </template>
