@@ -25,6 +25,10 @@ export function createShelterConversation(
   })
 }
 
+export function createDirectConversation(userId: string): Promise<{ data: Conversation }> {
+  return apiRequest(`/api/v1/users/${userId}/conversations`, { method: 'POST' })
+}
+
 export function listMessages(conversationId: string): Promise<{ data: Message[] }> {
   return apiRequest(`/api/v1/conversations/${conversationId}/messages`)
 }

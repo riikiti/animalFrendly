@@ -30,11 +30,12 @@ onMounted(async () => {
   const kind = String(route.params.kind)
   const id = String(route.params.id)
 
-  if (kind === 'shelter') {
-    // Беседа уже создана до перехода сюда (см. «Написать в приют»/«Связаться») — сам id
-    // из роута это id беседы, отдельный лукап по shelterId не нужен. Метаданные (кто
-    // собеседник, прикреплено ли животное) берём из общего списка бесед клиентской
-    // фильтрацией — тот же приём, что уже на ShelterAnimalDetailPage.vue.
+  if (kind === 'shelter' || kind === 'direct') {
+    // Беседа уже создана до перехода сюда (см. «Написать в приют»/«Написать» продавцу) —
+    // сам id из роута это id беседы, отдельный лукап не нужен. Метаданные (кто собеседник,
+    // прикреплено ли животное) берём из общего списка бесед клиентской фильтрацией — тот же
+    // приём, что уже на ShelterAnimalDetailPage.vue. Для прямого контакта (kind === 'direct')
+    // shelter_animal_id всегда null, поэтому баннер животного просто не появится.
     conversationId.value = id
     const list = await conversationApi.listConversations()
     const conversation = list.data.find((c) => c.id === id)

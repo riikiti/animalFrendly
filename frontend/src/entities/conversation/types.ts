@@ -4,6 +4,7 @@ export interface Conversation {
   adoption_request_id: string | null
   shelter_id: string | null
   shelter_animal_id: string | null
+  recipient_user_id: string | null
   created_at: string
   counterpart_address: string | null
   counterpart_location: { lat: number; lng: number } | null

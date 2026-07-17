@@ -27,3 +27,9 @@ export function swipe(
 export function boostPet(petId: string): Promise<{ data: Pet }> {
   return apiRequest(`/api/v1/pets/${petId}/boost`, { method: 'POST' })
 }
+
+export function listPendingLikes(
+  petId: string,
+): Promise<{ data: { received: Pet[]; sent: Pet[] } }> {
+  return apiRequest(`/api/v1/pets/${petId}/pending-likes`)
+}

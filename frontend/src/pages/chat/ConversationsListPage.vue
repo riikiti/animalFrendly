@@ -23,8 +23,10 @@ function openConversation(conversation: Conversation): void {
       name: 'chat',
       params: { kind: 'adoption', id: conversation.adoption_request_id },
     })
-  } else {
+  } else if (conversation.shelter_id) {
     router.push({ name: 'chat', params: { kind: 'shelter', id: conversation.id } })
+  } else {
+    router.push({ name: 'chat', params: { kind: 'direct', id: conversation.id } })
   }
 }
 
@@ -84,7 +86,9 @@ function formatDate(dateString: string): string {
                 ? 'Приют'
                 : conversation.adoption_request_id
                   ? 'Заявка на пристройство'
-                  : 'Мэтч'
+                  : conversation.recipient_user_id
+                    ? 'Личная переписка'
+                    : 'Мэтч'
             }}
           </p>
         </div>

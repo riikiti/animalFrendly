@@ -2,21 +2,27 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/entities/catalog/model'
+import * as conversationApi from '@/entities/conversation/api'
 import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Listing } from '@/entities/marketplace/types'
+import { useUserStore } from '@/entities/user/model'
+import BaseButton from '@/shared/ui/components/BaseButton.vue'
 
 const route = useRoute()
 const router = useRouter()
 const catalogStore = useCatalogStore()
+const userStore = useUserStore()
 
 const listings = ref<Listing[]>([])
 const isLoading = ref(true)
 const notFound = ref(false)
+const isContacting = ref(false)
 
 const sellerListings = computed(() =>
   listings.value.filter((listing) => listing.seller_id === String(route.params.id)),
 )
 const seller = computed(() => sellerListings.value[0] ?? null)
+const isSelf = computed(() => seller.value?.seller_id === userStore.currentUser?.id)
 
 onMounted(async () => {
   await catalogStore.ensureSpeciesLoaded()
@@ -40,6 +46,18 @@ function speciesName(speciesId: number): string {
 function formatPrice(minorUnits: number, currency: string): string {
   const amount = (minorUnits / 100).toLocaleString('ru-RU')
   return `${amount} ${currency === 'RUB' ? '₽' : currency}`
+}
+
+async function contactSeller(): Promise<void> {
+  if (!seller.value || isContacting.value) return
+  isContacting.value = true
+
+  try {
+    const response = await conversationApi.createDirectConversation(seller.value.seller_id)
+    await router.push({ name: 'chat', params: { kind: 'direct', id: response.data.id } })
+  } finally {
+    isContacting.value = false
+  }
 }
 </script>
 
@@ -80,6 +98,12 @@ function formatPrice(minorUnits: number, currency: string): string {
             }}
           </span>
         </div>
+      </div>
+
+      <div v-if="!isSelf" class="px-2">
+        <BaseButton :disabled="isContacting" @click="contactSeller">
+          {{ isContacting ? 'Открываем чат…' : 'Написать' }}
+        </BaseButton>
       </div>
 
       <div class="flex flex-col gap-2 border-t border-hairline px-2 pt-4">
