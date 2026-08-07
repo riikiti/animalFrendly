@@ -28,14 +28,18 @@ import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseCarouselDots from '@/shared/ui/components/BaseCarouselDots.vue'
 import BaseCheckRow from '@/shared/ui/components/BaseCheckRow.vue'
+import BaseCoachMark from '@/shared/ui/components/BaseCoachMark.vue'
 import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
 import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
 import BaseLoadMore from '@/shared/ui/components/BaseLoadMore.vue'
 import BaseModal from '@/shared/ui/components/BaseModal.vue'
 import BaseMoneyRow from '@/shared/ui/components/BaseMoneyRow.vue'
+import BaseOtpInput from '@/shared/ui/components/BaseOtpInput.vue'
 import BasePagination from '@/shared/ui/components/BasePagination.vue'
 import BasePaymentMethod from '@/shared/ui/components/BasePaymentMethod.vue'
+import BasePopover from '@/shared/ui/components/BasePopover.vue'
 import BaseProgress from '@/shared/ui/components/BaseProgress.vue'
+import BaseRangeSlider from '@/shared/ui/components/BaseRangeSlider.vue'
 import BaseRating from '@/shared/ui/components/BaseRating.vue'
 import BaseSheet from '@/shared/ui/components/BaseSheet.vue'
 import BaseSkeleton from '@/shared/ui/components/BaseSkeleton.vue'
@@ -55,6 +59,7 @@ import BaseRadio from '@/shared/ui/components/BaseRadio.vue'
 import BaseSearchInput from '@/shared/ui/components/BaseSearchInput.vue'
 import BaseSegmented from '@/shared/ui/components/BaseSegmented.vue'
 import BaseSelect from '@/shared/ui/components/BaseSelect.vue'
+import BaseSelectMenu from '@/shared/ui/components/BaseSelectMenu.vue'
 import BaseSlider from '@/shared/ui/components/BaseSlider.vue'
 import BaseStepper from '@/shared/ui/components/BaseStepper.vue'
 import BaseSwitch from '@/shared/ui/components/BaseSwitch.vue'
@@ -92,6 +97,10 @@ const form = ref({
   age: 5,
   count: 2,
 })
+
+const otp = ref('12')
+const distance = ref<[number, number]>([5, 30])
+const coachShown = ref(true)
 
 const breeds = [
   { value: 'corgi', label: 'Вельш-корги' },
@@ -255,6 +264,15 @@ const photos = ref([
             >
               <template #lead><Dog class="size-[19px] text-ink-faint" /></template>
             </BaseSelect>
+            <BaseSelectMenu
+              v-model="form.breed"
+              label="Порода · рисованный список"
+              placeholder="Порода не выбрана"
+              :options="breeds"
+            >
+              <template #lead><Dog class="size-[19px] text-ink-faint" /></template>
+            </BaseSelectMenu>
+            <BaseOtpInput v-model="otp" label="Код из СМС" />
             <BaseTextarea
               v-model="form.about"
               label="Многострочное"
@@ -313,6 +331,14 @@ const photos = ref([
               :value-label="`до ${form.age} лет`"
               min-label="0"
               max-label="15 лет"
+            />
+            <BaseRangeSlider
+              v-model="distance"
+              label="Расстояние"
+              :max="50"
+              :value-label="`${distance[0]} — ${distance[1]} км`"
+              min-label="0"
+              max-label="50 км"
             />
             <BaseStepper v-model="form.count" aria-label="Количество" :max="10" />
           </div>
@@ -503,6 +529,31 @@ const photos = ref([
             <BaseTooltip text="Суперлайк заметят первым">
               <BaseChip tone="outline" size="md" interactive>Наведите — тултип</BaseChip>
             </BaseTooltip>
+            <BasePopover title="Проверенный профиль">
+              <template #trigger>
+                <BaseChip tone="outline" size="md" interactive>Нажмите — поповер</BaseChip>
+              </template>
+              Мы сверили паспорт владельца и ветеринарные документы питомца.
+              <template #footer>
+                <a href="#" class="text-[12.5px] font-bold text-accent-text"
+                  >Подробнее о верификации</a
+                >
+              </template>
+            </BasePopover>
+          </div>
+
+          <div class="mt-4 max-w-md">
+            <BaseCoachMark
+              v-if="coachShown"
+              title="Свайпайте вправо"
+              @dismiss="coachShown = false"
+            >
+              <template #icon><Heart class="size-5" /></template>
+              Понравилась анкета — тяните карточку вправо. Влево, чтобы пропустить.
+            </BaseCoachMark>
+            <BaseButton v-else variant="ghost" size="sm" @click="coachShown = true"
+              >Показать подсказку снова</BaseButton
+            >
           </div>
         </div>
       </div>

@@ -26,23 +26,26 @@ defineEmits<{ 'update:modelValue': [value: boolean] }>()
       <span v-if="description" class="text-xs text-ink-faint">{{ description }}</span>
     </span>
 
-    <input
-      type="checkbox"
-      role="switch"
-      :checked="modelValue"
-      :disabled="disabled"
-      class="peer sr-only"
-      @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
-    />
-    <span
-      class="flex h-[30px] w-[52px] shrink-0 items-center rounded-full p-[3px] transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
-      :class="disabled ? 'bg-surface-soft' : modelValue ? 'bg-accent' : 'bg-hairline'"
-      aria-hidden="true"
-    >
-      <span
-        class="size-6 rounded-full bg-surface shadow-sm transition-transform"
-        :class="modelValue && 'translate-x-[22px]'"
+    <!-- Прозрачный input поверх дорожки — см. комментарий в BaseCheckbox. -->
+    <span class="relative inline-flex shrink-0">
+      <input
+        type="checkbox"
+        role="switch"
+        :checked="modelValue"
+        :disabled="disabled"
+        class="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+        @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
       />
+      <span
+        class="pointer-events-none flex h-[30px] w-[52px] items-center rounded-full p-[3px] transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+        :class="disabled ? 'bg-surface-soft' : modelValue ? 'bg-accent' : 'bg-hairline'"
+        aria-hidden="true"
+      >
+        <span
+          class="size-6 rounded-full bg-surface shadow-sm transition-transform"
+          :class="modelValue && 'translate-x-[22px]'"
+        />
+      </span>
     </span>
   </label>
 </template>

@@ -26,19 +26,22 @@ const boxClass = computed(() => {
 
 <template>
   <label
-    class="flex items-start gap-2.5 text-xs leading-relaxed text-ink-soft"
+    class="relative flex items-start gap-2.5 text-xs leading-relaxed text-ink-soft"
     :class="disabled && 'cursor-not-allowed text-ink-faint'"
   >
+    <!-- Настоящий input лежит поверх нарисованной клетки и прозрачен: так по нему
+    попадают и мышь, и автотесты, а рисунок остаётся наш. Прятать его в sr-only нельзя —
+    клик уходит в подпись. -->
     <input
       type="checkbox"
       :checked="modelValue"
       :disabled="disabled"
       :indeterminate="indeterminate"
-      class="peer sr-only"
+      class="peer absolute top-0 left-0 size-6 cursor-pointer opacity-0 disabled:cursor-not-allowed"
       @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
     />
     <span
-      class="grid size-6 shrink-0 place-items-center rounded-lg border-[1.8px] transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+      class="pointer-events-none grid size-6 shrink-0 place-items-center rounded-lg border-[1.8px] transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
       :class="boxClass"
       aria-hidden="true"
     >
