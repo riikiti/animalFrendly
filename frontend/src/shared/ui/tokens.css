@@ -40,14 +40,19 @@
   /* Мятный — второй бренд-цвет: статусы «проверено», прогресс, ссылки в спокойных блоках */
   --teal: #12b3a6;
   --teal-soft: #dff5f3;
+  /* Мятный и золотой на своих мягких подложках нечитаемы, поэтому у надписей
+     отдельные затемнённые оттенки — они же взяты в макете. */
+  --teal-text: #0e8a80;
 
   /* Статусы */
   --gold: #f5b23e;
   --gold-soft: #fff3dc;
+  --gold-text: #a9721a;
   --info: #3c6ff0;
   --info-soft: #e9effe;
   --danger: #e14545;
   --danger-soft: #fdebeb;
+  --danger-text: #b93a3a;
   /* Заливка опасной кнопки живёт отдельно от --danger: в тёмной теме текстовый красный
      светлый, а под белой подписью нужен глубокий. */
   --danger-fill: #e14545;
@@ -104,13 +109,16 @@
 
     --teal: #2ed3c4;
     --teal-soft: #10312f;
+    --teal-text: #2ed3c4;
 
     --gold: #ffc55c;
     --gold-soft: #3a2c14;
+    --gold-text: #ffc55c;
     --info: #7a9eff;
     --info-soft: #1c2542;
     --danger: #ff6b6b;
     --danger-soft: #3b1e1e;
+    --danger-text: #ff6b6b;
     --danger-fill: #c93a3a;
     --danger-fill-hover: #d94a4a;
     --danger-fill-pressed: #e15a5a;
@@ -146,13 +154,16 @@
 
   --teal: #2ed3c4;
   --teal-soft: #10312f;
+  --teal-text: #2ed3c4;
 
   --gold: #ffc55c;
   --gold-soft: #3a2c14;
+  --gold-text: #ffc55c;
   --info: #7a9eff;
   --info-soft: #1c2542;
   --danger: #ff6b6b;
   --danger-soft: #3b1e1e;
+  --danger-text: #ff6b6b;
   --danger-fill: #c93a3a;
   --danger-fill-hover: #d94a4a;
   --danger-fill-pressed: #e15a5a;

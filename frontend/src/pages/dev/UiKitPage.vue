@@ -1,7 +1,30 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import { Check, Dog, Heart, MessageCircle, Plus, Trash2, Wallet, X } from 'lucide-vue-next'
+import {
+  BadgeCheck,
+  Cake,
+  Check,
+  Dog,
+  Heart,
+  MapPin,
+  MessageCircle,
+  PawPrint,
+  Plus,
+  SlidersHorizontal,
+  Syringe,
+  Trash2,
+  Wallet,
+  X,
+  Zap,
+} from 'lucide-vue-next'
+import BaseAvatar from '@/shared/ui/components/BaseAvatar.vue'
+import BaseAvatarStack from '@/shared/ui/components/BaseAvatarStack.vue'
+import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseChip from '@/shared/ui/components/BaseChip.vue'
+import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
+import BaseRating from '@/shared/ui/components/BaseRating.vue'
+import BaseStatusDot from '@/shared/ui/components/BaseStatusDot.vue'
 import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseFab from '@/shared/ui/components/BaseFab.vue'
 import BaseIconButton from '@/shared/ui/components/BaseIconButton.vue'
@@ -60,6 +83,8 @@ const stub = (color: string) =>
   `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="120"><rect width="100" height="120" fill="${color}"/></svg>`,
   )}`
+
+const avatarSizes = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const
 
 const photos = ref([
   { url: stub('#F5B23E'), status: 'ready' as const },
@@ -262,6 +287,124 @@ const photos = ref([
           <div class="grid items-start gap-6 sm:grid-cols-2">
             <BasePhotoUpload :photos="[]" />
             <BasePhotoUpload :photos="photos" @remove="photos.splice($event, 1)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <h2 class="mb-1 font-display text-xl font-bold">C · Чипы, бейджи, аватары</h2>
+      <p class="mb-6 text-sm text-ink-soft">Борд C из elements-v2.pen</p>
+
+      <div class="space-y-8">
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Чипы · состояния</h3>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <BaseChip>
+              <template #icon><PawPrint class="size-[15px]" /></template>
+              Порода
+            </BaseChip>
+            <BaseChip tone="accent">
+              <template #icon><Check class="size-[15px]" /></template>
+              Выбран
+            </BaseChip>
+            <BaseChip tone="soft">
+              <template #icon><MapPin class="size-[15px]" /></template>
+              Рядом
+            </BaseChip>
+            <BaseChip tone="outline">Контурный</BaseChip>
+            <BaseChip disabled>Недоступен</BaseChip>
+            <BaseChip tone="ink" :count="24">
+              <template #icon><Zap class="size-[15px]" /></template>
+              Активные
+            </BaseChip>
+          </div>
+          <div class="mt-3 flex flex-wrap items-center gap-2.5 rounded-card bg-bezel p-3">
+            <BaseChip tone="glass">Активная сейчас</BaseChip>
+            <BaseChip tone="glass">Любит парк</BaseChip>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Фильтры</h3>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <BaseChip tone="ink" size="md" interactive :count="3">
+              <template #icon><SlidersHorizontal class="size-[15px]" /></template>
+              Фильтры
+            </BaseChip>
+            <BaseChip tone="soft" size="md" interactive removable>
+              <template #icon><MapPin class="size-[15px]" /></template>
+              Рядом · 5 км
+            </BaseChip>
+            <BaseChip tone="soft" size="md" interactive removable>
+              <template #icon><Cake class="size-[15px]" /></template>
+              До 3 лет
+            </BaseChip>
+            <BaseChip tone="outline" size="md" interactive>
+              <template #icon><Syringe class="size-[15px]" /></template>
+              Привиты
+            </BaseChip>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Бейджи</h3>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <BaseBadge>
+              <template #icon><BadgeCheck class="size-3.5" /></template>
+              Проверен
+            </BaseBadge>
+            <BaseBadge tone="teal">Привит</BaseBadge>
+            <BaseBadge tone="info">Чипирован</BaseBadge>
+            <BaseBadge tone="gold">Родословная РКФ</BaseBadge>
+            <BaseBadge tone="accent">Приют-партнёр</BaseBadge>
+            <BaseBadge tone="neutral">Не подтверждён</BaseBadge>
+            <BaseBadge tone="gold">На модерации</BaseBadge>
+            <BaseBadge tone="danger">Отклонено</BaseBadge>
+            <BaseBadge tone="accent" solid>Пристроен</BaseBadge>
+            <BaseBadge tone="danger" solid>Срочно нужен дом</BaseBadge>
+            <BaseBadge tone="neutral" solid size="md">
+              <template #icon><BadgeCheck class="size-[17px] text-teal" /></template>
+              Профиль подтверждён
+            </BaseBadge>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Индикаторы и счётчики</h3>
+          <div class="flex flex-wrap items-center gap-5">
+            <BaseStatusDot>Онлайн</BaseStatusDot>
+            <BaseStatusDot tone="recent">Недавно</BaseStatusDot>
+            <BaseStatusDot tone="offline">Не в сети</BaseStatusDot>
+            <BaseCounter :value="3" />
+            <BaseCounter :value="12" />
+            <BaseCounter :value="128" tone="danger" />
+            <BaseCounter value="NEW" tone="ink" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Аватары</h3>
+          <div class="mb-4 flex flex-wrap items-end gap-3.5">
+            <BaseAvatar v-for="s in avatarSizes" :key="s" :size="s" name="Луна Хаски" />
+          </div>
+          <div class="flex flex-wrap items-center gap-4">
+            <BaseAvatar size="lg" :src="stub('#FF6B4A')" name="Луна" presence="online" />
+            <BaseAvatar size="lg" name="Луна Хаски" />
+            <BaseAvatar size="lg" name="Добрые лапы" shape="rounded" />
+            <BaseAvatar size="lg" presence="offline" />
+            <BaseAvatar size="lg" name="Луна Хаски" verified />
+            <BaseAvatarStack
+              :people="[{ name: 'Аня К' }, { name: 'Борис' }, { name: 'Вера' }, {}, {}]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Рейтинг и отзывы</h3>
+          <div class="flex flex-wrap items-center gap-6">
+            <BaseRating :value="4.8" :count="126" />
+            <BaseRating :value="4.9" compact note="Топ продавец" />
           </div>
         </div>
       </div>

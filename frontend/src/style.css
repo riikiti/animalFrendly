@@ -32,14 +32,17 @@
 
   --color-teal: var(--teal);
   --color-teal-soft: var(--teal-soft);
+  --color-teal-text: var(--teal-text);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-gold-text: var(--gold-text);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-clay: var(--clay);
   --color-clay-soft: var(--clay-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
   --color-danger-fill: var(--danger-fill);
   --color-danger-fill-hover: var(--danger-fill-hover);
   --color-danger-fill-pressed: var(--danger-fill-pressed);
@@ -48,11 +51,10 @@
   --font-display: var(--font-display);
   --font-ui: var(--font-ui);
 
-  --radius-sm: var(--r-sm);
-  --radius-md: var(--r-md);
-  --radius-lg: var(--r-lg);
-  --radius-xl: var(--r-xl);
+  /* Скругления макета выведены под собственными именами: подменять штатную шкалу
+     Tailwind нельзя — rounded-xl стал бы 28px и раздул бы все существующие карточки. */
   --radius-card: var(--r-card);
+  --radius-sheet: var(--r-xl);
 
   --shadow-sm: var(--elev-sm);
   --shadow-md: var(--elev-md);

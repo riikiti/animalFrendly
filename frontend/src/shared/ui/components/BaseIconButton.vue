@@ -52,7 +52,7 @@ const toneClass = {
     :class="[
       sizeClass[size],
       toneClass[tone],
-      shape === 'circle' ? 'rounded-full' : 'rounded-md',
+      shape === 'circle' ? 'rounded-full' : 'rounded-xl',
       elevated && 'shadow-sm',
     ]"
   >
