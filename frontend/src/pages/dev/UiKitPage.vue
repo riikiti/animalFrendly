@@ -139,7 +139,7 @@ const photos = ref([
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg px-screen py-8 text-ink">
+  <div class="min-h-screen bg-bg px-gutter py-8 text-ink">
     <header class="mb-10 flex flex-wrap items-end justify-between gap-4">
       <div>
         <p class="text-xs font-semibold tracking-widest text-ink-faint uppercase">Лапки</p>

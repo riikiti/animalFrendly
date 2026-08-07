@@ -61,7 +61,9 @@
   --shadow-lg: var(--elev-lg);
   --shadow-nav: var(--elev-nav);
 
-  --spacing-screen: var(--pad-screen);
+  /* Не занимать имя screen: --spacing-screen перебивает встроенные min-h-screen,
+     h-screen и w-screen, и они начинают значить 20px вместо высоты экрана. */
+  --spacing-gutter: var(--pad-screen);
 }
 
 body {
