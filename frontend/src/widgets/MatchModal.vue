@@ -1,25 +1,30 @@
 <script setup lang="ts">
+import { Heart } from 'lucide-vue-next'
+import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseOverlay from '@/shared/ui/components/BaseOverlay.vue'
+
 defineProps<{ open: boolean }>()
+
 const emit = defineEmits<{ continue: []; chat: [] }>()
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+  <BaseOverlay :open="open" persistent>
     <div
-      class="flex w-full max-w-sm flex-col items-center gap-4 rounded-3xl p-8 text-center text-white"
-      style="background: linear-gradient(165deg, var(--teal), #16544a)"
+      class="flex flex-col items-center gap-4 rounded-3xl p-8 text-center text-white shadow-lg"
+      style="background: linear-gradient(165deg, var(--accent-bright), var(--accent-pressed))"
     >
-      <span class="font-display text-3xl">Это мэтч!</span>
+      <span class="grid size-16 place-items-center rounded-full bg-white/20">
+        <Heart class="size-8 fill-current" aria-hidden="true" />
+      </span>
+      <span class="font-display text-3xl font-bold">Это мэтч!</span>
       <p class="text-sm opacity-85">Начните переписку, пока не остыло.</p>
-      <button
-        class="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink"
-        @click="emit('chat')"
-      >
+      <BaseButton size="lg" block class="bg-white text-accent-text hover:bg-white" @click="emit('chat')">
         Написать сообщение
-      </button>
+      </BaseButton>
       <button class="text-sm font-semibold text-white" @click="emit('continue')">
         Смотреть дальше
       </button>
     </div>
-  </div>
+  </BaseOverlay>
 </template>

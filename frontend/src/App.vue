@@ -5,6 +5,7 @@ import { useNotificationStore } from '@/entities/notification/model'
 import type { Notification } from '@/entities/notification/types'
 import { useUserStore } from '@/entities/user/model'
 import { echo } from '@/shared/lib/echo'
+import ToastHost from '@/widgets/ToastHost.vue'
 
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
@@ -32,4 +33,5 @@ watch(
 
 <template>
   <RouterView />
+  <ToastHost />
 </template>

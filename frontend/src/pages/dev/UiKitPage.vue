@@ -17,14 +17,19 @@ import {
   X,
   Zap,
 } from 'lucide-vue-next'
+import { pushToast } from '@/shared/lib/toast'
+import BaseAlert from '@/shared/ui/components/BaseAlert.vue'
 import BaseAvatar from '@/shared/ui/components/BaseAvatar.vue'
 import BaseAvatarStack from '@/shared/ui/components/BaseAvatarStack.vue'
 import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
+import BaseModal from '@/shared/ui/components/BaseModal.vue'
 import BaseRating from '@/shared/ui/components/BaseRating.vue'
+import BaseSheet from '@/shared/ui/components/BaseSheet.vue'
 import BaseStatusDot from '@/shared/ui/components/BaseStatusDot.vue'
+import BaseTooltip from '@/shared/ui/components/BaseTooltip.vue'
 import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseFab from '@/shared/ui/components/BaseFab.vue'
 import BaseIconButton from '@/shared/ui/components/BaseIconButton.vue'
@@ -85,6 +90,17 @@ const stub = (color: string) =>
   )}`
 
 const avatarSizes = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const
+
+const overlay = ref<'confirm' | 'delete' | 'wide' | 'sheet' | null>(null)
+
+const demoToasts = [
+  { tone: 'success' as const, title: 'Взаимная симпатия!', description: 'Луна тоже вас лайкнула — напишите первым', actionLabel: 'Открыть' },
+  { tone: 'error' as const, title: 'Не удалось отправить', description: 'Проверьте подключение и попробуйте снова', actionLabel: 'Повторить' },
+  { tone: 'info' as const, title: 'Анкета на модерации', description: 'Обычно проверка занимает до 2 часов' },
+  { tone: 'warning' as const, title: 'Осталось 2 лайка', description: 'Лимит обновится через 4 часа', actionLabel: 'Про PRO' },
+  { tone: 'compact' as const, title: 'Анкета скрыта', actionLabel: 'Отменить' },
+  { tone: 'loading' as const, title: 'Загружаем фото…', description: '3 из 5 · 64 %', timeout: 3000 },
+]
 
 const photos = ref([
   { url: stub('#F5B23E'), status: 'ready' as const },
@@ -409,5 +425,137 @@ const photos = ref([
         </div>
       </div>
     </section>
+
+    <section class="mb-12">
+      <h2 class="mb-1 font-display text-xl font-bold">D · Тосты, модалки, шторки</h2>
+      <p class="mb-6 text-sm text-ink-soft">Борд D из elements-v2.pen</p>
+
+      <div class="space-y-8">
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">
+            Тосты — нажмите, уведомление всплывёт снизу
+          </h3>
+          <div class="flex flex-wrap gap-2.5">
+            <BaseButton
+              v-for="demo in demoToasts"
+              :key="demo.title"
+              variant="outline"
+              size="sm"
+              @click="pushToast(demo)"
+            >
+              {{ demo.title }}
+            </BaseButton>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Инлайн-алерты</h3>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <BaseAlert tone="success" title="Заявка отправлена"
+              >Приют ответит в течение 2 дней</BaseAlert
+            >
+            <BaseAlert tone="warning" title="Подтвердите телефон">
+              Без подтверждения нельзя писать владельцам
+              <template #action>
+                <a href="#" class="text-[12.5px] font-bold underline">Подтвердить сейчас</a>
+              </template>
+            </BaseAlert>
+            <BaseAlert tone="error" title="Оплата не прошла"
+              >Банк отклонил операцию. Попробуйте другую карту</BaseAlert
+            >
+            <BaseAlert title="Анкета видна не всем">Заполните профиль до конца</BaseAlert>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Модалки, шторки и тултипы</h3>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <BaseButton variant="outline" size="sm" @click="overlay = 'confirm'"
+              >Подтверждение</BaseButton
+            >
+            <BaseButton variant="outline" size="sm" @click="overlay = 'delete'"
+              >Опасное действие</BaseButton
+            >
+            <BaseButton variant="outline" size="sm" @click="overlay = 'wide'"
+              >Широкая с формой</BaseButton
+            >
+            <BaseButton variant="outline" size="sm" @click="overlay = 'sheet'">Шторка</BaseButton>
+            <BaseTooltip text="Суперлайк заметят первым">
+              <BaseChip tone="outline" size="md" interactive>Наведите — тултип</BaseChip>
+            </BaseTooltip>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <BaseModal
+      :open="overlay === 'confirm'"
+      title="Отправить заявку на Барсика?"
+      description="Приют «Верный друг» получит вашу анкету и свяжется в течение двух дней."
+      @close="overlay = null"
+    >
+      <template #icon><PawPrint class="size-6" /></template>
+      <template #actions>
+        <BaseButton size="lg" block @click="overlay = null">Отправить заявку</BaseButton>
+        <BaseButton variant="ghost" block @click="overlay = null">Отмена</BaseButton>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="overlay === 'delete'"
+      tone="danger"
+      title="Удалить анкету Луны?"
+      description="Мэтчи и переписки будут удалены без возможности восстановления."
+      @close="overlay = null"
+    >
+      <template #icon><Trash2 class="size-6" /></template>
+      <template #actions>
+        <BaseButton variant="danger" size="lg" block @click="overlay = null">Удалить</BaseButton>
+        <BaseButton variant="ghost" block @click="overlay = null">Оставить</BaseButton>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="overlay === 'wide'"
+      wide
+      closable
+      title="Новое объявление"
+      description="Заполните основное — остальное можно добавить позже"
+      @close="overlay = null"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <BaseInput v-model="form.filled" label="Кличка" />
+        <BaseInput v-model="form.price" label="Цена" suffix="₽" />
+        <BaseSelect v-model="form.breed" label="Порода" :options="breeds" class="sm:col-span-2" />
+      </div>
+      <template #actions>
+        <BaseButton variant="outline" @click="overlay = null">Отмена</BaseButton>
+        <BaseButton @click="overlay = null">Опубликовать</BaseButton>
+      </template>
+    </BaseModal>
+
+    <BaseSheet :open="overlay === 'sheet'" title="Фильтры" closable @close="overlay = null">
+      <div class="flex flex-col gap-4 pb-2">
+        <BaseSegmented
+          v-model="form.tab"
+          aria-label="Вид"
+          :options="[
+            { value: 'all', label: 'Все' },
+            { value: 'dogs', label: 'Собаки' },
+            { value: 'cats', label: 'Кошки' },
+          ]"
+        />
+        <BaseSlider
+          v-model="form.age"
+          label="Возраст"
+          :max="15"
+          :value-label="`до ${form.age} лет`"
+        />
+        <BaseSwitch v-model="form.notify" label="Только проверенные" />
+      </div>
+      <template #actions>
+        <BaseButton size="lg" block @click="overlay = null">Показать 128 анкет</BaseButton>
+      </template>
+    </BaseSheet>
   </div>
 </template>
