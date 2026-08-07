@@ -180,6 +180,16 @@ const router = createRouter({
       component: () => import('@/pages/admin/AdminBreederVerificationsPage.vue'),
       meta: { requiresAuth: true, requiresStaff: true },
     },
+    // Витрина библиотеки компонентов — только для разработки, в прод-сборку не попадает.
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: '/dev/ui',
+            name: 'dev-ui-kit',
+            component: () => import('@/pages/dev/UiKitPage.vue'),
+          },
+        ]
+      : []),
   ],
 })
 

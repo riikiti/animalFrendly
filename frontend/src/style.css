@@ -1,4 +1,14 @@
 @import 'tailwindcss';
+
+/* Шрифты лежат в node_modules и собираются вместе с бандлом — обращений к Google нет. */
+@import '@fontsource/onest/500.css';
+@import '@fontsource/onest/600.css';
+@import '@fontsource/onest/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
 @import './shared/ui/tokens.css';
 
 @theme {
@@ -6,26 +16,61 @@
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-hairline: var(--hairline);
+  --color-bezel: var(--bezel);
+
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
+
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-pressed: var(--accent-pressed);
   --color-accent-ink: var(--accent-ink);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+
   --color-teal: var(--teal);
   --color-teal-soft: var(--teal-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-clay: var(--clay);
   --color-clay-soft: var(--clay-soft);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-fill: var(--danger-fill);
+  --color-danger-fill-hover: var(--danger-fill-hover);
+  --color-danger-fill-pressed: var(--danger-fill-pressed);
   --color-success: var(--success);
 
   --font-display: var(--font-display);
   --font-ui: var(--font-ui);
 
-  --radius-card: var(--radius-card);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-card: var(--r-card);
+
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+  --shadow-nav: var(--elev-nav);
+
+  --spacing-screen: var(--pad-screen);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-ui);
+}
+
+/* Заголовки набираются Onest — в макете это роль font-head. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
