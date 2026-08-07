@@ -121,8 +121,8 @@ const statusLabels: Record<string, string> = {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Мои листинги</span>
-      <button class="text-xs font-semibold text-teal" @click="router.push({ name: 'marketplace' })">
+      <span class="font-display text-xl font-bold text-ink">Мои листинги</span>
+      <button class="text-xs font-bold text-accent-text" @click="router.push({ name: 'marketplace' })">
         В маркет
       </button>
     </div>
@@ -134,7 +134,7 @@ const statusLabels: Record<string, string> = {
 
       <form
         v-if="showForm"
-        class="flex flex-col gap-3 rounded-2xl border border-hairline p-3"
+        class="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-3"
         @submit.prevent="onSubmit"
       >
         <BaseInput
@@ -153,7 +153,7 @@ const statusLabels: Record<string, string> = {
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
               :class="
-                form.speciesId === s.id ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'
+                form.speciesId === s.id ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
               "
               @click="selectSpecies(s.slug, s.id)"
             >
@@ -179,7 +179,7 @@ const statusLabels: Record<string, string> = {
             <button
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-              :class="form.sex === 'male' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+              :class="form.sex === 'male' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
               @click="form.sex = 'male'"
             >
               Мальчик
@@ -188,7 +188,7 @@ const statusLabels: Record<string, string> = {
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
               :class="
-                form.sex === 'female' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'
+                form.sex === 'female' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
               "
               @click="form.sex = 'female'"
             >
@@ -230,7 +230,7 @@ const statusLabels: Record<string, string> = {
 
       <p
         v-if="listings.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         У вас пока нет листингов
       </p>
@@ -238,18 +238,18 @@ const statusLabels: Record<string, string> = {
       <div
         v-for="listing in listings"
         :key="listing.id"
-        class="flex flex-col gap-2 rounded-2xl border border-hairline p-3"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-3"
       >
         <div class="flex items-center gap-3">
           <img
             v-if="listing.pet?.photo_url"
             :src="listing.pet.photo_url"
-            class="h-11 w-11 shrink-0 rounded-xl object-cover"
+            class="h-11 w-11 shrink-0 rounded-2xl object-cover"
             alt=""
           />
           <div
             v-else
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-sm font-bold text-accent-text"
           >
             {{ (listing.pet?.name ?? '?').charAt(0) }}
           </div>

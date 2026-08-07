@@ -3,7 +3,11 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSubscriptionStore } from '@/entities/subscription/model'
 import type { SubscriptionPlan } from '@/entities/subscription/types'
+import { ChevronLeft } from 'lucide-vue-next'
+import BaseAlert from '@/shared/ui/components/BaseAlert.vue'
+import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseCheckRow from '@/shared/ui/components/BaseCheckRow.vue'
 import { ApiError } from '@/shared/api/http'
 
 const router = useRouter()
@@ -64,36 +68,52 @@ async function subscribeToPlan(slug: string): Promise<void> {
   <div
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
-    <div class="flex items-center gap-3 px-2">
-      <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Тарифы</span>
+    <div class="flex items-center gap-2 px-2">
+      <button
+        class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
+        aria-label="Назад"
+        @click="router.back()"
+      >
+        <ChevronLeft class="size-5" />
+      </button>
+      <h1 class="font-display text-xl font-bold text-ink">Тарифы</h1>
     </div>
 
-    <p v-if="error" class="px-2 text-xs text-danger">{{ error }}</p>
+    <BaseAlert v-if="error" tone="error" class="mx-2">{{ error }}</BaseAlert>
 
     <div v-if="!isLoading" class="flex flex-col gap-3 pb-6">
       <div
         v-for="plan in subscriptionStore.plans"
         :key="plan.slug"
-        class="card flex flex-col gap-2 rounded-2xl border border-hairline p-4"
+        class="card flex flex-col gap-3.5 rounded-card border p-5 transition-colors"
+        :class="
+          isCurrentPlan(plan) ? 'border-accent bg-accent-soft' : 'border-hairline bg-surface'
+        "
       >
-        <div class="flex items-center justify-between">
-          <span class="text-base font-semibold text-ink">{{ plan.name_ru }}</span>
-          <span class="text-sm font-semibold text-accent-ink">
-            {{ formatPrice(plan.price_amount, plan.currency) }}
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex flex-col gap-1">
+            <span class="font-display text-lg font-bold text-ink">{{ plan.name_ru }}</span>
+            <BaseBadge v-if="isCurrentPlan(plan)" tone="accent">Ваш текущий тариф</BaseBadge>
+          </div>
+          <span class="shrink-0 text-right">
+            <span class="font-display text-xl font-bold text-ink">{{
+              formatPrice(plan.price_amount, plan.currency)
+            }}</span>
+            <span v-if="plan.price_amount > 0" class="block text-xs text-ink-faint">в месяц</span>
           </span>
         </div>
 
-        <ul class="flex flex-col gap-1">
-          <li v-for="line in featureLines(plan)" :key="line" class="text-xs text-ink-soft">
-            · {{ line }}
+        <ul class="flex flex-col gap-2.5">
+          <li v-for="line in featureLines(plan)" :key="line">
+            <BaseCheckRow>{{ line }}</BaseCheckRow>
           </li>
         </ul>
 
-        <p v-if="isCurrentPlan(plan)" class="text-xs font-semibold text-teal">Ваш текущий тариф</p>
         <BaseButton
-          v-else-if="plan.price_amount > 0"
-          :disabled="subscribingSlug === plan.slug"
+          v-if="!isCurrentPlan(plan) && plan.price_amount > 0"
+          size="lg"
+          block
+          :loading="subscribingSlug === plan.slug"
           @click="subscribeToPlan(plan.slug)"
         >
           {{ subscribingSlug === plan.slug ? 'Переходим к оплате…' : 'Оформить' }}

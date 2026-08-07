@@ -21,45 +21,45 @@ onMounted(async () => {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.push({ name: 'home' })">←</button>
-      <span class="font-display text-lg text-ink">Админ-панель</span>
+      <span class="font-display text-xl font-bold text-ink">Админ-панель</span>
     </div>
 
     <div v-if="!isLoading && summary" class="flex flex-col gap-3 px-2">
       <button
-        class="flex items-center justify-between rounded-2xl border border-hairline p-4 text-left"
+        class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4 text-left"
         @click="router.push({ name: 'admin-reports' })"
       >
         <span class="text-sm text-ink">Жалобы на рассмотрении</span>
-        <span class="text-lg font-semibold text-teal">{{ summary.pending_reports }}</span>
+        <span class="text-lg font-bold text-accent-text">{{ summary.pending_reports }}</span>
       </button>
 
       <button
-        class="flex items-center justify-between rounded-2xl border border-hairline p-4 text-left"
+        class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4 text-left"
         @click="router.push({ name: 'admin-shelter-verifications' })"
       >
         <span class="text-sm text-ink">Приюты ждут верификации</span>
-        <span class="text-lg font-semibold text-teal">{{
+        <span class="text-lg font-bold text-accent-text">{{
           summary.pending_shelter_verifications
         }}</span>
       </button>
 
       <button
-        class="flex items-center justify-between rounded-2xl border border-hairline p-4 text-left"
+        class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4 text-left"
         @click="router.push({ name: 'admin-breeder-verifications' })"
       >
         <span class="text-sm text-ink">Заводчики ждут верификации</span>
-        <span class="text-lg font-semibold text-teal">{{
+        <span class="text-lg font-bold text-accent-text">{{
           summary.pending_breeder_verifications
         }}</span>
       </button>
 
-      <div class="flex items-center justify-between rounded-2xl border border-hairline p-4">
+      <div class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4">
         <span class="text-sm text-ink">Открытые споры</span>
         <span class="text-lg font-semibold text-ink">{{ summary.open_disputes }}</span>
       </div>
 
       <button
-        class="rounded-2xl border border-hairline p-4 text-left text-sm text-ink"
+        class="rounded-card border border-hairline bg-surface p-4 text-left text-sm text-ink"
         @click="router.push({ name: 'admin-audit-log' })"
       >
         Журнал действий →

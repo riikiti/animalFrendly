@@ -113,7 +113,7 @@ async function send(): Promise<void> {
 
     <div
       v-if="attachedAnimal"
-      class="flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-2.5"
+      class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-2.5"
     >
       <BaseAvatar
         :name="attachedAnimal.pet?.name ?? undefined"

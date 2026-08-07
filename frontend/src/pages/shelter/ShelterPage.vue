@@ -62,16 +62,16 @@ async function contactShelter(): Promise<void> {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Приют</span>
+      <span class="font-display text-xl font-bold text-ink">Приют</span>
     </div>
 
-    <p v-if="notFound" class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint">
+    <p v-if="notFound" class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft">
       Приют не найден
     </p>
 
     <template v-else-if="!isLoading && shelter">
       <div
-        class="flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl bg-teal-soft text-3xl font-semibold text-teal"
+        class="flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl bg-teal-soft text-3xl font-bold text-accent-text"
       >
         <img
           v-if="shelter.photo_url"
@@ -95,10 +95,10 @@ async function contactShelter(): Promise<void> {
 
       <div
         v-if="shelter.owner"
-        class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
+        class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3"
       >
         <div
-          class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-soft text-sm font-semibold text-teal"
+          class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-sm font-bold text-accent-text"
         >
           <img
             v-if="shelter.owner.avatar_url"
@@ -130,17 +130,17 @@ async function contactShelter(): Promise<void> {
         <div
           v-for="animal in shelterAnimals"
           :key="animal.id"
-          class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
+          class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3"
         >
           <img
             v-if="animal.pet?.photo_url"
             :src="animal.pet.photo_url"
-            class="h-11 w-11 shrink-0 rounded-xl object-cover"
+            class="h-11 w-11 shrink-0 rounded-2xl object-cover"
             alt=""
           />
           <div
             v-else
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-sm font-bold text-accent-text"
           >
             {{ (animal.pet?.name ?? '?').charAt(0) }}
           </div>

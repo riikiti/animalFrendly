@@ -85,13 +85,13 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Маркет</span>
+      <span class="font-display text-xl font-bold text-ink">Маркет</span>
       <div class="flex gap-3">
-        <button class="text-xs font-semibold text-teal" @click="router.push({ name: 'my-orders' })">
+        <button class="text-xs font-bold text-accent-text" @click="router.push({ name: 'my-orders' })">
           Мои заказы
         </button>
         <button
-          class="text-xs font-semibold text-teal"
+          class="text-xs font-bold text-accent-text"
           @click="router.push({ name: 'my-listings' })"
         >
           Мои листинги
@@ -101,7 +101,7 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
 
     <p v-if="error" class="px-2 text-xs text-danger">{{ error }}</p>
 
-    <details class="mx-2 rounded-2xl border border-hairline p-3">
+    <details class="mx-2 rounded-card border border-hairline bg-surface p-3">
       <summary class="cursor-pointer text-xs font-semibold text-ink-soft">Фильтры</summary>
       <div class="mt-3 flex flex-col gap-2">
         <BaseInput
@@ -130,7 +130,7 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
     <div v-if="!isLoading && !isFiltering" class="flex flex-1 flex-col gap-3 pb-4">
       <p
         v-if="!hasListings"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Пока нет питомцев на продажу
       </p>
@@ -138,18 +138,18 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
       <div
         v-for="listing in listings"
         :key="listing.id"
-        class="card flex flex-col gap-2 rounded-2xl border border-hairline p-3"
+        class="card flex flex-col gap-2 rounded-card border border-hairline bg-surface p-3"
       >
         <div class="flex items-center gap-3">
           <img
             v-if="listing.pet?.photo_url"
             :src="listing.pet.photo_url"
-            class="h-13 w-13 shrink-0 rounded-xl object-cover"
+            class="h-13 w-13 shrink-0 rounded-2xl object-cover"
             alt=""
           />
           <div
             v-else
-            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
           >
             {{ (listing.pet?.name ?? '?').charAt(0) }}
           </div>
@@ -162,7 +162,7 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
             <button
               v-if="listing.seller_name"
               type="button"
-              class="text-xs font-semibold text-teal"
+              class="text-xs font-bold text-accent-text"
               @click="router.push({ name: 'seller-detail', params: { id: listing.seller_id } })"
             >
               {{ listing.seller_name }}
@@ -170,7 +170,7 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
             <span
               v-if="listing.seller_name"
               class="block text-[11px]"
-              :class="listing.seller_verified ? 'text-teal' : 'text-ink-faint'"
+              :class="listing.seller_verified ? 'text-teal-text' : 'text-ink-faint'"
             >
               {{
                 listing.seller_verified
@@ -202,7 +202,7 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
     <div v-else-if="!isLoading" class="flex flex-1 flex-col gap-3 pb-4">
       <p
         v-if="!hasSearchResults"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Ничего не найдено по этим фильтрам
       </p>
@@ -210,18 +210,18 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
       <div
         v-for="result in searchResults"
         :key="result.id"
-        class="card flex flex-col gap-2 rounded-2xl border border-hairline p-3"
+        class="card flex flex-col gap-2 rounded-card border border-hairline bg-surface p-3"
       >
         <div class="flex items-center gap-3">
           <img
             v-if="result.photo_url"
             :src="result.photo_url"
-            class="h-13 w-13 shrink-0 rounded-xl object-cover"
+            class="h-13 w-13 shrink-0 rounded-2xl object-cover"
             alt=""
           />
           <div
             v-else
-            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
           >
             {{ result.pet_name.charAt(0) }}
           </div>

@@ -40,7 +40,7 @@ async function decide(shelterId: string, approve: boolean): Promise<void> {
       <button class="text-sm text-ink-faint" @click="router.push({ name: 'admin-dashboard' })">
         ←
       </button>
-      <span class="font-display text-lg text-ink">Приюты на верификации</span>
+      <span class="font-display text-xl font-bold text-ink">Приюты на верификации</span>
     </div>
 
     <p v-if="error" class="px-2 text-xs text-danger">{{ error }}</p>
@@ -48,7 +48,7 @@ async function decide(shelterId: string, approve: boolean): Promise<void> {
     <div v-if="!isLoading" class="flex flex-col gap-2 px-2">
       <p
         v-if="shelters.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Нет приютов, ожидающих верификации
       </p>
@@ -56,7 +56,7 @@ async function decide(shelterId: string, approve: boolean): Promise<void> {
       <div
         v-for="shelter in shelters"
         :key="shelter.id"
-        class="flex flex-col gap-2 rounded-2xl border border-hairline p-4"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4"
       >
         <span class="text-sm font-semibold text-ink">{{ shelter.legal_name }}</span>
         <p v-if="shelter.inn" class="text-xs text-ink-faint">ИНН: {{ shelter.inn }}</p>

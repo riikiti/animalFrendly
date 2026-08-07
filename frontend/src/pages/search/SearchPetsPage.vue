@@ -66,7 +66,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Поиск питомцев</span>
+      <span class="font-display text-xl font-bold text-ink">Поиск питомцев</span>
       <button class="text-lg text-ink-faint" aria-label="Закрыть" @click="router.back()">✕</button>
     </div>
 
@@ -79,7 +79,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
           :key="s.id"
           type="button"
           class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="speciesId === s.id ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+          :class="speciesId === s.id ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
           @click="toggleSpecies(s.id)"
         >
           {{ s.name }}
@@ -90,7 +90,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
         <button
           type="button"
           class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="sex === 'male' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+          :class="sex === 'male' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
           @click="toggleSex('male')"
         >
           Мальчик
@@ -98,7 +98,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
         <button
           type="button"
           class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="sex === 'female' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+          :class="sex === 'female' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
           @click="toggleSex('female')"
         >
           Девочка
@@ -108,7 +108,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
           :key="p"
           type="button"
           class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="purpose === p ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+          :class="purpose === p ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
           @click="togglePurpose(p)"
         >
           {{ purposeLabels[p] }}
@@ -126,7 +126,7 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
     <div v-if="!isLoading" class="flex flex-col gap-2 px-2 pb-4">
       <p
         v-if="results.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Ничего не найдено — попробуйте другие фильтры
       </p>
@@ -134,17 +134,17 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
       <div
         v-for="pet in results"
         :key="pet.id"
-        class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
+        class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3"
       >
         <img
           v-if="pet.photo_url"
           :src="pet.photo_url"
-          class="h-13 w-13 shrink-0 rounded-xl object-cover"
+          class="h-13 w-13 shrink-0 rounded-2xl object-cover"
           alt=""
         />
         <div
           v-else
-          class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+          class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
         >
           {{ pet.name.charAt(0) }}
         </div>

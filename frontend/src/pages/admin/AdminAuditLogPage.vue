@@ -32,13 +32,13 @@ function formatDate(value: string): string {
       <button class="text-sm text-ink-faint" @click="router.push({ name: 'admin-dashboard' })">
         ←
       </button>
-      <span class="font-display text-lg text-ink">Журнал действий</span>
+      <span class="font-display text-xl font-bold text-ink">Журнал действий</span>
     </div>
 
     <div v-if="!isLoading" class="flex flex-col gap-2 px-2">
       <p
         v-if="entries.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Пока нет записей
       </p>
@@ -46,7 +46,7 @@ function formatDate(value: string): string {
       <div
         v-for="entry in entries"
         :key="entry.id"
-        class="flex flex-col gap-1 rounded-2xl border border-hairline p-4"
+        class="flex flex-col gap-1 rounded-card border border-hairline bg-surface p-4"
       >
         <span class="text-sm font-semibold text-ink">{{ entry.action }}</span>
         <span class="text-xs text-ink-faint">

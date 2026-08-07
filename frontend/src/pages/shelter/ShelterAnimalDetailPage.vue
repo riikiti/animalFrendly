@@ -95,10 +95,10 @@ async function submitRequest(): Promise<void> {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Анкета питомца</span>
+      <span class="font-display text-xl font-bold text-ink">Анкета питомца</span>
     </div>
 
-    <p v-if="notFound" class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint">
+    <p v-if="notFound" class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft">
       Питомец не найден
     </p>
 
@@ -111,7 +111,7 @@ async function submitRequest(): Promise<void> {
       />
       <div
         v-else
-        class="flex h-40 w-full items-center justify-center rounded-2xl bg-teal-soft text-3xl font-semibold text-teal"
+        class="flex h-40 w-full items-center justify-center rounded-2xl bg-teal-soft text-3xl font-bold text-accent-text"
       >
         {{ (animal.pet?.name ?? '?').charAt(0) }}
       </div>
@@ -142,7 +142,7 @@ async function submitRequest(): Promise<void> {
           {{ isContacting ? 'Открываем чат…' : 'Связаться' }}
         </BaseButton>
 
-        <p v-if="isSubmitted" class="text-xs font-semibold text-teal">Заявка отправлена</p>
+        <p v-if="isSubmitted" class="text-xs font-bold text-accent-text">Заявка отправлена</p>
         <BaseButton v-else-if="!isRequestFormOpen" variant="outline" @click="openRequestForm">
           Оставить заявку
         </BaseButton>

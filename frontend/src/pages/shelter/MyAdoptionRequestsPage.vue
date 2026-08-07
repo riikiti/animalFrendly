@@ -73,13 +73,13 @@ async function submitReview(requestId: string): Promise<void> {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Мои заявки</span>
+      <span class="font-display text-xl font-bold text-ink">Мои заявки</span>
     </div>
 
     <div v-if="!isLoading" class="flex flex-1 flex-col gap-3 pb-4">
       <p
         v-if="requests.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Вы пока не подавали заявок на усыновление
       </p>
@@ -87,7 +87,7 @@ async function submitReview(requestId: string): Promise<void> {
       <div
         v-for="request in requests"
         :key="request.id"
-        class="flex flex-col gap-2 rounded-2xl border border-hairline p-3"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-3"
       >
         <div class="flex items-center justify-between">
           <span
@@ -123,7 +123,7 @@ async function submitReview(requestId: string): Promise<void> {
           <button
             v-if="reviewFormOpenId !== request.id"
             type="button"
-            class="text-xs font-semibold text-teal"
+            class="text-xs font-bold text-accent-text"
             @click="openReviewForm(request.id)"
           >
             Оставить отзыв о приюте

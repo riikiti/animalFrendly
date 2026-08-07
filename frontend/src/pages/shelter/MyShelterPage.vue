@@ -203,7 +203,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Мой приют</span>
+      <span class="font-display text-xl font-bold text-ink">Мой приют</span>
     </div>
 
     <template v-if="!isLoading">
@@ -234,7 +234,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
       </form>
 
       <template v-else>
-        <div class="flex flex-col gap-2 rounded-2xl border border-hairline p-4">
+        <div class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4">
           <div class="flex items-center justify-between">
             <span class="text-base font-semibold text-ink">{{ shelter.legal_name }}</span>
             <span
@@ -253,7 +253,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
 
         <div class="flex items-center gap-3 px-2">
           <div
-            class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-teal-soft text-lg font-semibold text-teal"
+            class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-accent-soft text-lg font-bold text-accent-text"
           >
             <img
               v-if="shelter.photo_url"
@@ -263,7 +263,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
             />
             <span v-else>{{ shelter.legal_name.charAt(0) }}</span>
           </div>
-          <label class="text-xs font-semibold text-teal">
+          <label class="text-xs font-bold text-accent-text">
             {{ isUploadingPhoto ? 'Загрузка…' : 'Изменить фото приюта' }}
             <input
               type="file"
@@ -292,7 +292,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
 
         <p
           v-if="shelter.verification_status !== 'verified'"
-          class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+          class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
         >
           Как только модератор подтвердит приют, здесь можно будет добавлять животных и обрабатывать
           заявки на пристройство.
@@ -314,7 +314,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
                     class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
                     :class="
                       animalForm.speciesId === s.id
-                        ? 'bg-teal text-white'
+                        ? 'bg-accent text-accent-ink'
                         : 'bg-surface-soft text-ink-soft'
                     "
                     @click="selectSpecies(s.slug, s.id)"
@@ -341,7 +341,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
                   class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
                   :class="
                     animalForm.sex === 'male'
-                      ? 'bg-teal text-white'
+                      ? 'bg-accent text-accent-ink'
                       : 'bg-surface-soft text-ink-soft'
                   "
                   @click="animalForm.sex = 'male'"
@@ -353,7 +353,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
                   class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
                   :class="
                     animalForm.sex === 'female'
-                      ? 'bg-teal text-white'
+                      ? 'bg-accent text-accent-ink'
                       : 'bg-surface-soft text-ink-soft'
                   "
                   @click="animalForm.sex = 'female'"
@@ -398,7 +398,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
             <div
               v-for="request in pendingRequests"
               :key="request.id"
-              class="flex flex-col gap-2 rounded-2xl border border-hairline p-3"
+              class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-3"
             >
               <p v-if="request.message" class="text-xs text-ink-soft">{{ request.message }}</p>
               <div class="flex gap-2">
@@ -418,7 +418,7 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
             <div
               v-for="animal in animals"
               :key="animal.id"
-              class="flex items-center justify-between rounded-2xl border border-hairline p-3"
+              class="flex items-center justify-between rounded-card border border-hairline bg-surface p-3"
             >
               <span class="text-sm text-ink">{{ animal.pet?.name ?? 'Питомец' }}</span>
               <span class="rounded-full bg-surface-soft px-2 py-1 text-xs text-ink-soft">

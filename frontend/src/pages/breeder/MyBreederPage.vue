@@ -47,7 +47,7 @@ async function register(): Promise<void> {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Заводчик</span>
+      <span class="font-display text-xl font-bold text-ink">Заводчик</span>
     </div>
 
     <template v-if="!isLoading">
@@ -64,7 +64,7 @@ async function register(): Promise<void> {
       </div>
 
       <div v-else class="flex flex-col gap-3 px-2">
-        <div class="flex items-center justify-between rounded-2xl border border-hairline p-4">
+        <div class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4">
           <span class="text-sm text-ink-soft">Статус</span>
           <span
             class="rounded-full px-2 py-1 text-xs font-semibold"
@@ -79,7 +79,7 @@ async function register(): Promise<void> {
         </div>
         <p
           v-if="breeder.verification_status !== 'verified'"
-          class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+          class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
         >
           Как только модератор подтвердит заявку, на витрине рядом с вашими объявлениями появится
           бейдж «Подтверждённый заводчик».

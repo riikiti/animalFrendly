@@ -67,17 +67,17 @@ async function contactSeller(): Promise<void> {
   >
     <div class="flex items-center gap-3 px-2">
       <button class="text-sm text-ink-faint" @click="router.back()">←</button>
-      <span class="font-display text-lg text-ink">Продавец</span>
+      <span class="font-display text-xl font-bold text-ink">Продавец</span>
     </div>
 
-    <p v-if="notFound" class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint">
+    <p v-if="notFound" class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft">
       Продавец не найден
     </p>
 
     <template v-else-if="!isLoading && seller">
       <div class="flex items-center gap-3 px-2">
         <div
-          class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-soft text-lg font-semibold text-teal"
+          class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-lg font-bold text-accent-text"
         >
           <img
             v-if="seller.seller_avatar_url"
@@ -91,7 +91,7 @@ async function contactSeller(): Promise<void> {
           <span class="font-display text-xl text-ink">{{ seller.seller_name ?? 'Продавец' }}</span>
           <span
             class="text-xs font-semibold"
-            :class="seller.seller_verified ? 'text-teal' : 'text-ink-faint'"
+            :class="seller.seller_verified ? 'text-teal-text' : 'text-ink-faint'"
           >
             {{
               seller.seller_verified ? '✓ Подтверждённый заводчик' : 'Заводчик не подтвердил данные'
@@ -111,17 +111,17 @@ async function contactSeller(): Promise<void> {
         <div
           v-for="listing in sellerListings"
           :key="listing.id"
-          class="flex gap-3 rounded-2xl border border-hairline p-3"
+          class="flex gap-3 rounded-card border border-hairline bg-surface p-3"
         >
           <img
             v-if="listing.pet?.photo_url"
             :src="listing.pet.photo_url"
-            class="h-13 w-13 shrink-0 rounded-xl object-cover"
+            class="h-13 w-13 shrink-0 rounded-2xl object-cover"
             alt=""
           />
           <div
             v-else
-            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+            class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
           >
             {{ (listing.pet?.name ?? '?').charAt(0) }}
           </div>

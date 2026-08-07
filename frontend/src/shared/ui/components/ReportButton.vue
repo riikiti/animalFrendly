@@ -61,7 +61,7 @@ async function submit(): Promise<void> {
   >
     <div class="flex w-full max-w-sm flex-col gap-3 rounded-t-3xl bg-surface p-6 pb-8">
       <div class="flex items-center justify-between">
-        <span class="font-display text-lg text-ink">Пожаловаться</span>
+        <span class="font-display text-xl font-bold text-ink">Пожаловаться</span>
         <button class="text-sm text-ink-faint" @click="close">✕</button>
       </div>
 
@@ -72,7 +72,7 @@ async function submit(): Promise<void> {
             :key="r.value"
             type="button"
             class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-            :class="reason === r.value ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+            :class="reason === r.value ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
             @click="reason = r.value"
           >
             {{ r.title }}

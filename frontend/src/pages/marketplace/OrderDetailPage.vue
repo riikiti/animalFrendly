@@ -5,7 +5,13 @@ import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Order } from '@/entities/marketplace/types'
 import * as moderationApi from '@/entities/moderation/api'
 import { useUserStore } from '@/entities/user/model'
+import { ChevronLeft, MapPin, Star } from 'lucide-vue-next'
+import BaseAlert from '@/shared/ui/components/BaseAlert.vue'
+import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseMoneyRow from '@/shared/ui/components/BaseMoneyRow.vue'
+import BaseStatusStep from '@/shared/ui/components/BaseStatusStep.vue'
+import BaseTextarea from '@/shared/ui/components/BaseTextarea.vue'
 import { ApiError } from '@/shared/api/http'
 import { yandexRouteUrl } from '@/shared/lib/directions'
 
@@ -34,6 +40,49 @@ const statusLabels: Record<string, string> = {
   refunded: 'Возврат',
   cancelled: 'Отменена',
 }
+
+const statusTones: Record<string, 'gold' | 'info' | 'teal' | 'danger' | 'neutral'> = {
+  pending_payment: 'gold',
+  paid_escrow: 'info',
+  completed: 'teal',
+  disputed: 'danger',
+  refunded: 'danger',
+  cancelled: 'neutral',
+}
+
+// Лента статусов эскроу: до подтверждения обеими сторонами деньги держит площадка.
+const dealSteps = computed<
+  { title: string; meta?: string; state: 'done' | 'current' | 'upcoming' }[]
+>(() => {
+  const status = order.value?.status
+  const paid = status !== 'pending_payment' && status !== 'cancelled'
+  const done = status === 'completed'
+  const buyerOk = order.value?.buyer_confirmed_at !== null
+  const sellerOk = order.value?.seller_confirmed_at !== null
+
+  return [
+    {
+      title: 'Заказ оформлен',
+      state: 'done',
+    },
+    {
+      title: 'Оплачено · деньги на эскроу',
+      meta: paid ? 'Площадка удерживает сумму до подтверждения' : 'Ждём оплату',
+      state: paid ? 'done' : 'current',
+    },
+    {
+      title: 'Подтверждение сторон',
+      meta: [buyerOk ? 'покупатель ✓' : null, sellerOk ? 'продавец ✓' : null]
+        .filter(Boolean)
+        .join(' · ') || undefined,
+      state: done ? 'done' : paid ? 'current' : 'upcoming',
+    },
+    {
+      title: 'Выплата продавцу',
+      state: done ? 'done' : 'upcoming',
+    },
+  ]
+})
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let isMounted = true
@@ -130,20 +179,40 @@ async function submitReview(): Promise<void> {
   <div
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
-    <div class="flex items-center gap-3 px-2">
-      <button class="text-sm text-ink-faint" @click="router.push({ name: 'my-orders' })">←</button>
-      <span class="font-display text-lg text-ink">Заказ</span>
+    <div class="flex items-center gap-2 px-2">
+      <button
+        class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
+        aria-label="Назад"
+        @click="router.push({ name: 'my-orders' })"
+      >
+        <ChevronLeft class="size-5" />
+      </button>
+      <h1 class="font-display text-xl font-bold text-ink">Заказ</h1>
     </div>
 
     <div v-if="!isLoading && order" class="flex flex-col gap-4 px-2">
-      <div class="flex flex-col gap-2 rounded-2xl border border-hairline p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-lg font-semibold text-ink">{{
+      <div class="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-4">
+        <div class="flex items-center justify-between gap-3">
+          <span class="font-display text-2xl font-bold text-ink">{{
             formatPrice(order.amount, order.currency)
           }}</span>
-          <span class="rounded-full bg-surface-soft px-2 py-1 text-xs font-semibold text-ink-soft">
-            {{ statusLabels[order.status] }}
-          </span>
+          <BaseBadge :tone="statusTones[order.status]">{{ statusLabels[order.status] }}</BaseBadge>
+        </div>
+
+        <div class="flex flex-col gap-2 border-t border-hairline pt-3">
+          <BaseMoneyRow label="Сумма сделки" :value="formatPrice(order.amount, order.currency)" />
+          <BaseMoneyRow
+            v-if="order.commission_amount !== null"
+            label="Комиссия площадки"
+            :value="`−${formatPrice(order.commission_amount, order.currency)}`"
+            negative
+          />
+          <BaseMoneyRow
+            v-if="order.payout_amount !== null"
+            label="Продавец получит"
+            :value="formatPrice(order.payout_amount, order.currency)"
+            variant="total"
+          />
         </div>
 
         <p v-if="order.status === 'pending_payment'" class="text-xs text-ink-faint">
@@ -158,23 +227,38 @@ async function submitReview(): Promise<void> {
         </p>
       </div>
 
+      <div class="flex flex-col rounded-card border border-hairline bg-surface p-4">
+        <h2 class="mb-3 text-sm font-semibold text-ink-soft">Как идёт сделка</h2>
+        <BaseStatusStep
+          v-for="(step, index) in dealSteps"
+          :key="step.title"
+          :title="step.title"
+          :meta="step.meta"
+          :state="step.state"
+          :last="index === dealSteps.length - 1"
+        />
+      </div>
+
       <div
         v-if="order.counterpart_address"
         class="flex items-center justify-between gap-2 rounded-2xl bg-surface-soft px-3 py-2"
       >
-        <span class="text-xs text-ink-soft">📍 {{ order.counterpart_address }}</span>
+        <span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-ink-soft">
+          <MapPin class="size-3.5 shrink-0" aria-hidden="true" />
+          <span class="truncate">{{ order.counterpart_address }}</span>
+        </span>
         <a
           v-if="order.counterpart_location"
           :href="yandexRouteUrl(order.counterpart_location.lat, order.counterpart_location.lng)"
           target="_blank"
           rel="noopener"
-          class="shrink-0 text-xs font-semibold text-teal"
+          class="shrink-0 text-xs font-bold text-accent-text"
         >
           Как добраться
         </a>
       </div>
 
-      <p v-if="error" class="text-xs text-danger">{{ error }}</p>
+      <BaseAlert v-if="error" tone="error">{{ error }}</BaseAlert>
 
       <BaseButton v-if="order.status === 'pending_payment'" variant="ghost" @click="cancel">
         Отменить заказ
@@ -182,18 +266,13 @@ async function submitReview(): Promise<void> {
 
       <template v-if="order.status === 'paid_escrow'">
         <BaseButton v-if="!hasConfirmed" @click="confirm">Подтвердить получение</BaseButton>
-        <p v-else class="text-xs text-teal">Вы подтвердили сделку, ждём вторую сторону</p>
+        <BaseAlert v-else tone="success">Вы подтвердили сделку, ждём вторую сторону</BaseAlert>
 
         <BaseButton v-if="!showDisputeForm" variant="ghost" @click="showDisputeForm = true">
           Открыть спор
         </BaseButton>
         <div v-else class="flex flex-col gap-2">
-          <textarea
-            v-model="disputeReason"
-            rows="3"
-            placeholder="Опишите проблему"
-            class="rounded-xl bg-surface-soft px-3 py-2 text-sm text-ink outline-none"
-          ></textarea>
+          <BaseTextarea v-model="disputeReason" :rows="3" placeholder="Опишите проблему" />
           <div class="flex gap-2">
             <BaseButton @click="submitDispute">Отправить</BaseButton>
             <BaseButton variant="ghost" @click="showDisputeForm = false">Отмена</BaseButton>
@@ -203,7 +282,7 @@ async function submitReview(): Promise<void> {
 
       <div
         v-if="order.status === 'completed' && isBuyer && !reviewSubmitted"
-        class="flex flex-col gap-2 rounded-2xl border border-hairline p-4"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4"
       >
         <span class="text-sm font-semibold text-ink">Оставить отзыв о продавце</span>
         <div class="flex gap-1">
@@ -211,28 +290,24 @@ async function submitReview(): Promise<void> {
             v-for="star in [1, 2, 3, 4, 5]"
             :key="star"
             type="button"
-            class="text-2xl"
-            :class="star <= reviewRating ? 'text-accent' : 'text-hairline'"
+            :aria-label="`Оценка ${star}`"
             @click="reviewRating = star"
           >
-            ★
+            <Star
+              class="size-7 fill-current"
+              :class="star <= reviewRating ? 'text-gold' : 'text-hairline'"
+            />
           </button>
         </div>
-        <textarea
-          v-model="reviewComment"
-          rows="2"
-          placeholder="Комментарий (необязательно)"
-          class="rounded-xl bg-surface-soft px-3 py-2 text-sm text-ink outline-none"
-        ></textarea>
-        <p v-if="reviewError" class="text-xs text-danger">{{ reviewError }}</p>
+        <BaseTextarea v-model="reviewComment" :rows="2" placeholder="Комментарий (необязательно)" />
+        <BaseAlert v-if="reviewError" tone="error">{{ reviewError }}</BaseAlert>
         <BaseButton @click="submitReview">Отправить отзыв</BaseButton>
       </div>
-      <p
+      <BaseAlert
         v-else-if="order.status === 'completed' && isBuyer && reviewSubmitted"
-        class="text-xs text-teal"
+        tone="success"
+        >Спасибо за отзыв!</BaseAlert
       >
-        Спасибо за отзыв!
-      </p>
     </div>
   </div>
 </template>

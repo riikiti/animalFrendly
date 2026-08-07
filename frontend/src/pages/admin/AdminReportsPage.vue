@@ -87,10 +87,10 @@ async function banManually(): Promise<void> {
       <button class="text-sm text-ink-faint" @click="router.push({ name: 'admin-dashboard' })">
         ←
       </button>
-      <span class="font-display text-lg text-ink">Жалобы</span>
+      <span class="font-display text-xl font-bold text-ink">Жалобы</span>
     </div>
 
-    <div class="flex flex-col gap-2 rounded-2xl border border-hairline p-4">
+    <div class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4">
       <BaseInput
         v-model="manualBanUserId"
         label="Заблокировать по ID пользователя"
@@ -107,7 +107,7 @@ async function banManually(): Promise<void> {
     <div v-if="!isLoading" class="flex flex-col gap-2 px-2">
       <p
         v-if="reports.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Нет жалоб на рассмотрении
       </p>
@@ -115,7 +115,7 @@ async function banManually(): Promise<void> {
       <div
         v-for="report in reports"
         :key="report.id"
-        class="flex flex-col gap-2 rounded-2xl border border-hairline p-4"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4"
       >
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-ink">{{

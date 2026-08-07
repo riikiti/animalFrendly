@@ -52,20 +52,20 @@ const hasShelters = computed(() => shelters.value.length > 0)
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Приюты</span>
+      <span class="font-display text-xl font-bold text-ink">Приюты</span>
     </div>
 
     <div class="flex gap-2 px-2">
       <button
         class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'animals' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-faint'"
+        :class="activeTab === 'animals' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
         @click="activeTab = 'animals'"
       >
         Животные
       </button>
       <button
         class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'shelters' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-faint'"
+        :class="activeTab === 'shelters' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
         @click="activeTab = 'shelters'"
       >
         Приюты
@@ -75,7 +75,7 @@ const hasShelters = computed(() => shelters.value.length > 0)
     <div v-if="!isLoading && activeTab === 'animals'" class="flex flex-1 flex-col gap-3 pb-4">
       <p
         v-if="!hasAnimals"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Пока нет животных, ищущих дом
       </p>
@@ -83,18 +83,18 @@ const hasShelters = computed(() => shelters.value.length > 0)
       <button
         v-for="animal in animals"
         :key="animal.id"
-        class="card flex items-center gap-3 rounded-2xl border border-hairline p-3 text-left"
+        class="card flex items-center gap-3 rounded-card border border-hairline bg-surface p-3 text-left"
         @click="openAnimal(animal.id)"
       >
         <img
           v-if="animal.pet?.photo_url"
           :src="animal.pet.photo_url"
-          class="h-13 w-13 shrink-0 rounded-xl object-cover"
+          class="h-13 w-13 shrink-0 rounded-2xl object-cover"
           alt=""
         />
         <div
           v-else
-          class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+          class="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
         >
           {{ (animal.pet?.name ?? '?').charAt(0) }}
         </div>
@@ -117,7 +117,7 @@ const hasShelters = computed(() => shelters.value.length > 0)
     <div v-if="!isLoading && activeTab === 'shelters'" class="flex flex-1 flex-col gap-3 pb-4">
       <p
         v-if="!hasShelters"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        class="rounded-card bg-surface-soft p-6 text-center text-sm text-ink-soft"
       >
         Пока нет доступных приютов
       </p>
@@ -125,11 +125,11 @@ const hasShelters = computed(() => shelters.value.length > 0)
       <button
         v-for="shelter in shelters"
         :key="shelter.id"
-        class="card flex items-center gap-3 rounded-2xl border border-hairline p-3 text-left"
+        class="card flex items-center gap-3 rounded-card border border-hairline bg-surface p-3 text-left"
         @click="openShelter(shelter.id)"
       >
         <div
-          class="flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-teal-soft text-lg font-semibold text-teal"
+          class="flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent-soft text-lg font-bold text-accent-text"
         >
           <img
             v-if="shelter.photo_url"

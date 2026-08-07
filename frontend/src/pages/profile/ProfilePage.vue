@@ -79,7 +79,7 @@ async function save(): Promise<void> {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Профиль</span>
+      <span class="font-display text-xl font-bold text-ink">Профиль</span>
       <button
         class="text-lg text-ink-faint"
         aria-label="Закрыть"
@@ -92,7 +92,7 @@ async function save(): Promise<void> {
     <div class="flex flex-col gap-3 px-2">
       <div class="flex items-center gap-3">
         <div
-          class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-soft text-lg font-semibold text-teal"
+          class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-lg font-bold text-accent-text"
         >
           <img
             v-if="userStore.currentUser?.avatar_url"
@@ -104,7 +104,7 @@ async function save(): Promise<void> {
             (userStore.currentUser?.name || userStore.currentUser?.phone || '?').charAt(0)
           }}</span>
         </div>
-        <label class="text-xs font-semibold text-teal">
+        <label class="text-xs font-bold text-accent-text">
           {{ isUploadingAvatar ? 'Загрузка…' : 'Изменить фото' }}
           <input
             type="file"
@@ -152,21 +152,21 @@ async function save(): Promise<void> {
     </div>
 
     <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
-      <span class="font-display text-lg text-ink">Приют</span>
+      <span class="font-display text-xl font-bold text-ink">Приют</span>
       <BaseButton variant="ghost" @click="router.push({ name: 'my-shelter' })">
         Управление приютом
       </BaseButton>
     </div>
 
     <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
-      <span class="font-display text-lg text-ink">Заводчик</span>
+      <span class="font-display text-xl font-bold text-ink">Заводчик</span>
       <BaseButton variant="ghost" @click="router.push({ name: 'my-breeder' })">
         Управление заводчиком
       </BaseButton>
     </div>
 
     <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
-      <span class="font-display text-lg text-ink">Питомцы</span>
+      <span class="font-display text-xl font-bold text-ink">Питомцы</span>
       <p class="text-xs text-ink-faint">
         Бесплатно доступна одна анкета питомца. По подписке можно завести сколько угодно.
       </p>

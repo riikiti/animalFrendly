@@ -23,7 +23,7 @@ defineEmits<{ load: [] }>()
 <template>
   <div
     v-if="loading"
-    class="flex items-center justify-center gap-2.5 rounded-2xl border border-hairline bg-surface p-4"
+    class="flex items-center justify-center gap-2.5 rounded-card border border-hairline bg-surface p-4"
   >
     <BaseSpinner :label="loadingLabel" />
   </div>
