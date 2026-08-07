@@ -47,13 +47,13 @@ async function swipeUntilFound(page: Page, targetName: string): Promise<void> {
     )
 
     if (currentName?.trim() === targetName) {
-      await page.getByRole('button', { name: '♥' }).click()
+      await page.getByRole('button', { name: 'Лайк', exact: true }).click()
       await swipeResponse
 
       return
     }
 
-    await page.getByRole('button', { name: '✕' }).click()
+    await page.getByRole('button', { name: 'Пропустить' }).click()
     await swipeResponse
   }
 
@@ -80,7 +80,7 @@ test('one-sided like shows up under sent/received, liking back from the likes ta
   await expect(pageA.getByText('Это мэтч!')).not.toBeVisible()
 
   await pageA.goto('/likes')
-  await pageA.getByRole('button', { name: 'Вы лайкнули' }).click()
+  await pageA.getByRole('radio', { name: 'Вы лайкнули' }).click()
   await expect(pageA.getByText(petNameB)).toBeVisible()
   await expect(pageA.getByText('Ждём ответа')).toBeVisible()
 
@@ -88,7 +88,7 @@ test('one-sided like shows up under sent/received, liking back from the likes ta
   await pageB.goto('/likes')
   await expect(pageB.getByText(petNameA)).toBeVisible()
 
-  const receivedCard = pageB.locator('div.rounded-2xl', { hasText: petNameA }).last()
+  const receivedCard = pageB.locator('div.rounded-card', { hasText: petNameA }).last()
   await receivedCard.getByRole('button', { name: 'Лайкнуть в ответ' }).click()
   await expect(pageB.getByText('Это мэтч!')).toBeVisible()
 

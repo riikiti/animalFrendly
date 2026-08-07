@@ -73,13 +73,13 @@ async function swipeUntilFound(page: Page, targetName: string): Promise<void> {
     )
 
     if (currentName?.trim() === targetName) {
-      await page.getByRole('button', { name: '♥' }).click()
+      await page.getByRole('button', { name: 'Лайк', exact: true }).click()
       await swipeResponse
 
       return
     }
 
-    await page.getByRole('button', { name: '✕' }).click()
+    await page.getByRole('button', { name: 'Пропустить' }).click()
     await swipeResponse
   }
 
@@ -110,7 +110,7 @@ test('pet photo is visible in the feed, and a match triggers an in-app notificat
     const swipeResponse = pageA.waitForResponse(
       (res) => res.url().includes('/swipes') && res.request().method() === 'POST',
     )
-    await pageA.getByRole('button', { name: '✕' }).click()
+    await pageA.getByRole('button', { name: 'Пропустить' }).click()
     await swipeResponse
   }
 
@@ -127,7 +127,7 @@ test('pet photo is visible in the feed, and a match triggers an in-app notificat
   await pageA.reload()
   await expect(pageA.getByText('1', { exact: true })).toBeVisible({ timeout: 10_000 })
 
-  await pageA.getByText('🔔').click()
+  await pageA.getByRole('button', { name: 'Уведомления' }).click()
   await pageA.waitForURL('/notifications')
   await expect(pageA.getByText('У вас новый мэтч!')).toBeVisible()
 
@@ -165,7 +165,7 @@ test('manages a photo gallery: add several photos, change the cover, remove one'
   await expect(page.getByText('Обложка')).toBeVisible()
   await expect(page.getByText('Сделать обложкой')).toBeVisible()
 
-  await page.locator('button', { hasText: '✕' }).first().click()
+  await page.getByRole('button', { name: 'Удалить фото' }).first().click()
   await expect(page.getByText('Сделать обложкой')).not.toBeVisible()
 
   await page.getByRole('button', { name: 'Готово' }).click()

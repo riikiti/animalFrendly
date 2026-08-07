@@ -11,8 +11,25 @@ import { useNotificationStore } from '@/entities/notification/model'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
 import { ApiError } from '@/shared/api/http'
+import BaseChip from '@/shared/ui/components/BaseChip.vue'
+import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
+import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
+import BaseIconButton from '@/shared/ui/components/BaseIconButton.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 import { useStaff } from '@/shared/lib/useStaff'
+import {
+  Bell,
+  Gem,
+  Heart,
+  MessageCircle,
+  PawPrint,
+  Search,
+  Shield,
+  Sparkles,
+  Star,
+  User,
+  X,
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const petStore = usePetStore()
@@ -140,89 +157,93 @@ async function goToChat(): Promise<void> {
   <div
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
-    <div class="flex items-center justify-between px-2">
-      <span class="shrink-0 font-display text-lg text-ink">AnimalFriendly</span>
+    <div class="flex items-center justify-between gap-2 px-2">
+      <span class="inline-flex shrink-0 items-center gap-2">
+        <span class="grid size-7 place-items-center rounded-[10px] bg-accent text-accent-ink">
+          <PawPrint class="size-4" aria-hidden="true" />
+        </span>
+        <span class="font-display text-base font-bold text-ink">AnimalFriendly</span>
+      </span>
       <!-- min-w-0 позволяет этому flex-item'у сжаться меньше суммарной ширины иконок,
       иначе overflow-x-auto не сработал бы, а сам ряд просто раздвигал бы родителя — на узких
       экранах (320-360px) шести-семи иконок уже не хватает по ширине без прокрутки. -->
-      <div class="flex min-w-0 items-center gap-1 overflow-x-auto">
+      <div class="flex min-w-0 items-center gap-0.5 overflow-x-auto">
         <button
           v-if="isStaff"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-danger hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-danger transition-colors hover:bg-surface-soft"
           aria-label="Админ"
           title="Админ"
           @click="router.push({ name: 'admin-dashboard' })"
         >
-          🛡️
+          <Shield class="size-5" />
         </button>
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Искать"
           title="Искать"
           @click="router.push({ name: 'search-pets' })"
         >
-          🔍
+          <Search class="size-5" />
         </button>
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Чаты"
           title="Чаты"
           @click="router.push({ name: 'conversations-list' })"
         >
-          💬
+          <MessageCircle class="size-5" />
         </button>
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Лайки"
           title="Лайки"
           @click="router.push({ name: 'pending-likes' })"
         >
-          ❤️
+          <Heart class="size-5" />
         </button>
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Профиль"
           title="Профиль"
           @click="router.push({ name: 'profile' })"
         >
-          👤
+          <User class="size-5" />
         </button>
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Тариф"
           title="Тариф"
           @click="router.push({ name: 'subscription-status' })"
         >
-          💎
+          <Gem class="size-5" />
         </button>
         <button
-          class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-ink-soft hover:bg-surface-soft"
+          class="relative grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
           aria-label="Уведомления"
           title="Уведомления"
           @click="router.push({ name: 'notifications' })"
         >
-          🔔
-          <span
+          <Bell class="size-5" />
+          <BaseCounter
             v-if="notificationStore.unreadCount > 0"
-            class="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-accent-ink"
-          >
-            {{ notificationStore.unreadCount > 9 ? '9+' : notificationStore.unreadCount }}
-          </span>
+            class="absolute -top-0.5 -right-0.5 !h-4 !min-w-4 !px-1 !text-[10px]"
+            :value="notificationStore.unreadCount"
+            :limit="9"
+          />
         </button>
       </div>
     </div>
 
     <div v-if="petStore.myPets.length > 1" class="flex flex-wrap gap-2 px-2">
-      <button
+      <BaseChip
         v-for="pet in petStore.myPets"
         :key="pet.id"
-        type="button"
-        class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-        :class="myPet?.id === pet.id ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+        interactive
+        :tone="myPet?.id === pet.id ? 'accent' : 'neutral'"
         @click="switchPet(pet)"
       >
         {{ pet.name }}
-      </button>
+      </BaseChip>
     </div>
 
     <template v-if="!isLoading">
@@ -235,40 +256,34 @@ async function goToChat(): Promise<void> {
           :pet="candidates[0]"
           @swipe="onSwipe"
         />
-        <div
+        <BaseEmptyState
           v-else
-          class="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl bg-surface-soft text-center text-sm text-ink-faint"
+          class="min-h-[420px] flex-1"
+          title="Пока новых анкет рядом нет"
+          description="Загляните позже — мы покажем питомцев, которые появятся поблизости."
         >
-          Пока новых анкет рядом нет — загляните позже
-        </div>
+          <template #icon><PawPrint class="size-8" /></template>
+        </BaseEmptyState>
 
         <button
-          class="self-center text-xs font-semibold text-accent-ink disabled:opacity-50"
+          class="inline-flex items-center gap-1.5 self-center text-[13px] font-bold text-accent-text disabled:opacity-50"
           :disabled="isBoosting"
           @click="onBoost"
         >
-          {{ isBoosting ? 'Бустим…' : '✨ Забустить анкету' }}
+          <Sparkles class="size-4" aria-hidden="true" />
+          {{ isBoosting ? 'Бустим…' : 'Забустить анкету' }}
         </button>
 
-        <div class="flex justify-center gap-4 py-2">
-          <button
-            class="flex h-14 w-14 items-center justify-center rounded-full border border-clay-soft text-lg text-clay"
-            @click="onSwipe('dislike')"
-          >
-            ✕
-          </button>
-          <button
-            class="flex h-14 w-14 items-center justify-center rounded-full border border-hairline text-lg text-accent"
-            @click="onSwipe('super_like')"
-          >
-            ★
-          </button>
-          <button
-            class="flex h-[58px] w-[58px] items-center justify-center rounded-full bg-teal text-lg text-white"
-            @click="onSwipe('like')"
-          >
-            ♥
-          </button>
+        <div class="flex items-center justify-center gap-4 py-2">
+          <BaseIconButton label="Пропустить" elevated @click="onSwipe('dislike')">
+            <X class="size-6" />
+          </BaseIconButton>
+          <BaseIconButton label="Суперлайк" tone="success" elevated @click="onSwipe('super_like')">
+            <Star class="size-5 fill-current" />
+          </BaseIconButton>
+          <BaseIconButton label="Лайк" tone="active" size="lg" elevated @click="onSwipe('like')">
+            <Heart class="size-7 fill-current" />
+          </BaseIconButton>
         </div>
       </div>
     </template>

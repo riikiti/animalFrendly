@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { MessageCircleDashed, X } from 'lucide-vue-next'
 import * as conversationApi from '@/entities/conversation/api'
 import type { Conversation } from '@/entities/conversation/types'
+import BaseAvatar from '@/shared/ui/components/BaseAvatar.vue'
+import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
 
 const router = useRouter()
 
@@ -40,44 +43,39 @@ function formatDate(dateString: string): string {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Чаты</span>
+      <h1 class="font-display text-xl font-bold text-ink">Чаты</h1>
       <button
-        class="text-lg text-ink-faint"
+        class="grid size-9 place-items-center rounded-full text-ink-faint transition-colors hover:bg-surface-soft"
         aria-label="Закрыть"
         @click="router.push({ name: 'home' })"
       >
-        ✕
+        <X class="size-5" />
       </button>
     </div>
 
     <div v-if="!isLoading" class="flex flex-1 flex-col gap-2 px-2 pb-4">
-      <p
+      <BaseEmptyState
         v-if="conversations.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        tone="teal"
+        title="Пока нет ни одной беседы"
+        description="Как только появится мэтч, вы сможете написать первым."
       >
-        Пока нет ни одной беседы
-      </p>
+        <template #icon><MessageCircleDashed class="size-8" /></template>
+      </BaseEmptyState>
 
       <button
         v-for="conversation in conversations"
         :key="conversation.id"
         type="button"
-        class="flex items-center gap-3 rounded-2xl border border-hairline p-3 text-left"
+        class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3 text-left transition-colors hover:bg-surface-soft"
         @click="openConversation(conversation)"
       >
-        <div
-          class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-soft text-sm font-semibold text-teal"
-        >
-          <img
-            v-if="conversation.counterpart_avatar_url"
-            :src="conversation.counterpart_avatar_url"
-            class="h-full w-full object-cover"
-            alt=""
-          />
-          <span v-else>{{ (conversation.counterpart_name ?? '?').charAt(0) }}</span>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-semibold text-ink">
+        <BaseAvatar
+          :src="conversation.counterpart_avatar_url"
+          :name="conversation.counterpart_name ?? undefined"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-display text-[15px] font-bold text-ink">
             {{ conversation.counterpart_name ?? 'Собеседник' }}
           </p>
           <p class="text-xs text-ink-faint">

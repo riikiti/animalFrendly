@@ -51,13 +51,13 @@ async function swipeUntilFound(page: Page, targetName: string): Promise<void> {
     )
 
     if (currentName?.trim() === targetName) {
-      await page.getByRole('button', { name: '♥' }).click()
+      await page.getByRole('button', { name: 'Лайк', exact: true }).click()
       await swipeResponse
 
       return
     }
 
-    await page.getByRole('button', { name: '✕' }).click()
+    await page.getByRole('button', { name: 'Пропустить' }).click()
     await swipeResponse
   }
 
@@ -94,7 +94,7 @@ test('two pet owners mutually like each other, get matched, and chat', async ({ 
 
   // A всё это время оставался на '/', не обновляя страницу — бейдж непрочитанных должен
   // обновиться живьём через приватный канал user.{id} (см. App.vue), без перезагрузки.
-  const bellButtonA = pageA.getByRole('button').filter({ hasText: '🔔' })
+  const bellButtonA = pageA.getByRole('button', { name: 'Уведомления' })
   await expect(bellButtonA.getByText('1', { exact: true })).toBeVisible({ timeout: 15_000 })
 
   await pageB.getByRole('button', { name: 'Написать сообщение' }).click()
@@ -118,7 +118,7 @@ test('two pet owners mutually like each other, get matched, and chat', async ({ 
   await expect(pageB.getByText('С радостью!')).toBeVisible({ timeout: 45_000 })
 })
 
-test('dragging the card right triggers the same swipe as the ♥ button', async ({ browser }) => {
+test('dragging the card right triggers the same swipe as the like button', async ({ browser }) => {
   const context = await browser.newContext()
   const petName = `Дрэг${Date.now()}`
   const page = await registerWithPet(context, petName)
@@ -152,7 +152,7 @@ test('dragging the card right triggers the same swipe as the ♥ button', async 
   expect(response.ok()).toBeTruthy()
   expect(JSON.parse(response.request().postData() ?? '{}').action).toBe('like')
 
-  // Карточка сменилась (или лента закончилась) — тот же результат, что после клика по ♥.
+  // Карточка сменилась (или лента закончилась) — тот же результат, что после клика по кнопке лайка.
   await expect(async () => {
     const nameAfter = await nameEl.textContent().catch(() => null)
     const emptyNow = await emptyState.isVisible().catch(() => false)

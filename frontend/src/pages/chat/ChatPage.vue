@@ -7,8 +7,10 @@ import { useCatalogStore } from '@/entities/catalog/model'
 import * as shelterApi from '@/entities/shelter/api'
 import type { ShelterAnimal } from '@/entities/shelter/types'
 import { useUserStore } from '@/entities/user/model'
+import { ChevronLeft, MapPin, Send } from 'lucide-vue-next'
 import { echo } from '@/shared/lib/echo'
 import { yandexRouteUrl } from '@/shared/lib/directions'
+import BaseAvatar from '@/shared/ui/components/BaseAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -98,48 +100,62 @@ async function send(): Promise<void> {
 
 <template>
   <div class="mx-auto flex h-screen max-w-sm flex-col px-4 py-4 md:max-w-lg lg:max-w-2xl lg:px-8">
-    <div class="flex items-center gap-2 pb-2">
-      <button class="text-ink-soft" @click="router.back()">←</button>
-      <span class="text-sm font-semibold text-ink">Чат</span>
+    <div class="flex items-center gap-2 pb-3">
+      <button
+        class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"
+        aria-label="Назад"
+        @click="router.back()"
+      >
+        <ChevronLeft class="size-5" />
+      </button>
+      <span class="font-display text-base font-bold text-ink">Чат</span>
     </div>
 
-    <div v-if="attachedAnimal" class="flex items-center gap-3 rounded-2xl bg-surface-soft p-2">
-      <div
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-sm font-semibold text-teal"
-      >
-        {{ (attachedAnimal.pet?.name ?? '?').charAt(0) }}
-      </div>
-      <div>
-        <p class="text-sm font-semibold text-ink">{{ attachedAnimal.pet?.name ?? 'Питомец' }}</p>
+    <div
+      v-if="attachedAnimal"
+      class="flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-2.5"
+    >
+      <BaseAvatar
+        :name="attachedAnimal.pet?.name ?? undefined"
+        size="sm"
+        shape="rounded"
+      />
+      <div class="min-w-0">
+        <p class="truncate text-sm font-bold text-ink">
+          {{ attachedAnimal.pet?.name ?? 'Питомец' }}
+        </p>
         <p class="text-xs text-ink-faint">{{ attachedAnimalSpecies }}</p>
       </div>
     </div>
 
     <div
       v-if="counterpartAddress"
-      class="flex items-center justify-between gap-2 rounded-2xl bg-surface-soft px-3 py-2"
+      class="mt-2 flex items-center justify-between gap-2 rounded-2xl bg-surface-soft px-3 py-2.5"
     >
-      <span class="text-xs text-ink-soft">📍 {{ counterpartAddress }}</span>
+      <span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-ink-soft">
+        <MapPin class="size-3.5 shrink-0" aria-hidden="true" />
+        <span class="truncate">{{ counterpartAddress }}</span>
+      </span>
       <a
         v-if="counterpartLocation"
         :href="yandexRouteUrl(counterpartLocation.lat, counterpartLocation.lng)"
         target="_blank"
         rel="noopener"
-        class="shrink-0 text-xs font-semibold text-teal"
+        class="shrink-0 text-xs font-bold text-accent-text"
       >
         Как добраться
       </a>
     </div>
 
-    <div class="flex-1 space-y-2 overflow-y-auto py-2">
+    <div class="flex-1 space-y-2 overflow-y-auto py-3">
       <div
         v-for="message in messages"
         :key="message.id"
-        class="max-w-[76%] rounded-2xl px-3 py-2 text-sm"
+        class="max-w-[76%] px-3.5 py-2.5 text-sm"
         :class="
           message.sender_id === userStore.currentUser?.id
-            ? 'ml-auto rounded-br-sm bg-teal text-white'
-            : 'rounded-bl-sm bg-surface-soft text-ink'
+            ? 'ml-auto rounded-[18px] rounded-br-sm bg-accent text-accent-ink'
+            : 'rounded-[18px] rounded-bl-sm bg-surface-soft text-ink'
         "
       >
         {{ message.body }}
@@ -148,20 +164,21 @@ async function send(): Promise<void> {
 
     <form
       v-if="conversationId"
-      class="flex items-center gap-2 rounded-full bg-surface-soft px-3 py-2"
+      class="flex items-center gap-2 rounded-full bg-surface-soft py-1.5 pr-1.5 pl-4"
       @submit.prevent="send"
     >
       <input
         v-model="draft"
         type="text"
         placeholder="Сообщение…"
-        class="flex-1 bg-transparent text-sm text-ink outline-none"
+        class="min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
       />
       <button
         type="submit"
-        class="flex h-7 w-7 items-center justify-center rounded-full bg-teal text-xs text-white"
+        class="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-colors hover:bg-accent-hover"
+        aria-label="Отправить"
       >
-        ➤
+        <Send class="size-4" />
       </button>
     </form>
   </div>

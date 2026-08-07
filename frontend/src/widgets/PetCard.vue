@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useCatalogStore } from '@/entities/catalog/model'
 import { socialTagLabel } from '@/entities/pet/socialTags'
 import type { Pet } from '@/entities/pet/types'
+import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import ReportButton from '@/shared/ui/components/ReportButton.vue'
 
 const props = defineProps<{ pet: Pet }>()
@@ -91,9 +92,9 @@ watch(() => props.pet.species_id, loadBreed)
 
 <template>
   <div
-    class="relative min-h-[420px] flex-1 select-none overflow-hidden rounded-[20px]"
+    class="relative min-h-[420px] flex-1 select-none overflow-hidden rounded-card shadow-md"
     :style="[
-      { background: 'linear-gradient(165deg, var(--teal-soft), var(--surface-soft))' },
+      { background: 'linear-gradient(165deg, var(--accent-soft), var(--surface-soft))' },
       cardStyle,
     ]"
     @pointerdown="onPointerDown"
@@ -102,13 +103,13 @@ watch(() => props.pet.species_id, loadBreed)
     @pointercancel="onPointerUp"
   >
     <div
-      class="pointer-events-none absolute left-4 top-4 z-10 rounded-lg border-4 border-teal px-3 py-1 text-xl font-bold uppercase text-teal"
+      class="pointer-events-none absolute top-4 left-4 z-10 -rotate-12 rounded-xl border-4 border-teal px-3 py-1 font-display text-xl font-bold text-teal uppercase"
       :style="{ opacity: likeOpacity }"
     >
       Like
     </div>
     <div
-      class="pointer-events-none absolute right-4 top-4 z-10 rounded-lg border-4 border-clay px-3 py-1 text-xl font-bold uppercase text-clay"
+      class="pointer-events-none absolute top-4 right-4 z-10 rotate-12 rounded-xl border-4 border-danger px-3 py-1 font-display text-xl font-bold text-danger uppercase"
       :style="{ opacity: nopeOpacity }"
     >
       Nope
@@ -131,20 +132,16 @@ watch(() => props.pet.species_id, loadBreed)
           );
         "
       >
-        <h3 class="text-xl font-semibold text-ink">{{ pet.name }}</h3>
-        <p class="text-sm text-ink-soft">
+        <h3 class="font-display text-2xl font-bold text-ink">{{ pet.name }}</h3>
+        <p class="mt-0.5 text-sm text-ink-soft">
           {{ speciesName }}<span v-if="breedName"> · {{ breedName }}</span
           ><span v-if="age"> · {{ age }}</span
           ><span v-if="pet.description"> · {{ pet.description }}</span>
         </p>
-        <div v-if="pet.social_tags.length > 0" class="mt-1 flex flex-wrap gap-1">
-          <span
-            v-for="tag in pet.social_tags"
-            :key="tag"
-            class="rounded-full bg-surface/70 px-2 py-0.5 text-[11px] font-semibold text-ink-soft"
-          >
+        <div v-if="pet.social_tags.length > 0" class="mt-2 flex flex-wrap gap-1.5">
+          <BaseChip v-for="tag in pet.social_tags" :key="tag" tone="soft">
             {{ socialTagLabel(tag) }}
-          </span>
+          </BaseChip>
         </div>
         <ReportButton target-type="pet" :target-id="pet.id" />
       </div>

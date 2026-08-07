@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Plus, Star, X } from 'lucide-vue-next'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BaseSelect from '@/shared/ui/components/BaseSelect.vue'
+import BaseTextarea from '@/shared/ui/components/BaseTextarea.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 import * as catalogApi from '@/entities/catalog/api'
 import { useCatalogStore } from '@/entities/catalog/model'
@@ -176,104 +180,99 @@ async function finishPhotoStep(): Promise<void> {
     <div class="flex flex-col gap-2">
       <span class="text-xs font-semibold text-ink-soft">Вид</span>
       <div class="flex flex-wrap gap-2">
-        <button
+        <BaseChip
           v-for="s in catalogStore.species"
           :key="s.id"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="form.speciesId === s.id ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+          interactive
+          size="md"
+          :tone="form.speciesId === s.id ? 'accent' : 'outline'"
           @click="selectSpecies(s.slug, s.id)"
         >
           {{ s.name }}
-        </button>
+        </BaseChip>
       </div>
       <p v-if="errors.species_id" class="text-xs text-danger">{{ errors.species_id[0] }}</p>
     </div>
 
-    <div v-if="breeds.length > 0" class="flex flex-col gap-2">
-      <span class="text-xs font-semibold text-ink-soft">Порода</span>
-      <select
-        v-model="form.breedId"
-        class="rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none"
-      >
-        <option :value="null">Не указана</option>
-        <option v-for="b in breeds" :key="b.id" :value="b.id">{{ b.name }}</option>
-      </select>
-    </div>
+    <BaseSelect
+      v-if="breeds.length > 0"
+      v-model="form.breedId"
+      label="Порода"
+      placeholder="Не указана"
+      :options="breeds.map((b) => ({ value: b.id, label: b.name }))"
+    />
 
     <div class="flex flex-col gap-2">
       <span class="text-xs font-semibold text-ink-soft">Пол</span>
       <div class="flex gap-2">
-        <button
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="form.sex === 'male' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+        <BaseChip
+          interactive
+          size="md"
+          :tone="form.sex === 'male' ? 'accent' : 'outline'"
           @click="form.sex = 'male'"
         >
           Мальчик
-        </button>
-        <button
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="form.sex === 'female' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-soft'"
+        </BaseChip>
+        <BaseChip
+          interactive
+          size="md"
+          :tone="form.sex === 'female' ? 'accent' : 'outline'"
           @click="form.sex = 'female'"
         >
           Девочка
-        </button>
+        </BaseChip>
       </div>
     </div>
 
     <div class="flex flex-col gap-2">
       <span class="text-xs font-semibold text-ink-soft">Цель анкеты</span>
-      <div class="flex gap-2">
-        <button
+      <div class="flex flex-wrap gap-2">
+        <BaseChip
           v-for="p in purposes"
           :key="p.value"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="
-            form.purpose === p.value ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
-          "
+          interactive
+          size="md"
+          :tone="form.purpose === p.value ? 'accent' : 'outline'"
           @click="form.purpose = p.value"
         >
           {{ p.title }}
-        </button>
+        </BaseChip>
       </div>
     </div>
 
     <div class="flex flex-col gap-2">
       <span class="text-xs font-semibold text-ink-soft">Для чего ищу общение</span>
       <div class="flex flex-wrap gap-2">
-        <button
+        <BaseChip
           v-for="tag in socialTagOptions"
           :key="tag.value"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="
-            form.socialTags.includes(tag.value)
-              ? 'bg-teal text-white'
-              : 'bg-surface-soft text-ink-soft'
-          "
+          interactive
+          size="md"
+          :tone="form.socialTags.includes(tag.value) ? 'accent' : 'outline'"
           @click="toggleTag(tag.value)"
         >
           {{ tag.title }}
-        </button>
+        </BaseChip>
       </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <span class="text-xs font-semibold text-ink-soft">О питомце</span>
-      <textarea
-        v-model="form.description"
-        rows="3"
-        placeholder="Расскажите о характере, привычках…"
-        class="resize-none rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-faint"
-      />
-    </div>
+    <BaseTextarea
+      v-model="form.description"
+      label="О питомце"
+      :rows="3"
+      placeholder="Расскажите о характере, привычках…"
+    />
 
     <p v-if="generalError" class="text-xs text-danger">{{ generalError }}</p>
 
-    <BaseButton type="submit" :disabled="isSubmitting || form.speciesId === null">
+    <BaseButton
+      type="submit"
+      size="lg"
+      block
+      class="mt-1"
+      :loading="isSubmitting"
+      :disabled="form.speciesId === null"
+    >
       {{ isSubmitting ? 'Создаём анкету…' : 'Создать анкету' }}
     </BaseButton>
   </form>
@@ -285,38 +284,42 @@ async function finishPhotoStep(): Promise<void> {
       <div
         v-for="photo in photos"
         :key="photo.id"
-        class="relative aspect-square overflow-hidden rounded-xl bg-surface-soft"
+        class="relative aspect-square overflow-hidden rounded-2xl bg-surface-soft"
       >
-        <img :src="photo.url" class="h-full w-full object-cover" alt="" />
+        <img :src="photo.url" class="size-full object-cover" alt="" />
         <span
           v-if="photo.is_primary"
-          class="absolute left-1 top-1 rounded-full bg-teal px-1.5 py-0.5 text-[10px] font-semibold text-white"
+          class="absolute bottom-1.5 left-1.5 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-ink"
         >
           Обложка
         </span>
         <button
           v-else
           type="button"
-          class="absolute left-1 top-1 rounded-full bg-surface/90 px-1.5 py-0.5 text-[10px] font-semibold text-ink"
+          class="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-surface/90 px-2 py-0.5 text-[10px] font-semibold text-ink"
           @click="setCover(photo.id)"
         >
+          <Star class="size-2.5" aria-hidden="true" />
           Сделать обложкой
         </button>
         <button
           type="button"
-          class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface/90 text-xs text-ink"
+          class="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-bezel/60 text-white transition hover:bg-bezel/80"
+          aria-label="Удалить фото"
           @click="removePhoto(photo.id)"
         >
-          ✕
+          <X class="size-3.5" stroke-width="2.5" />
         </button>
       </div>
 
       <label
         v-if="photos.length < MAX_PHOTOS"
-        class="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-hairline text-ink-faint"
+        class="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-hairline text-ink-soft transition-colors hover:border-accent hover:text-accent-text"
       >
-        <span class="text-xl">+</span>
-        <span class="text-[10px]">{{ isUploadingPhoto ? 'Загрузка…' : 'Добавить' }}</span>
+        <Plus class="size-6" aria-hidden="true" />
+        <span class="text-[11px] font-semibold">{{
+          isUploadingPhoto ? 'Загрузка…' : 'Добавить'
+        }}</span>
         <input
           type="file"
           accept="image/*"

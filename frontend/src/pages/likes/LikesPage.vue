@@ -8,6 +8,11 @@ import type { PetMatch } from '@/entities/match/types'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
 import { ApiError } from '@/shared/api/http'
+import { Heart, HeartCrack, X } from 'lucide-vue-next'
+import BaseAvatar from '@/shared/ui/components/BaseAvatar.vue'
+import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
+import BaseIconButton from '@/shared/ui/components/BaseIconButton.vue'
+import BaseSegmented from '@/shared/ui/components/BaseSegmented.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 
 const router = useRouter()
@@ -98,108 +103,87 @@ async function goToSubscriptionPlans(): Promise<void> {
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-lg text-ink">Лайки</span>
+      <h1 class="font-display text-xl font-bold text-ink">Лайки</h1>
       <button
-        class="text-lg text-ink-faint"
+        class="grid size-9 place-items-center rounded-full text-ink-faint transition-colors hover:bg-surface-soft"
         aria-label="Закрыть"
         @click="router.push({ name: 'home' })"
       >
-        ✕
+        <X class="size-5" />
       </button>
     </div>
 
-    <div class="flex gap-2 px-2">
-      <button
-        class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'received' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-faint'"
-        @click="activeTab = 'received'"
-      >
-        Лайкнули вас
-      </button>
-      <button
-        class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'sent' ? 'bg-teal text-white' : 'bg-surface-soft text-ink-faint'"
-        @click="activeTab = 'sent'"
-      >
-        Вы лайкнули
-      </button>
+    <div class="px-2">
+      <BaseSegmented
+        v-model="activeTab"
+        aria-label="Лайки"
+        :options="[
+          { value: 'received', label: 'Лайкнули вас' },
+          { value: 'sent', label: 'Вы лайкнули' },
+        ]"
+      />
     </div>
 
-    <div v-if="!isLoading && activeTab === 'received'" class="flex flex-1 flex-col gap-3 pb-4">
-      <p
+    <div v-if="!isLoading && activeTab === 'received'" class="flex flex-1 flex-col gap-2.5 pb-4">
+      <BaseEmptyState
         v-if="received.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        title="Пока никто не лайкнул вашу анкету"
+        description="Продолжайте смотреть анкеты — взаимные симпатии появятся здесь."
       >
-        Пока никто не лайкнул вашу анкету
-      </p>
+        <template #icon><Heart class="size-8" /></template>
+      </BaseEmptyState>
 
       <div
         v-for="pet in received"
         :key="pet.id"
-        class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
+        class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3"
       >
-        <div
-          class="flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-teal-soft text-lg font-semibold text-teal"
-        >
-          <img
-            v-if="pet.photo_url"
-            :src="pet.photo_url"
-            class="h-full w-full object-cover"
-            alt=""
-          />
-          <span v-else>{{ pet.name.charAt(0) }}</span>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-semibold text-ink">{{ pet.name }}</p>
+        <BaseAvatar :src="pet.photo_url" :name="pet.name" size="lg" shape="rounded" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-display text-[15px] font-bold text-ink">{{ pet.name }}</p>
           <p class="text-xs text-ink-faint">{{ speciesName(pet.species_id) }}</p>
         </div>
         <div class="flex shrink-0 gap-2">
-          <button
-            class="flex h-9 w-9 items-center justify-center rounded-full border border-clay-soft text-sm text-clay disabled:opacity-50"
+          <BaseIconButton
+            label="Не отвечать"
+            size="sm"
+            tone="danger"
             :disabled="respondingPetId === pet.id"
-            aria-label="Не отвечать"
             @click="respond(pet, 'dislike')"
           >
-            ✕
-          </button>
-          <button
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-teal text-sm text-white disabled:opacity-50"
+            <HeartCrack class="size-4" />
+          </BaseIconButton>
+          <BaseIconButton
+            label="Лайкнуть в ответ"
+            size="sm"
+            tone="active"
             :disabled="respondingPetId === pet.id"
-            aria-label="Лайкнуть в ответ"
             @click="respond(pet, 'like')"
           >
-            ♥
-          </button>
+            <Heart class="size-4 fill-current" />
+          </BaseIconButton>
         </div>
       </div>
     </div>
 
-    <div v-if="!isLoading && activeTab === 'sent'" class="flex flex-1 flex-col gap-3 pb-4">
-      <p
+    <div v-if="!isLoading && activeTab === 'sent'" class="flex flex-1 flex-col gap-2.5 pb-4">
+      <BaseEmptyState
         v-if="sent.length === 0"
-        class="rounded-2xl bg-surface-soft p-4 text-center text-sm text-ink-faint"
+        tone="neutral"
+        title="Вы пока никого не лайкнули"
+        description="Лайкните анкету в ленте — она появится в этом списке."
       >
-        Вы пока никого не лайкнули
-      </p>
+        <template #icon><Heart class="size-8" /></template>
+      </BaseEmptyState>
 
       <div
         v-for="pet in sent"
         :key="pet.id"
-        class="flex items-center gap-3 rounded-2xl border border-hairline p-3"
+        class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-3"
       >
-        <div
-          class="flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-teal-soft text-lg font-semibold text-teal"
-        >
-          <img
-            v-if="pet.photo_url"
-            :src="pet.photo_url"
-            class="h-full w-full object-cover"
-            alt=""
-          />
-          <span v-else>{{ pet.name.charAt(0) }}</span>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-semibold text-ink">{{ pet.name }}</p>
+        <BaseAvatar :src="pet.photo_url" :name="pet.name" size="lg" shape="rounded" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-display text-[15px] font-bold text-ink">{{ pet.name }}</p>
           <p class="text-xs text-ink-faint">{{ speciesName(pet.species_id) }}</p>
         </div>
         <span class="shrink-0 text-xs text-ink-faint">Ждём ответа</span>
