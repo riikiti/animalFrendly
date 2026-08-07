@@ -10,6 +10,7 @@ use App\Modules\Marketplace\Domain\Events\OrderRefunded;
 use App\Modules\Payment\Application\Contracts\YookassaClientInterface;
 use App\Modules\Payment\Domain\Repositories\PaymentRepositoryInterface;
 use App\Modules\Payment\Domain\Repositories\PayoutRepositoryInterface;
+use App\Modules\Payment\Infrastructure\Adapters\ShopPaymentGateway;
 use App\Modules\Payment\Infrastructure\Adapters\SubscriptionBillingGateway;
 use App\Modules\Payment\Infrastructure\Adapters\YookassaPaymentGateway;
 use App\Modules\Payment\Infrastructure\External\NullYookassaClient;
@@ -18,6 +19,7 @@ use App\Modules\Payment\Infrastructure\Listeners\DispatchPayoutOnOrderCompleted;
 use App\Modules\Payment\Infrastructure\Listeners\DispatchRefundOnOrderRefunded;
 use App\Modules\Payment\Infrastructure\Persistence\Eloquent\Repositories\EloquentPaymentRepository;
 use App\Modules\Payment\Infrastructure\Persistence\Eloquent\Repositories\EloquentPayoutRepository;
+use App\Modules\Shop\Application\Contracts\PaymentGatewayInterface as ShopPaymentGatewayInterface;
 use App\Modules\Subscription\Application\Contracts\SubscriptionBillingGatewayInterface;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +40,7 @@ final class PaymentServiceProvider extends ServiceProvider
         // Единственные места, где Payment "знает" про Marketplace/Subscription — байндинг
         // чужих Application-контрактов на свои реализации, см. docs/rules/01-backend.md.
         $this->app->bind(PaymentGatewayInterface::class, YookassaPaymentGateway::class);
+        $this->app->bind(ShopPaymentGatewayInterface::class, ShopPaymentGateway::class);
         $this->app->bind(SubscriptionBillingGatewayInterface::class, SubscriptionBillingGateway::class);
     }
 

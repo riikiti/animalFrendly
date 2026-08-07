@@ -9,12 +9,14 @@ use App\Modules\Matching\Application\Contracts\SubscriptionFeatureGateInterface;
 use App\Modules\Payment\Domain\Events\PaymentCanceled;
 use App\Modules\Payment\Domain\Events\PaymentSucceeded;
 use App\Modules\Profile\Application\Contracts\SubscriptionFeatureGateInterface as ProfileSubscriptionFeatureGateInterface;
+use App\Modules\Shop\Application\Contracts\CommissionRateResolverInterface as ShopCommissionRateResolverInterface;
 use App\Modules\Subscription\Domain\Repositories\FeatureUsageRepositoryInterface;
 use App\Modules\Subscription\Domain\Repositories\SubscriptionPlanRepositoryInterface;
 use App\Modules\Subscription\Domain\Repositories\SubscriptionRepositoryInterface;
 use App\Modules\Subscription\Infrastructure\Adapters\MarketplaceCommissionRateResolver;
 use App\Modules\Subscription\Infrastructure\Adapters\MatchingFeatureGateAdapter;
 use App\Modules\Subscription\Infrastructure\Adapters\ProfileFeatureGateAdapter;
+use App\Modules\Subscription\Infrastructure\Adapters\ShopCommissionRateResolver;
 use App\Modules\Subscription\Infrastructure\Console\ProcessSubscriptionBillingCommand;
 use App\Modules\Subscription\Infrastructure\Listeners\ActivateSubscriptionOnPaymentSucceeded;
 use App\Modules\Subscription\Infrastructure\Listeners\HandleSubscriptionPaymentCanceled;
@@ -37,6 +39,7 @@ final class SubscriptionServiceProvider extends ServiceProvider
         $this->app->bind(SubscriptionFeatureGateInterface::class, MatchingFeatureGateAdapter::class);
         $this->app->bind(ProfileSubscriptionFeatureGateInterface::class, ProfileFeatureGateAdapter::class);
         $this->app->bind(CommissionRateResolverInterface::class, MarketplaceCommissionRateResolver::class);
+        $this->app->bind(ShopCommissionRateResolverInterface::class, ShopCommissionRateResolver::class);
     }
 
     public function boot(): void
