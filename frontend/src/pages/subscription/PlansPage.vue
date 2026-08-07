@@ -93,13 +93,12 @@ async function subscribeToPlan(slug: string): Promise<void> {
         <div class="flex items-start justify-between gap-3">
           <div class="flex flex-col gap-1">
             <span class="font-display text-lg font-bold text-ink">{{ plan.name_ru }}</span>
-            <BaseBadge v-if="isCurrentPlan(plan)" tone="accent">Ваш текущий тариф</BaseBadge>
+            <BaseBadge v-if="isCurrentPlan(plan)" tone="accent" solid>Ваш текущий тариф</BaseBadge>
           </div>
           <span class="shrink-0 text-right">
             <span class="font-display text-xl font-bold text-ink">{{
               formatPrice(plan.price_amount, plan.currency)
             }}</span>
-            <span v-if="plan.price_amount > 0" class="block text-xs text-ink-faint">в месяц</span>
           </span>
         </div>
 
