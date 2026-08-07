@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(CatalogSeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
+        $this->call(ShopCategorySeeder::class);
 
         // Демо-контент (реальные фото + реалистичные описания) — только для локального
         // ручного браузинга, см. Database\Seeders\Demo\DemoSeeder.
