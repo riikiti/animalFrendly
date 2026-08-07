@@ -27,19 +27,24 @@ import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseCarouselDots from '@/shared/ui/components/BaseCarouselDots.vue'
+import BaseCheckRow from '@/shared/ui/components/BaseCheckRow.vue'
 import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
 import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
 import BaseLoadMore from '@/shared/ui/components/BaseLoadMore.vue'
 import BaseModal from '@/shared/ui/components/BaseModal.vue'
+import BaseMoneyRow from '@/shared/ui/components/BaseMoneyRow.vue'
 import BasePagination from '@/shared/ui/components/BasePagination.vue'
+import BasePaymentMethod from '@/shared/ui/components/BasePaymentMethod.vue'
 import BaseProgress from '@/shared/ui/components/BaseProgress.vue'
 import BaseRating from '@/shared/ui/components/BaseRating.vue'
 import BaseSheet from '@/shared/ui/components/BaseSheet.vue'
 import BaseSkeleton from '@/shared/ui/components/BaseSkeleton.vue'
 import BaseSpinner from '@/shared/ui/components/BaseSpinner.vue'
 import BaseStatusDot from '@/shared/ui/components/BaseStatusDot.vue'
+import BaseStatusStep from '@/shared/ui/components/BaseStatusStep.vue'
 import BaseStepProgress from '@/shared/ui/components/BaseStepProgress.vue'
 import BaseTypingDots from '@/shared/ui/components/BaseTypingDots.vue'
+import BottomNav from '@/widgets/BottomNav.vue'
 import BaseTooltip from '@/shared/ui/components/BaseTooltip.vue'
 import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseFab from '@/shared/ui/components/BaseFab.vue'
@@ -105,6 +110,8 @@ const avatarSizes = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const
 const overlay = ref<'confirm' | 'delete' | 'wide' | 'sheet' | null>(null)
 const page = ref(4)
 const slide = ref(0)
+const payment = ref('card')
+const checks = ref({ received: true, matches: true, intact: false })
 
 const demoToasts = [
   { tone: 'success' as const, title: 'Взаимная симпатия!', description: 'Луна тоже вас лайкнула — напишите первым', actionLabel: 'Открыть' },
@@ -601,6 +608,80 @@ const photos = ref([
             </BaseEmptyState>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <h2 class="mb-1 font-display text-xl font-bold">F · Оболочка и строки сделки</h2>
+      <p class="mb-6 text-sm text-ink-soft">Tab Bar и компоненты сделки из макета</p>
+
+      <div class="grid items-start gap-6 sm:grid-cols-3">
+        <div class="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-4">
+          <h3 class="text-sm font-semibold text-ink-soft">Расчёт сделки</h3>
+          <BaseMoneyRow label="Товар" value="1 290 ₽" />
+          <BaseMoneyRow label="Доставка · СДЭК" value="200 ₽" />
+          <BaseMoneyRow label="Комиссия площадки · 5 %" value="−64,50 ₽" negative />
+          <div class="border-t border-hairline pt-3.5">
+            <BaseMoneyRow label="Итого" value="1 490 ₽" variant="total" />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3.5 rounded-card border border-hairline bg-surface p-4">
+          <h3 class="text-sm font-semibold text-ink-soft">Подтверждение получения</h3>
+          <BaseCheckRow v-model:checked="checks.received" interactive
+            >Товар получен и распакован</BaseCheckRow
+          >
+          <BaseCheckRow v-model:checked="checks.matches" interactive
+            >Соответствует описанию и фото</BaseCheckRow
+          >
+          <BaseCheckRow v-model:checked="checks.intact" interactive
+            >Нет повреждений и брака</BaseCheckRow
+          >
+
+          <h3 class="mt-2 text-sm font-semibold text-ink-soft">Способ оплаты</h3>
+          <BasePaymentMethod
+            title="Карта •••• 4242"
+            description="Списание через ЮKassa"
+            :selected="payment === 'card'"
+            @select="payment = 'card'"
+          >
+            <template #icon><Wallet class="size-[17px]" /></template>
+          </BasePaymentMethod>
+          <BasePaymentMethod
+            title="СБП"
+            description="Оплата по QR-коду"
+            :selected="payment === 'sbp'"
+            @select="payment = 'sbp'"
+          >
+            <template #icon><Zap class="size-[17px]" /></template>
+          </BasePaymentMethod>
+        </div>
+
+        <div class="flex flex-col gap-1 rounded-card border border-hairline bg-surface p-4">
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">История заказа</h3>
+          <BaseStatusStep state="done" title="Оплачено · деньги на эскроу" meta="14 марта, 12:40" />
+          <BaseStatusStep state="done" title="Продавец подтвердил заказ" meta="14 марта, 13:05" />
+          <BaseStatusStep state="current" title="Передан в СДЭК" meta="15 марта, 09:20" />
+          <BaseStatusStep title="Подтверждение получения" meta="Осталось 6 дней" last />
+        </div>
+      </div>
+
+      <h3 class="mt-8 mb-3 text-sm font-semibold text-ink-soft">
+        Нижняя навигация — прокрутите рамку, панель остаётся на месте
+      </h3>
+      <div
+        class="flex h-[320px] w-[390px] max-w-full flex-col overflow-y-auto rounded-card border border-hairline bg-bg"
+      >
+        <div class="flex-1 space-y-3 p-4">
+          <div v-for="row in 6" :key="row" class="flex items-center gap-3">
+            <BaseSkeleton variant="circle" width="44px" height="44px" />
+            <div class="flex flex-1 flex-col gap-2">
+              <BaseSkeleton width="55%" />
+              <BaseSkeleton width="80%" />
+            </div>
+          </div>
+        </div>
+        <BottomNav />
       </div>
     </section>
 
