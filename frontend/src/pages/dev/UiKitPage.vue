@@ -1,9 +1,20 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import { Check, Heart, MessageCircle, Plus, Trash2, X } from 'lucide-vue-next'
+import { Check, Dog, Heart, MessageCircle, Plus, Trash2, Wallet, X } from 'lucide-vue-next'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseFab from '@/shared/ui/components/BaseFab.vue'
 import BaseIconButton from '@/shared/ui/components/BaseIconButton.vue'
+import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BasePhotoUpload from '@/shared/ui/components/BasePhotoUpload.vue'
+import BaseRadio from '@/shared/ui/components/BaseRadio.vue'
+import BaseSearchInput from '@/shared/ui/components/BaseSearchInput.vue'
+import BaseSegmented from '@/shared/ui/components/BaseSegmented.vue'
+import BaseSelect from '@/shared/ui/components/BaseSelect.vue'
+import BaseSlider from '@/shared/ui/components/BaseSlider.vue'
+import BaseStepper from '@/shared/ui/components/BaseStepper.vue'
+import BaseSwitch from '@/shared/ui/components/BaseSwitch.vue'
+import BaseTextarea from '@/shared/ui/components/BaseTextarea.vue'
 
 /**
  * Витрина библиотеки компонентов. Доступна только в дев-сборке — маршрут заводится
@@ -17,6 +28,44 @@ watchEffect(() => {
   if (theme.value === 'system') root.removeAttribute('data-theme')
   else root.setAttribute('data-theme', theme.value)
 })
+
+const form = ref({
+  empty: '',
+  filled: 'Луна',
+  wrong: '89',
+  search: 'корги',
+  password: 'секрет',
+  phone: '999 123-45-67',
+  price: '4500',
+  breed: '',
+  about: 'Луна обожает долгие прогулки в парке и знакомства с новыми друзьями.',
+  agree: true,
+  partial: false,
+  sex: 'female',
+  notify: true,
+  geo: false,
+  tab: 'all',
+  age: 5,
+  count: 2,
+})
+
+const breeds = [
+  { value: 'corgi', label: 'Вельш-корги' },
+  { value: 'shiba', label: 'Сиба-ину' },
+  { value: 'maine-coon', label: 'Мейн-кун' },
+]
+
+// Заглушки рисуем прямо в разметке, чтобы витрина не ходила в сеть за картинками.
+const stub = (color: string) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="120"><rect width="100" height="120" fill="${color}"/></svg>`,
+  )}`
+
+const photos = ref([
+  { url: stub('#F5B23E'), status: 'ready' as const },
+  { url: stub('#12B3A6'), status: 'uploading' as const },
+  { url: '', status: 'error' as const },
+])
 </script>
 
 <template>
@@ -95,6 +144,124 @@ watchEffect(() => {
             <BaseIconButton label="Добавить" shape="square" size="sm"><Plus class="size-4" /></BaseIconButton>
             <BaseFab label="Добавить питомца"><Plus class="size-6" /></BaseFab>
             <BaseFab label="Добавить питомца" extended><Plus class="size-5" /></BaseFab>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <h2 class="mb-1 font-display text-xl font-bold">B · Поля ввода и формы</h2>
+      <p class="mb-6 text-sm text-ink-soft">Борд B из elements-v2.pen</p>
+
+      <div class="space-y-8">
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Текстовое поле · состояния</h3>
+          <div class="grid gap-5 sm:grid-cols-3">
+            <BaseInput v-model="form.empty" label="Пустое" placeholder="Кличка питомца" />
+            <BaseInput v-model="form.filled" label="Заполнено" />
+            <BaseInput v-model="form.filled" label="Успех" success />
+            <BaseInput v-model="form.wrong" label="Ошибка" error="Введите не меньше 2 символов" />
+            <BaseInput
+              v-model="form.filled"
+              label="С подсказкой"
+              hint="Так питомца увидят в ленте"
+            />
+            <BaseInput v-model="form.filled" label="Недоступно" disabled />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Типы полей</h3>
+          <div class="grid gap-5 sm:grid-cols-3">
+            <BaseSearchInput v-model="form.search" label="Поиск" placeholder="Кличка или порода" />
+            <BaseInput v-model="form.password" label="Пароль" type="password" />
+            <BaseInput
+              v-model="form.phone"
+              label="Телефон"
+              type="tel"
+              prefix="+7"
+              inputmode="tel"
+              success
+            />
+            <BaseInput v-model="form.price" label="Цена" suffix="₽" inputmode="numeric">
+              <template #lead><Wallet class="size-[19px] text-ink-faint" /></template>
+            </BaseInput>
+            <BaseSelect
+              v-model="form.breed"
+              label="Порода"
+              placeholder="Порода не выбрана"
+              :options="breeds"
+            >
+              <template #lead><Dog class="size-[19px] text-ink-faint" /></template>
+            </BaseSelect>
+            <BaseTextarea
+              v-model="form.about"
+              label="Многострочное"
+              :rows="3"
+              :maxlength="200"
+              class="sm:col-span-2"
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Переключатели и выбор</h3>
+          <div class="grid items-start gap-6 sm:grid-cols-2">
+            <div class="space-y-3">
+              <BaseCheckbox v-model="form.agree">Согласен с условиями сервиса</BaseCheckbox>
+              <BaseCheckbox v-model="form.partial" indeterminate>Выбрана часть пород</BaseCheckbox>
+              <BaseCheckbox v-model="form.partial" error>С ошибкой</BaseCheckbox>
+              <BaseCheckbox v-model="form.agree" disabled>Недоступно</BaseCheckbox>
+            </div>
+            <div class="space-y-3">
+              <BaseRadio v-model="form.sex" name="sex" value="female">Девочка</BaseRadio>
+              <BaseRadio v-model="form.sex" name="sex" value="male">Мальчик</BaseRadio>
+              <BaseRadio v-model="form.sex" name="sex" value="none" disabled>Недоступно</BaseRadio>
+            </div>
+            <div class="rounded-card border border-hairline bg-surface">
+              <div class="border-b border-hairline px-4 py-3.5">
+                <BaseSwitch v-model="form.notify" label="Уведомления о лайках" />
+              </div>
+              <div class="px-4 py-3.5">
+                <BaseSwitch
+                  v-model="form.geo"
+                  label="Показывать геолокацию"
+                  description="Виден только город"
+                />
+              </div>
+            </div>
+            <BaseSegmented
+              v-model="form.tab"
+              aria-label="Фильтр"
+              :options="[
+                { value: 'all', label: 'Все' },
+                { value: 'dogs', label: 'Собаки' },
+                { value: 'cats', label: 'Кошки' },
+              ]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Слайдеры и счётчики</h3>
+          <div class="grid items-start gap-6 sm:grid-cols-2">
+            <BaseSlider
+              v-model="form.age"
+              label="Возраст"
+              :max="15"
+              :value-label="`до ${form.age} лет`"
+              min-label="0"
+              max-label="15 лет"
+            />
+            <BaseStepper v-model="form.count" aria-label="Количество" :max="10" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Загрузка фото</h3>
+          <div class="grid items-start gap-6 sm:grid-cols-2">
+            <BasePhotoUpload :photos="[]" />
+            <BasePhotoUpload :photos="photos" @remove="photos.splice($event, 1)" />
           </div>
         </div>
       </div>
