@@ -20,6 +20,18 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value = response.user
   }
 
+  async function loginWithPhoneCode(payload: userApi.PhoneCodeLoginPayload): Promise<void> {
+    const response = await userApi.loginWithPhoneCode(payload)
+    setToken(response.token)
+    currentUser.value = response.user
+  }
+
+  async function resetPassword(payload: userApi.ResetPasswordPayload): Promise<void> {
+    const response = await userApi.resetPassword(payload)
+    setToken(response.token)
+    currentUser.value = response.user
+  }
+
   async function fetchCurrentUser(): Promise<void> {
     isLoading.value = true
     try {
@@ -53,6 +65,8 @@ export const useUserStore = defineStore('user', () => {
     currentUser,
     isLoading,
     register,
+    loginWithPhoneCode,
+    resetPassword,
     login,
     logout,
     fetchCurrentUser,

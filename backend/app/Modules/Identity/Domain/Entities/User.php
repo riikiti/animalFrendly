@@ -16,7 +16,7 @@ final class User
     private function __construct(
         private readonly Id $id,
         private readonly PhoneNumber $phone,
-        private readonly string $passwordHash,
+        private string $passwordHash,
         private readonly AccountType $accountType,
         private readonly DateTimeImmutable $personalDataConsentAt,
         private UserStatus $status,
@@ -37,12 +37,21 @@ final class User
         string $passwordHash,
         AccountType $accountType,
         bool $personalDataConsentGiven,
+        ?string $name = null,
     ): self {
         if (! $personalDataConsentGiven) {
             throw PersonalDataConsentRequiredException::create();
         }
 
-        return new self($id, $phone, $passwordHash, $accountType, new DateTimeImmutable, UserStatus::Active);
+        return new self(
+            $id,
+            $phone,
+            $passwordHash,
+            $accountType,
+            new DateTimeImmutable,
+            UserStatus::Active,
+            name: $name,
+        );
     }
 
     public static function reconstitute(
@@ -88,6 +97,14 @@ final class User
     public function passwordHash(): string
     {
         return $this->passwordHash;
+    }
+
+    /**
+     * Смена пароля — при восстановлении по коду из СМС и в настройках профиля.
+     */
+    public function changePassword(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
     }
 
     public function accountType(): AccountType

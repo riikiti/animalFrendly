@@ -9,6 +9,7 @@ import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Listing } from '@/entities/marketplace/types'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BaseSelectMenu from '@/shared/ui/components/BaseSelectMenu.vue'
 import { ApiError } from '@/shared/api/http'
 
 const router = useRouter()
@@ -162,16 +163,13 @@ const statusLabels: Record<string, string> = {
           </div>
         </div>
 
-        <div v-if="breeds.length > 0" class="flex flex-col gap-2">
-          <span class="text-xs font-semibold text-ink-soft">Порода</span>
-          <select
-            v-model="form.breedId"
-            class="rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none"
-          >
-            <option :value="null">Не указана</option>
-            <option v-for="b in breeds" :key="b.id" :value="b.id">{{ b.name }}</option>
-          </select>
-        </div>
+        <BaseSelectMenu
+          v-if="breeds.length > 0"
+          v-model="form.breedId"
+          label="Порода"
+          placeholder="Не указана"
+          :options="breeds.map((b) => ({ value: b.id, label: b.name }))"
+        />
 
         <div class="flex flex-col gap-2">
           <span class="text-xs font-semibold text-ink-soft">Пол</span>
@@ -204,19 +202,13 @@ const statusLabels: Record<string, string> = {
           :error="errors.price_amount?.[0]"
         />
 
-        <div v-if="listings.length > 0" class="flex flex-col gap-2">
-          <span class="text-xs font-semibold text-ink-soft">Родитель (если есть)</span>
-          <select
-            v-model="form.parentPetId"
-            aria-label="Родитель"
-            class="rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none"
-          >
-            <option :value="null">Не указан</option>
-            <option v-for="l in listings" :key="l.pet_id" :value="l.pet_id">
-              {{ l.pet?.name ?? 'Питомец' }}
-            </option>
-          </select>
-        </div>
+        <BaseSelectMenu
+          v-if="listings.length > 0"
+          v-model="form.parentPetId"
+          label="Родитель (если есть)"
+          placeholder="Не указан"
+          :options="listings.map((l) => ({ value: l.pet_id, label: l.pet?.name ?? 'Питомец' }))"
+        />
 
         <p v-if="generalError" class="text-xs text-danger">{{ generalError }}</p>
 

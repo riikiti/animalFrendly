@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Infrastructure\Providers;
 
 use App\Modules\Identity\Application\Contracts\GeocoderInterface;
+use App\Modules\Identity\Application\Contracts\SmsSenderInterface;
 use App\Modules\Identity\Domain\Repositories\UserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\Adapters\NotificationUserEmailLookup;
 use App\Modules\Identity\Infrastructure\Adapters\ShelterGeocoderAdapter;
 use App\Modules\Identity\Infrastructure\Console\CreateStaffUserCommand;
+use App\Modules\Identity\Infrastructure\External\LogSmsSender;
 use App\Modules\Identity\Infrastructure\External\NullGeocoderClient;
 use App\Modules\Identity\Infrastructure\External\YandexGeocoderClient;
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Repositories\EloquentUserRepository;
@@ -32,6 +34,10 @@ final class IdentityServiceProvider extends ServiceProvider
             GeocoderInterface::class,
             empty(config('geocoder.yandex_api_key')) ? NullGeocoderClient::class : YandexGeocoderClient::class,
         );
+
+        // Пока не подключён оператор рассылки, коды уходят в лог — тот же приём, что с
+        // геокодером выше. Подменяется одной строкой, когда появится провайдер СМС.
+        $this->app->bind(SmsSenderInterface::class, LogSmsSender::class);
 
         // Единственное место, где Identity "знает" про Shelter — байндинг чужого
         // Application-контракта, см. docs/rules/01-backend.md.

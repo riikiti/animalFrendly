@@ -5,7 +5,7 @@ import { Plus, Star, X } from 'lucide-vue-next'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
-import BaseSelect from '@/shared/ui/components/BaseSelect.vue'
+import BaseSelectMenu from '@/shared/ui/components/BaseSelectMenu.vue'
 import BaseTextarea from '@/shared/ui/components/BaseTextarea.vue'
 import PaywallSheet from '@/shared/ui/components/PaywallSheet.vue'
 import * as catalogApi from '@/entities/catalog/api'
@@ -194,7 +194,7 @@ async function finishPhotoStep(): Promise<void> {
       <p v-if="errors.species_id" class="text-xs text-danger">{{ errors.species_id[0] }}</p>
     </div>
 
-    <BaseSelect
+    <BaseSelectMenu
       v-if="breeds.length > 0"
       v-model="form.breedId"
       label="Порода"

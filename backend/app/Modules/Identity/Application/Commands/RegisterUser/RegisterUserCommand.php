@@ -11,5 +11,6 @@ final class RegisterUserCommand
         public readonly string $password,
         public readonly string $accountType,
         public readonly bool $personalDataConsentGiven,
+        public readonly ?string $name = null,
     ) {}
 }

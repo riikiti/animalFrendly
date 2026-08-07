@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Presentation\Http\Requests;
 
+use App\Modules\Identity\Domain\Enums\PhoneCodePurpose;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-final class LoginRequest extends FormRequest
+final class RequestPhoneCodeRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,8 +22,7 @@ final class LoginRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'string'],
-            'password' => ['required', 'string'],
-            'remember' => ['sometimes', 'boolean'],
+            'purpose' => ['required', Rule::enum(PhoneCodePurpose::class)],
         ];
     }
 }

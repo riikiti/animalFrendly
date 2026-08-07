@@ -5,6 +5,8 @@ import BottomNav from '@/widgets/BottomNav.vue'
 import { useUserStore } from '@/entities/user/model'
 import { ApiError } from '@/shared/api/http'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseSegmented from '@/shared/ui/components/BaseSegmented.vue'
+import { themePreference } from '@/shared/lib/theme'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
 
 const accountTypeLabels: Record<string, string> = {
@@ -175,7 +177,20 @@ async function save(): Promise<void> {
       </BaseButton>
     </div>
 
-    <div class="border-t border-hairline px-2 pb-4 pt-4">
+    <div class="flex flex-col gap-3 border-t border-hairline px-2 pt-4">
+      <span class="font-display text-xl font-bold text-ink">Оформление</span>
+      <BaseSegmented
+        v-model="themePreference"
+        aria-label="Тема оформления"
+        :options="[
+          { value: 'system', label: 'Как в системе' },
+          { value: 'light', label: 'Светлая' },
+          { value: 'dark', label: 'Тёмная' },
+        ]"
+      />
+    </div>
+
+    <div class="border-t border-hairline px-2 pt-4 pb-4">
       <BaseButton variant="ghost" @click="onLogout">Выйти</BaseButton>
     </div>
 

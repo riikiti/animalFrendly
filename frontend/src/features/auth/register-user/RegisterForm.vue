@@ -12,6 +12,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const form = reactive({
+  name: '',
   phone: '',
   password: '',
   password_confirmation: '',
@@ -45,6 +46,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form class="flex flex-col gap-3.5" @submit.prevent="onSubmit">
+    <BaseInput v-model="form.name" label="Имя" placeholder="Как вас называть" />
     <BaseInput
       v-model="form.phone"
       label="Номер телефона"

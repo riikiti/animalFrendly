@@ -5,6 +5,7 @@ import { useCatalogStore } from '@/entities/catalog/model'
 import * as searchApi from '@/entities/search/api'
 import type { PetSearchResult } from '@/entities/search/types'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BaseSlider from '@/shared/ui/components/BaseSlider.vue'
 
 const router = useRouter()
 const catalogStore = useCatalogStore()
@@ -15,6 +16,8 @@ const sex = ref<'male' | 'female' | null>(null)
 const purpose = ref<'social' | 'breeding' | 'shelter' | null>(null)
 const city = ref('')
 const isVaccinated = ref(false)
+// 0 — «неважно»: расстояние в запрос не уходит и выдача не ограничивается.
+const radiusKm = ref(0)
 
 const results = ref<PetSearchResult[]>([])
 const isLoading = ref(true)
@@ -34,6 +37,7 @@ async function search(): Promise<void> {
     purpose: purpose.value ?? undefined,
     city: city.value.trim() || undefined,
     is_vaccinated: isVaccinated.value || undefined,
+    radius_km: radiusKm.value > 0 ? radiusKm.value : undefined,
     per_page: 30,
   })
   results.value = response.data
@@ -116,6 +120,17 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
       </div>
 
       <BaseInput v-model="city" label="Город" placeholder="Например, Москва" @change="search" />
+
+      <BaseSlider
+        v-model="radiusKm"
+        label="Не дальше"
+        :max="100"
+        :step="5"
+        :value-label="radiusKm > 0 ? `${radiusKm} км` : 'неважно'"
+        min-label="неважно"
+        max-label="100 км"
+        @change="search"
+      />
 
       <label class="flex items-center gap-2 text-sm text-ink-soft">
         <input v-model="isVaccinated" type="checkbox" class="h-4 w-4" @change="search" />

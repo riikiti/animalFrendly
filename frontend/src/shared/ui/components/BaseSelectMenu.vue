@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, useId } from 'vue'
 import { Check, ChevronDown } from 'lucide-vue-next'
 import { onClickOutside } from '@/shared/lib/onClickOutside'
 
@@ -23,6 +23,8 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{ 'update:modelValue': [value: string | number] }>()
+
+const labelId = useId()
 
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
@@ -58,11 +60,12 @@ const choose = (value: string | number) => {
 
 <template>
   <div ref="root" class="relative flex flex-col gap-1.5">
-    <span v-if="label" class="text-xs font-semibold text-ink-soft">{{ label }}</span>
+    <span v-if="label" :id="labelId" class="text-xs font-semibold text-ink-soft">{{ label }}</span>
 
     <button
       type="button"
       role="combobox"
+      :aria-labelledby="label ? labelId : undefined"
       :aria-expanded="open"
       aria-haspopup="listbox"
       :disabled="disabled"

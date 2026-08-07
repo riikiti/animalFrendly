@@ -21,6 +21,7 @@ final class RegisterRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'string'],
+            'name' => ['sometimes', 'nullable', 'string', 'max:120'],
             'password' => ['required', 'string', 'confirmed', Password::min(8)],
             'personal_data_consent' => ['required', 'accepted'],
         ];

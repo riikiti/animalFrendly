@@ -56,7 +56,8 @@ test('заводчик привязывает щенка к родителю, п
   await breederPage.getByRole('button', { name: 'Выставить питомца на продажу' }).click()
   await breederPage.getByPlaceholder('Рекс').fill(puppyName)
   await breederPage.getByPlaceholder('15000').fill('15000')
-  await breederPage.getByLabel('Родитель').selectOption({ label: parentName })
+  await breederPage.getByRole('combobox', { name: 'Родитель (если есть)' }).click()
+  await breederPage.getByRole('option', { name: parentName }).click()
   await breederPage.getByRole('button', { name: 'Создать' }).click()
   await expect(breederPage.getByText(`Родитель: ${parentName}`)).toBeVisible()
   await breederPage.getByRole('button', { name: 'Опубликовать' }).click()
@@ -99,7 +100,7 @@ test('заводчик привязывает щенка к родителю, п
   await staffPage.goto('/login')
   await staffPage.getByPlaceholder('+7 926 123-45-67').fill(staffPhone)
   await staffPage.locator('input[type="password"]').fill('staff-password')
-  await staffPage.getByRole('button', { name: 'Войти' }).click()
+  await staffPage.getByRole('button', { name: 'Войти', exact: true }).click()
   await staffPage.waitForURL('/')
 
   await staffPage.getByRole('button', { name: 'Админ' }).click()

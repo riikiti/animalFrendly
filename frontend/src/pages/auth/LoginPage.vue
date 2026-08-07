@@ -1,7 +1,49 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-import { PawPrint } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { MessageSquare, PawPrint } from 'lucide-vue-next'
 import LoginForm from '@/features/auth/login-user/LoginForm.vue'
+import * as userApi from '@/entities/user/api'
+import { useUserStore } from '@/entities/user/model'
+import { setToken } from '@/shared/lib/tokenStorage'
+import BaseAlert from '@/shared/ui/components/BaseAlert.vue'
+import BaseButton from '@/shared/ui/components/BaseButton.vue'
+
+const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
+
+const providers = ref<string[]>([])
+const socialError = ref('')
+
+const providerLabels: Record<string, string> = {
+  google: 'Google',
+  vkontakte: 'VK',
+}
+
+const apiUrl = import.meta.env.VITE_API_URL ?? ''
+
+onMounted(async () => {
+  // Возврат от провайдера: токен приезжает параметром, сразу прячем его из адресной строки.
+  const token = route.query.social_token
+  if (typeof token === 'string' && token !== '') {
+    setToken(token)
+    await userStore.fetchCurrentUser()
+    await router.replace({ name: 'home' })
+
+    return
+  }
+
+  const failure = route.query.social_error
+  if (typeof failure === 'string') socialError.value = failure
+
+  try {
+    providers.value = (await userApi.socialProviders()).data
+  } catch {
+    // Список провайдеров не критичен: без него просто не покажем кнопки.
+    providers.value = []
+  }
+})
 </script>
 
 <template>
@@ -25,6 +67,38 @@ import LoginForm from '@/features/auth/login-user/LoginForm.vue'
     </div>
 
     <LoginForm class="mt-6" />
+
+    <BaseAlert v-if="socialError" tone="error" class="mt-4">{{ socialError }}</BaseAlert>
+
+    <BaseButton
+      variant="outline"
+      size="lg"
+      block
+      class="mt-3"
+      @click="router.push({ name: 'login-sms' })"
+    >
+      <MessageSquare class="size-[17px]" aria-hidden="true" />
+      Войти по коду из SMS
+    </BaseButton>
+
+    <template v-if="providers.length > 0">
+      <div class="mt-5 flex items-center gap-3">
+        <span class="h-px flex-1 bg-hairline" />
+        <span class="text-xs text-ink-faint">или</span>
+        <span class="h-px flex-1 bg-hairline" />
+      </div>
+
+      <div class="mt-4 flex gap-2.5">
+        <a
+          v-for="provider in providers"
+          :key="provider"
+          :href="`${apiUrl}/api/v1/auth/social/${provider}/redirect`"
+          class="flex h-12 flex-1 items-center justify-center rounded-[14px] border border-hairline bg-surface text-[13.5px] font-semibold text-ink transition-colors hover:bg-surface-soft"
+        >
+          {{ providerLabels[provider] ?? provider }}
+        </a>
+      </div>
+    </template>
 
     <p class="mt-auto pt-8 text-center text-[13.5px] text-ink-soft">
       Нет аккаунта?

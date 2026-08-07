@@ -32,6 +32,7 @@ final class RegisterUserHandler
             passwordHash: $this->hasher->make($command->password),
             accountType: AccountType::from($command->accountType),
             personalDataConsentGiven: $command->personalDataConsentGiven,
+            name: $command->name,
         );
 
         $this->users->save($user);

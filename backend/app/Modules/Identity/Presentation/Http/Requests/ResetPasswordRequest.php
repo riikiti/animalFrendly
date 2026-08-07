@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Presentation\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
-final class LoginRequest extends FormRequest
+final class ResetPasswordRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,8 +21,8 @@ final class LoginRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'string'],
-            'password' => ['required', 'string'],
-            'remember' => ['sometimes', 'boolean'],
+            'code' => ['required', 'string'],
+            'password' => ['required', 'string', 'confirmed', Password::min(8)],
         ];
     }
 }

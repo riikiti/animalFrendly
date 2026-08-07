@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import BaseAlert from '@/shared/ui/components/BaseAlert.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
 import { useUserStore } from '@/entities/user/model'
 import { ApiError } from '@/shared/api/http'
@@ -13,6 +14,8 @@ const userStore = useUserStore()
 const form = reactive({
   phone: '',
   password: '',
+  // Без галочки токен живёт сутки, с ней — 90 дней (см. AuthController::issueToken).
+  remember: false,
 })
 
 const isSubmitting = ref(false)
@@ -44,6 +47,15 @@ async function onSubmit(): Promise<void> {
       placeholder="+7 926 123-45-67"
     />
     <BaseInput v-model="form.password" type="password" label="Пароль" />
+
+    <div class="flex items-center justify-between gap-3 pt-0.5">
+      <BaseCheckbox v-model="form.remember">Запомнить меня</BaseCheckbox>
+      <RouterLink
+        :to="{ name: 'password-reset' }"
+        class="shrink-0 text-[13px] font-bold text-accent-text"
+        >Забыли пароль?</RouterLink
+      >
+    </div>
 
     <BaseAlert v-if="generalError" tone="error">{{ generalError }}</BaseAlert>
 

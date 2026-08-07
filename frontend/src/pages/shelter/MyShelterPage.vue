@@ -9,6 +9,7 @@ import type { AdoptionRequest, Shelter, ShelterAnimal } from '@/entities/shelter
 import { ApiError } from '@/shared/api/http'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BaseSelectMenu from '@/shared/ui/components/BaseSelectMenu.vue'
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении модератора',
@@ -324,16 +325,13 @@ async function decide(requestId: string, approve: boolean): Promise<void> {
                 </div>
               </div>
 
-              <div v-if="breeds.length > 0" class="flex flex-col gap-2">
-                <span class="text-xs font-semibold text-ink-soft">Порода</span>
-                <select
-                  v-model="animalForm.breedId"
-                  class="rounded-xl bg-surface-soft px-3.5 py-2.5 text-sm text-ink outline-none"
-                >
-                  <option :value="null">Не указана</option>
-                  <option v-for="b in breeds" :key="b.id" :value="b.id">{{ b.name }}</option>
-                </select>
-              </div>
+              <BaseSelectMenu
+                v-if="breeds.length > 0"
+                v-model="animalForm.breedId"
+                label="Порода"
+                placeholder="Не указана"
+                :options="breeds.map((b) => ({ value: b.id, label: b.name }))"
+              />
 
               <div class="flex gap-2">
                 <button

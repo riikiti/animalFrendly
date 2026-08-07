@@ -59,7 +59,7 @@ test('a user reports a pet, a moderator reviews it and bans the reporter target'
   await staffPage.goto('/login')
   await staffPage.getByPlaceholder('+7 926 123-45-67').fill(staffPhone)
   await staffPage.locator('input[type="password"]').fill('staff-password')
-  await staffPage.getByRole('button', { name: 'Войти' }).click()
+  await staffPage.getByRole('button', { name: 'Войти', exact: true }).click()
   await staffPage.waitForURL('/')
 
   await staffPage.getByRole('button', { name: 'Админ' }).click()

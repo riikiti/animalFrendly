@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID', ''),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
+        'redirect' => env('APP_URL', 'http://localhost:8000').'/api/v1/auth/social/google/callback',
+    ],
+
+    'vkontakte' => [
+        'client_id' => env('VK_CLIENT_ID', ''),
+        'client_secret' => env('VK_CLIENT_SECRET', ''),
+        'redirect' => env('APP_URL', 'http://localhost:8000').'/api/v1/auth/social/vkontakte/callback',
+    ],
 ];

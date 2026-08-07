@@ -9,6 +9,7 @@ import * as searchApi from '@/entities/search/api'
 import type { ListingSearchResult } from '@/entities/search/types'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
+import BaseRangeSlider from '@/shared/ui/components/BaseRangeSlider.vue'
 import ReportButton from '@/shared/ui/components/ReportButton.vue'
 import { ApiError } from '@/shared/api/http'
 
@@ -22,12 +23,13 @@ const purchasingId = ref<string | null>(null)
 const error = ref('')
 
 const filterCity = ref('')
-const filterMinPrice = ref('')
-const filterMaxPrice = ref('')
+// Границы диапазона в рублях; в запрос уходят копейки. [0, MAX] означает «без фильтра».
+const MAX_PRICE = 100000
+const priceRange = ref<[number, number]>([0, MAX_PRICE])
 
 const isFiltering = computed(
   () =>
-    filterCity.value.trim() !== '' || filterMinPrice.value !== '' || filterMaxPrice.value !== '',
+    filterCity.value.trim() !== '' || priceRange.value[0] > 0 || priceRange.value[1] < MAX_PRICE,
 )
 
 onMounted(async () => {
@@ -46,8 +48,8 @@ async function applyFilters(): Promise<void> {
   isLoading.value = true
   const response = await searchApi.searchListings({
     city: filterCity.value.trim() || undefined,
-    min_price_amount: filterMinPrice.value ? Number(filterMinPrice.value) * 100 : undefined,
-    max_price_amount: filterMaxPrice.value ? Number(filterMaxPrice.value) * 100 : undefined,
+    min_price_amount: priceRange.value[0] > 0 ? priceRange.value[0] * 100 : undefined,
+    max_price_amount: priceRange.value[1] < MAX_PRICE ? priceRange.value[1] * 100 : undefined,
     per_page: 30,
   })
   searchResults.value = response.data
@@ -111,16 +113,19 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
           @change="applyFilters"
         />
         <div class="flex gap-2">
-          <BaseInput
-            v-model="filterMinPrice"
-            label="Цена от, ₽"
-            type="number"
-            @change="applyFilters"
-          />
-          <BaseInput
-            v-model="filterMaxPrice"
-            label="Цена до, ₽"
-            type="number"
+          <BaseRangeSlider
+            v-model="priceRange"
+            label="Цена"
+            :max="MAX_PRICE"
+            :step="1000"
+            :value-label="
+              priceRange[0] === 0 && priceRange[1] === MAX_PRICE
+                ? 'любая'
+                : `${priceRange[0].toLocaleString('ru-RU')} — ${priceRange[1].toLocaleString('ru-RU')} ₽`
+            "
+            min-label="0"
+            max-label="от 100 000 ₽"
+            class="flex-1"
             @change="applyFilters"
           />
         </div>

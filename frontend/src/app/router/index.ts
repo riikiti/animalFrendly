@@ -16,6 +16,16 @@ const router = createRouter({
       component: () => import('@/pages/auth/LoginPage.vue'),
     },
     {
+      path: '/login/sms',
+      name: 'login-sms',
+      component: () => import('@/pages/auth/PhoneCodeLoginPage.vue'),
+    },
+    {
+      path: '/password/reset',
+      name: 'password-reset',
+      component: () => import('@/pages/auth/PasswordResetPage.vue'),
+    },
+    {
       path: '/',
       name: 'home',
       component: () => import('@/pages/SwipePage.vue'),

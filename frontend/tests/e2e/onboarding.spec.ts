@@ -38,7 +38,7 @@ test.describe('онбординг: регистрация, анкета пито
 
     await page.getByPlaceholder('+7 926 123-45-67').fill(phone)
     await page.locator('input[type="password"]').fill('correct-password')
-    await page.getByRole('button', { name: 'Войти' }).click()
+    await page.getByRole('button', { name: 'Войти', exact: true }).click()
 
     await page.waitForURL('/')
     await expect(page.getByText('AnimalFriendly')).toBeVisible()

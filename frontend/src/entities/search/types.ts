@@ -6,6 +6,8 @@ export interface PetSearchFilters {
   purpose?: 'social' | 'breeding' | 'shelter'
   city?: string
   is_vaccinated?: boolean
+  /** Максимальное расстояние до питомца, км. Считается от адреса в профиле. */
+  radius_km?: number
   page?: number
   per_page?: number
 }
