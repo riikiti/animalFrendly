@@ -10,10 +10,12 @@ import {
   MessageCircle,
   PawPrint,
   Plus,
+  SearchX,
   SlidersHorizontal,
   Syringe,
   Trash2,
   Wallet,
+  WifiOff,
   X,
   Zap,
 } from 'lucide-vue-next'
@@ -24,11 +26,20 @@ import BaseAvatarStack from '@/shared/ui/components/BaseAvatarStack.vue'
 import BaseBadge from '@/shared/ui/components/BaseBadge.vue'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
+import BaseCarouselDots from '@/shared/ui/components/BaseCarouselDots.vue'
 import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
+import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
+import BaseLoadMore from '@/shared/ui/components/BaseLoadMore.vue'
 import BaseModal from '@/shared/ui/components/BaseModal.vue'
+import BasePagination from '@/shared/ui/components/BasePagination.vue'
+import BaseProgress from '@/shared/ui/components/BaseProgress.vue'
 import BaseRating from '@/shared/ui/components/BaseRating.vue'
 import BaseSheet from '@/shared/ui/components/BaseSheet.vue'
+import BaseSkeleton from '@/shared/ui/components/BaseSkeleton.vue'
+import BaseSpinner from '@/shared/ui/components/BaseSpinner.vue'
 import BaseStatusDot from '@/shared/ui/components/BaseStatusDot.vue'
+import BaseStepProgress from '@/shared/ui/components/BaseStepProgress.vue'
+import BaseTypingDots from '@/shared/ui/components/BaseTypingDots.vue'
 import BaseTooltip from '@/shared/ui/components/BaseTooltip.vue'
 import BaseCheckbox from '@/shared/ui/components/BaseCheckbox.vue'
 import BaseFab from '@/shared/ui/components/BaseFab.vue'
@@ -92,6 +103,8 @@ const stub = (color: string) =>
 const avatarSizes = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const
 
 const overlay = ref<'confirm' | 'delete' | 'wide' | 'sheet' | null>(null)
+const page = ref(4)
+const slide = ref(0)
 
 const demoToasts = [
   { tone: 'success' as const, title: 'Взаимная симпатия!', description: 'Луна тоже вас лайкнула — напишите первым', actionLabel: 'Открыть' },
@@ -483,6 +496,109 @@ const photos = ref([
             <BaseTooltip text="Суперлайк заметят первым">
               <BaseChip tone="outline" size="md" interactive>Наведите — тултип</BaseChip>
             </BaseTooltip>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <h2 class="mb-1 font-display text-xl font-bold">E · Загрузка, пустоты, ошибки, пагинация</h2>
+      <p class="mb-6 text-sm text-ink-soft">Борд E из elements-v2.pen</p>
+
+      <div class="space-y-8">
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Пагинация и подгрузка</h3>
+          <div class="flex flex-wrap items-center gap-6">
+            <BasePagination v-model:page="page" :pages="12" />
+            <BaseCarouselDots v-model:current="slide" :total="4" />
+            <BaseLoadMore :count="20" @load="() => {}" />
+            <BaseLoadMore loading loading-label="Загружаем ещё анкеты…" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Прогресс</h3>
+          <div class="grid items-start gap-6 sm:grid-cols-3">
+            <BaseProgress
+              :value="20"
+              :max="128"
+              label="Просмотрено анкет"
+              value-label="20 из 128"
+            />
+            <BaseStepProgress :steps="4" :current="2" step-label="Фото питомца" />
+            <BaseProgress indeterminate label="Синхронизация" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Скелетоны, спиннеры, точки</h3>
+          <div class="grid items-start gap-6 sm:grid-cols-3">
+            <div class="flex flex-col gap-3.5 rounded-card border border-hairline bg-surface p-3.5">
+              <BaseSkeleton variant="block" width="full" height="150px" />
+              <div class="flex flex-col gap-2.5">
+                <BaseSkeleton width="180px" height="16px" />
+                <BaseSkeleton width="240px" />
+                <BaseSkeleton width="120px" />
+              </div>
+              <div class="flex gap-2">
+                <BaseSkeleton width="72px" height="26px" variant="circle" />
+                <BaseSkeleton width="96px" height="26px" variant="circle" />
+              </div>
+            </div>
+
+            <div class="divide-y divide-hairline rounded-card border border-hairline bg-surface">
+              <div v-for="row in 4" :key="row" class="flex items-center gap-3 px-4 py-3.5">
+                <BaseSkeleton variant="circle" width="44px" height="44px" />
+                <div class="flex flex-1 flex-col gap-2">
+                  <BaseSkeleton width="60%" />
+                  <BaseSkeleton width="85%" />
+                </div>
+                <BaseSkeleton width="34px" height="10px" />
+              </div>
+            </div>
+
+            <div class="flex flex-col items-start gap-5">
+              <div class="flex items-center gap-4">
+                <BaseSpinner size="sm" />
+                <BaseSpinner />
+                <BaseSpinner size="lg" />
+                <BaseSpinner tone="ink" />
+              </div>
+              <BaseTypingDots />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">Пустые состояния и ошибки</h3>
+          <div class="grid items-start gap-5 sm:grid-cols-3">
+            <BaseEmptyState
+              title="Пока никто не лайкнул"
+              description="Продолжайте смотреть анкеты — взаимные симпатии появятся здесь."
+            >
+              <template #icon><Heart class="size-8" /></template>
+              <template #actions><BaseButton>В ленту</BaseButton></template>
+            </BaseEmptyState>
+
+            <BaseEmptyState
+              tone="neutral"
+              title="Ничего не нашлось"
+              description="Попробуйте расширить радиус поиска или снять часть фильтров."
+            >
+              <template #icon><SearchX class="size-8" /></template>
+              <template #actions>
+                <BaseButton variant="ghost">Сбросить фильтры</BaseButton>
+              </template>
+            </BaseEmptyState>
+
+            <BaseEmptyState
+              tone="danger"
+              title="Нет интернета"
+              description="Проверьте подключение — мы попробуем загрузить всё снова."
+            >
+              <template #icon><WifiOff class="size-8" /></template>
+              <template #actions><BaseButton variant="outline">Повторить</BaseButton></template>
+            </BaseEmptyState>
           </div>
         </div>
       </div>
