@@ -53,7 +53,9 @@ onMounted(async () => {
         }}</span>
       </button>
 
-      <div class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4">
+      <div
+        class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4"
+      >
         <span class="text-sm text-ink">Открытые споры</span>
         <span class="text-lg font-semibold text-ink">{{ summary.open_disputes }}</span>
       </div>

@@ -58,14 +58,18 @@ const hasShelters = computed(() => shelters.value.length > 0)
     <div class="flex gap-2 px-2">
       <button
         class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'animals' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
+        :class="
+          activeTab === 'animals' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+        "
         @click="activeTab = 'animals'"
       >
         Животные
       </button>
       <button
         class="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-        :class="activeTab === 'shelters' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
+        :class="
+          activeTab === 'shelters' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+        "
         @click="activeTab = 'shelters'"
       >
         Приюты

@@ -83,7 +83,9 @@ function togglePurpose(value: 'social' | 'breeding' | 'shelter'): void {
           :key="s.id"
           type="button"
           class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-          :class="speciesId === s.id ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
+          :class="
+            speciesId === s.id ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+          "
           @click="toggleSpecies(s.id)"
         >
           {{ s.name }}

@@ -6,6 +6,7 @@ import * as conversationApi from '@/entities/conversation/api'
 import * as marketplaceApi from '@/entities/marketplace/api'
 import type { Listing } from '@/entities/marketplace/types'
 import { useUserStore } from '@/entities/user/model'
+import { formatPrice } from '@/shared/lib/money'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
 
 const route = useRoute()
@@ -41,11 +42,6 @@ onMounted(async () => {
 
 function speciesName(speciesId: number): string {
   return catalogStore.speciesName(speciesId)
-}
-
-function formatPrice(minorUnits: number, currency: string): string {
-  const amount = (minorUnits / 100).toLocaleString('ru-RU')
-  return `${amount} ${currency === 'RUB' ? '₽' : currency}`
 }
 
 async function contactSeller(): Promise<void> {

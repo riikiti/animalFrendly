@@ -53,9 +53,7 @@ const submitNewPassword = async () => {
 
     <div class="mt-6 flex flex-col gap-1.5">
       <h1 class="font-display text-[28px] leading-tight font-bold text-ink">Новый пароль</h1>
-      <p class="text-sm text-ink-soft">
-        Подтвердите номер кодом из СМС и придумайте новый пароль
-      </p>
+      <p class="text-sm text-ink-soft">Подтвердите номер кодом из СМС и придумайте новый пароль</p>
     </div>
 
     <PhoneCodeForm

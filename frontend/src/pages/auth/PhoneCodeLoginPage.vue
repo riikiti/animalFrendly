@@ -53,7 +53,9 @@ const submit = async ({ phone, code }: { phone: string; code: string }) => {
 
     <p class="mt-auto pt-8 text-center text-[13.5px] text-ink-soft">
       Помните пароль?
-      <RouterLink :to="{ name: 'login' }" class="font-bold text-accent-text">Войти как обычно</RouterLink>
+      <RouterLink :to="{ name: 'login' }" class="font-bold text-accent-text"
+        >Войти как обычно</RouterLink
+      >
     </p>
   </div>
 </template>

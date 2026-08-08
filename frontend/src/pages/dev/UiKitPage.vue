@@ -123,12 +123,36 @@ const payment = ref('card')
 const checks = ref({ received: true, matches: true, intact: false })
 
 const demoToasts = [
-  { tone: 'success' as const, title: 'Взаимная симпатия!', description: 'Луна тоже вас лайкнула — напишите первым', actionLabel: 'Открыть' },
-  { tone: 'error' as const, title: 'Не удалось отправить', description: 'Проверьте подключение и попробуйте снова', actionLabel: 'Повторить' },
-  { tone: 'info' as const, title: 'Анкета на модерации', description: 'Обычно проверка занимает до 2 часов' },
-  { tone: 'warning' as const, title: 'Осталось 2 лайка', description: 'Лимит обновится через 4 часа', actionLabel: 'Про PRO' },
+  {
+    tone: 'success' as const,
+    title: 'Взаимная симпатия!',
+    description: 'Луна тоже вас лайкнула — напишите первым',
+    actionLabel: 'Открыть',
+  },
+  {
+    tone: 'error' as const,
+    title: 'Не удалось отправить',
+    description: 'Проверьте подключение и попробуйте снова',
+    actionLabel: 'Повторить',
+  },
+  {
+    tone: 'info' as const,
+    title: 'Анкета на модерации',
+    description: 'Обычно проверка занимает до 2 часов',
+  },
+  {
+    tone: 'warning' as const,
+    title: 'Осталось 2 лайка',
+    description: 'Лимит обновится через 4 часа',
+    actionLabel: 'Про PRO',
+  },
   { tone: 'compact' as const, title: 'Анкета скрыта', actionLabel: 'Отменить' },
-  { tone: 'loading' as const, title: 'Загружаем фото…', description: '3 из 5 · 64 %', timeout: 3000 },
+  {
+    tone: 'loading' as const,
+    title: 'Загружаем фото…',
+    description: '3 из 5 · 64 %',
+    timeout: 3000,
+  },
 ]
 
 const photos = ref([
@@ -206,12 +230,20 @@ const photos = ref([
           <h3 class="mb-3 text-sm font-semibold text-ink-soft">Иконочные кнопки и FAB</h3>
           <div class="flex flex-wrap items-center gap-4">
             <BaseIconButton label="Пропустить" elevated><X class="size-6" /></BaseIconButton>
-            <BaseIconButton label="В избранное" tone="active"><Heart class="size-6" /></BaseIconButton>
+            <BaseIconButton label="В избранное" tone="active"
+              ><Heart class="size-6"
+            /></BaseIconButton>
             <BaseIconButton label="Удалить" tone="danger"><Trash2 class="size-5" /></BaseIconButton>
-            <BaseIconButton label="Подтвердить" tone="success"><Check class="size-5" /></BaseIconButton>
+            <BaseIconButton label="Подтвердить" tone="success"
+              ><Check class="size-5"
+            /></BaseIconButton>
             <BaseIconButton label="Недоступно" disabled><X class="size-6" /></BaseIconButton>
-            <BaseIconButton label="Сообщения" :badge="3"><MessageCircle class="size-5" /></BaseIconButton>
-            <BaseIconButton label="Добавить" shape="square" size="sm"><Plus class="size-4" /></BaseIconButton>
+            <BaseIconButton label="Сообщения" :badge="3"
+              ><MessageCircle class="size-5"
+            /></BaseIconButton>
+            <BaseIconButton label="Добавить" shape="square" size="sm"
+              ><Plus class="size-4"
+            /></BaseIconButton>
             <BaseFab label="Добавить питомца"><Plus class="size-6" /></BaseFab>
             <BaseFab label="Добавить питомца" extended><Plus class="size-5" /></BaseFab>
           </div>
@@ -543,11 +575,7 @@ const photos = ref([
           </div>
 
           <div class="mt-4 max-w-md">
-            <BaseCoachMark
-              v-if="coachShown"
-              title="Свайпайте вправо"
-              @dismiss="coachShown = false"
-            >
+            <BaseCoachMark v-if="coachShown" title="Свайпайте вправо" @dismiss="coachShown = false">
               <template #icon><Heart class="size-5" /></template>
               Понравилась анкета — тяните карточку вправо. Влево, чтобы пропустить.
             </BaseCoachMark>

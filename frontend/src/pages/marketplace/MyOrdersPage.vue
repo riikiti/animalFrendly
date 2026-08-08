@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import BottomNav from '@/widgets/BottomNav.vue'
 import * as marketplaceApi from '@/entities/marketplace/api'
+import { formatPrice } from '@/shared/lib/money'
 import type { Order, OrderRole } from '@/entities/marketplace/types'
 
 const router = useRouter()
@@ -28,11 +29,6 @@ async function load(): Promise<void> {
 }
 
 watch(role, load, { immediate: true })
-
-function formatPrice(minorUnits: number, currency: string): string {
-  const amount = (minorUnits / 100).toLocaleString('ru-RU')
-  return `${amount} ${currency === 'RUB' ? '₽' : currency}`
-}
 </script>
 
 <template>

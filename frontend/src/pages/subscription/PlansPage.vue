@@ -86,9 +86,7 @@ async function subscribeToPlan(slug: string): Promise<void> {
         v-for="plan in subscriptionStore.plans"
         :key="plan.slug"
         class="card flex flex-col gap-3.5 rounded-card border p-5 transition-colors"
-        :class="
-          isCurrentPlan(plan) ? 'border-accent bg-accent-soft' : 'border-hairline bg-surface'
-        "
+        :class="isCurrentPlan(plan) ? 'border-accent bg-accent-soft' : 'border-hairline bg-surface'"
       >
         <div class="flex items-start justify-between gap-3">
           <div class="flex flex-col gap-1">

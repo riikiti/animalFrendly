@@ -64,7 +64,9 @@ async function register(): Promise<void> {
       </div>
 
       <div v-else class="flex flex-col gap-3 px-2">
-        <div class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4">
+        <div
+          class="flex items-center justify-between rounded-card border border-hairline bg-surface p-4"
+        >
           <span class="text-sm text-ink-soft">Статус</span>
           <span
             class="rounded-full px-2 py-1 text-xs font-semibold"

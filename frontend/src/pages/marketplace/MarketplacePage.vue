@@ -8,9 +8,11 @@ import type { Listing } from '@/entities/marketplace/types'
 import * as searchApi from '@/entities/search/api'
 import type { ListingSearchResult } from '@/entities/search/types'
 import BaseButton from '@/shared/ui/components/BaseButton.vue'
+import MarketTabs from '@/widgets/MarketTabs.vue'
 import BaseInput from '@/shared/ui/components/BaseInput.vue'
 import BaseRangeSlider from '@/shared/ui/components/BaseRangeSlider.vue'
 import ReportButton from '@/shared/ui/components/ReportButton.vue'
+import { formatPrice } from '@/shared/lib/money'
 import { ApiError } from '@/shared/api/http'
 
 const router = useRouter()
@@ -60,11 +62,6 @@ function speciesName(speciesId: number): string {
   return catalogStore.speciesName(speciesId)
 }
 
-function formatPrice(minorUnits: number, currency: string): string {
-  const amount = (minorUnits / 100).toLocaleString('ru-RU')
-  return `${amount} ${currency === 'RUB' ? '₽' : currency}`
-}
-
 async function purchase(listingId: string): Promise<void> {
   error.value = ''
   purchasingId.value = listingId
@@ -87,9 +84,12 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
     class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
-      <span class="font-display text-xl font-bold text-ink">Маркет</span>
+      <h1 class="font-display text-xl font-bold text-ink">Маркет</h1>
       <div class="flex gap-3">
-        <button class="text-xs font-bold text-accent-text" @click="router.push({ name: 'my-orders' })">
+        <button
+          class="text-xs font-bold text-accent-text"
+          @click="router.push({ name: 'my-orders' })"
+        >
           Мои заказы
         </button>
         <button
@@ -100,6 +100,8 @@ const hasSearchResults = computed(() => searchResults.value.length > 0)
         </button>
       </div>
     </div>
+
+    <div class="px-2"><MarketTabs /></div>
 
     <p v-if="error" class="px-2 text-xs text-danger">{{ error }}</p>
 

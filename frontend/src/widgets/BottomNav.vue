@@ -5,12 +5,16 @@ import { ClipboardList, House, Layers, ShoppingBag, User } from 'lucide-vue-next
 const route = useRoute()
 
 const tabs = [
-  { name: 'home', label: 'Лента', icon: Layers },
-  { name: 'shelter-animals', label: 'Приюты', icon: House },
-  { name: 'my-adoption-requests', label: 'Заявки', icon: ClipboardList },
-  { name: 'marketplace', label: 'Маркет', icon: ShoppingBag },
-  { name: 'profile', label: 'Профиль', icon: User },
+  { name: 'home', label: 'Лента', icon: Layers, section: '/' },
+  { name: 'shelter-animals', label: 'Приюты', icon: House, section: '/shelters' },
+  { name: 'my-adoption-requests', label: 'Заявки', icon: ClipboardList, section: '/adoption' },
+  // Магазин товаров живёт внутри «Маркета» — вкладка остаётся активной и на /shop.
+  { name: 'marketplace', label: 'Маркет', icon: ShoppingBag, section: '/shop' },
+  { name: 'profile', label: 'Профиль', icon: User, section: '/profile' },
 ] as const
+
+const isActive = (tab: (typeof tabs)[number]): boolean =>
+  route.name === tab.name || (tab.section !== '/' && route.path.startsWith(tab.section))
 </script>
 
 <template>
@@ -29,7 +33,7 @@ const tabs = [
         :to="{ name: tab.name }"
         class="flex h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] px-1 text-center text-[10px] transition-colors"
         :class="
-          route.name === tab.name
+          isActive(tab)
             ? 'bg-accent-soft font-semibold text-accent-text'
             : 'font-medium text-ink-faint'
         "

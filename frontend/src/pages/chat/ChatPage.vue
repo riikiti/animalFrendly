@@ -115,11 +115,7 @@ async function send(): Promise<void> {
       v-if="attachedAnimal"
       class="flex items-center gap-3 rounded-card border border-hairline bg-surface p-2.5"
     >
-      <BaseAvatar
-        :name="attachedAnimal.pet?.name ?? undefined"
-        size="sm"
-        shape="rounded"
-      />
+      <BaseAvatar :name="attachedAnimal.pet?.name ?? undefined" size="sm" shape="rounded" />
       <div class="min-w-0">
         <p class="truncate text-sm font-bold text-ink">
           {{ attachedAnimal.pet?.name ?? 'Питомец' }}

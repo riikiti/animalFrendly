@@ -123,7 +123,10 @@ const statusLabels: Record<string, string> = {
   >
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-xl font-bold text-ink">Мои листинги</span>
-      <button class="text-xs font-bold text-accent-text" @click="router.push({ name: 'marketplace' })">
+      <button
+        class="text-xs font-bold text-accent-text"
+        @click="router.push({ name: 'marketplace' })"
+      >
         В маркет
       </button>
     </div>
@@ -154,7 +157,9 @@ const statusLabels: Record<string, string> = {
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
               :class="
-                form.speciesId === s.id ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+                form.speciesId === s.id
+                  ? 'bg-accent text-accent-ink'
+                  : 'bg-surface-soft text-ink-soft'
               "
               @click="selectSpecies(s.slug, s.id)"
             >
@@ -177,7 +182,9 @@ const statusLabels: Record<string, string> = {
             <button
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
-              :class="form.sex === 'male' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'"
+              :class="
+                form.sex === 'male' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+              "
               @click="form.sex = 'male'"
             >
               Мальчик
@@ -186,7 +193,9 @@ const statusLabels: Record<string, string> = {
               type="button"
               class="rounded-full px-3.5 py-1.5 text-sm font-semibold"
               :class="
-                form.sex === 'female' ? 'bg-accent text-accent-ink' : 'bg-surface-soft text-ink-soft'
+                form.sex === 'female'
+                  ? 'bg-accent text-accent-ink'
+                  : 'bg-surface-soft text-ink-soft'
               "
               @click="form.sex = 'female'"
             >

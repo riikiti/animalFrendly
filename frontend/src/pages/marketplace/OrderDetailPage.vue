@@ -13,6 +13,7 @@ import BaseMoneyRow from '@/shared/ui/components/BaseMoneyRow.vue'
 import BaseStatusStep from '@/shared/ui/components/BaseStatusStep.vue'
 import BaseTextarea from '@/shared/ui/components/BaseTextarea.vue'
 import { ApiError } from '@/shared/api/http'
+import { formatPrice } from '@/shared/lib/money'
 import { yandexRouteUrl } from '@/shared/lib/directions'
 
 const route = useRoute()
@@ -72,9 +73,10 @@ const dealSteps = computed<
     },
     {
       title: 'Подтверждение сторон',
-      meta: [buyerOk ? 'покупатель ✓' : null, sellerOk ? 'продавец ✓' : null]
-        .filter(Boolean)
-        .join(' · ') || undefined,
+      meta:
+        [buyerOk ? 'покупатель ✓' : null, sellerOk ? 'продавец ✓' : null]
+          .filter(Boolean)
+          .join(' · ') || undefined,
       state: done ? 'done' : paid ? 'current' : 'upcoming',
     },
     {
@@ -122,11 +124,6 @@ const hasConfirmed = computed(() => {
     ? order.value.buyer_confirmed_at !== null
     : order.value.seller_confirmed_at !== null
 })
-
-function formatPrice(minorUnits: number, currency: string): string {
-  const amount = (minorUnits / 100).toLocaleString('ru-RU')
-  return `${amount} ${currency === 'RUB' ? '₽' : currency}`
-}
 
 async function confirm(): Promise<void> {
   error.value = ''

@@ -99,6 +99,49 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/shop',
+      name: 'shop',
+      component: () => import('@/pages/shop/ShopPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/shop/products/:id',
+      name: 'shop-product',
+      component: () => import('@/pages/shop/ShopProductPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/shop/cart',
+      name: 'shop-cart',
+      component: () => import('@/pages/shop/ShopCartPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/shop/checkout',
+      name: 'shop-checkout',
+      component: () => import('@/pages/shop/ShopCheckoutPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/shop/my-products',
+      name: 'shop-my-products',
+      component: () => import('@/pages/shop/MyShopProductsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/shop/orders',
+      name: 'shop-orders',
+      component: () => import('@/pages/shop/ShopOrdersPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      // Совпадает с return_url платежа ЮKassa — см. Shop\Application\Services\CheckoutService.
+      path: '/shop/orders/:id',
+      name: 'shop-order-detail',
+      component: () => import('@/pages/shop/ShopOrderDetailPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/orders',
       name: 'my-orders',
       component: () => import('@/pages/marketplace/MyOrdersPage.vue'),
