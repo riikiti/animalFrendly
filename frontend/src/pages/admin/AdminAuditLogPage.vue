@@ -46,7 +46,7 @@ function formatDate(value: string): string {
       <div
         v-for="entry in entries"
         :key="entry.id"
-        class="flex flex-col gap-1 rounded-card border border-hairline bg-surface p-4"
+        class="flex flex-col gap-1 rounded-card border border-hairline bg-surface p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6"
       >
         <span class="text-sm font-semibold text-ink">{{ entry.action }}</span>
         <span class="text-xs text-ink-faint">

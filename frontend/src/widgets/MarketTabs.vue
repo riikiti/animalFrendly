@@ -17,6 +17,7 @@ const go = (value: string | number) => {
 
 <template>
   <BaseSegmented
+    class="lg:max-w-sm"
     :model-value="route.name === 'shop' ? 'shop' : 'pets'"
     aria-label="Раздел маркета"
     :options="[

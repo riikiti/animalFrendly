@@ -54,7 +54,7 @@ function toggleCategory(slug: string): void {
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-4xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-none lg:px-8"
   >
     <div class="flex items-center justify-between gap-2 px-2">
       <h1 class="font-display text-xl font-bold text-ink">Маркет</h1>
@@ -89,65 +89,74 @@ function toggleCategory(slug: string): void {
 
     <div class="px-2"><MarketTabs /></div>
 
-    <div class="px-2">
-      <BaseSearchInput v-model="query" placeholder="Корм, игрушка, лежанка" />
-    </div>
+    <!-- На десктопе фильтры уезжают в левую колонку и становятся вертикальным списком:
+    горизонтальная лента чипов на широком экране прокручивается вслепую. -->
+    <div class="flex-1 px-2 pb-4 lg:grid lg:grid-cols-[220px_1fr] lg:items-start lg:gap-6">
+      <div class="flex flex-col gap-3 lg:sticky lg:top-6">
+        <BaseSearchInput v-model="query" placeholder="Корм, игрушка, лежанка" />
 
-    <div class="flex gap-2 overflow-x-auto px-2 pb-1">
-      <BaseChip
-        v-for="category in categories"
-        :key="category.id"
-        interactive
-        size="md"
-        :tone="activeCategory === category.slug ? 'accent' : 'outline'"
-        @click="toggleCategory(category.slug)"
-      >
-        {{ category.name }}
-      </BaseChip>
-    </div>
-
-    <div v-if="isLoading" class="grid grid-cols-2 gap-3 px-2 md:grid-cols-3 lg:grid-cols-4">
-      <div v-for="cell in 4" :key="cell" class="flex flex-col gap-2">
-        <BaseSkeleton variant="block" width="full" height="120px" />
-        <BaseSkeleton width="80%" />
-        <BaseSkeleton width="50%" />
+        <div class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+          <BaseChip
+            v-for="category in categories"
+            :key="category.id"
+            interactive
+            size="md"
+            class="lg:justify-start"
+            :tone="activeCategory === category.slug ? 'accent' : 'outline'"
+            @click="toggleCategory(category.slug)"
+          >
+            {{ category.name }}
+          </BaseChip>
+        </div>
       </div>
-    </div>
 
-    <div v-else-if="products.length === 0" class="px-2">
-      <BaseEmptyState
-        tone="gold"
-        title="Здесь пока пусто"
-        description="Попробуйте другую категорию или загляните позже — продавцы добавляют товары каждый день."
-      >
-        <template #icon><PackageOpen class="size-8" /></template>
-      </BaseEmptyState>
-    </div>
+      <div>
+        <div v-if="isLoading" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+          <div v-for="cell in 4" :key="cell" class="flex flex-col gap-2">
+            <BaseSkeleton variant="block" width="full" height="120px" />
+            <BaseSkeleton width="80%" />
+            <BaseSkeleton width="50%" />
+          </div>
+        </div>
 
-    <div v-else class="grid grid-cols-2 gap-3 px-2 pb-4 md:grid-cols-3 lg:grid-cols-4">
-      <button
-        v-for="product in products"
-        :key="product.id"
-        type="button"
-        class="flex flex-col overflow-hidden rounded-card border border-hairline bg-surface text-left transition-colors hover:border-accent"
-        @click="router.push({ name: 'shop-product', params: { id: product.id } })"
-      >
-        <span class="grid h-[120px] w-full place-items-center bg-surface-soft">
-          <img
-            v-if="product.photo_url"
-            :src="product.photo_url"
-            :alt="product.title"
-            class="size-full object-cover"
-          />
-          <Store v-else class="size-8 text-ink-faint" aria-hidden="true" />
-        </span>
-        <span class="flex flex-1 flex-col gap-1 p-3">
-          <span class="line-clamp-2 text-[13px] font-semibold text-ink">{{ product.title }}</span>
-          <span class="mt-auto font-display text-[15px] font-bold text-ink">
-            {{ formatPrice(product.price_amount, product.currency) }}
-          </span>
-        </span>
-      </button>
+        <div v-else-if="products.length === 0">
+          <BaseEmptyState
+            tone="gold"
+            title="Здесь пока пусто"
+            description="Попробуйте другую категорию или загляните позже — продавцы добавляют товары каждый день."
+          >
+            <template #icon><PackageOpen class="size-8" /></template>
+          </BaseEmptyState>
+        </div>
+
+        <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+          <button
+            v-for="product in products"
+            :key="product.id"
+            type="button"
+            class="flex flex-col overflow-hidden rounded-card border border-hairline bg-surface text-left transition-colors hover:border-accent"
+            @click="router.push({ name: 'shop-product', params: { id: product.id } })"
+          >
+            <span class="grid h-[120px] w-full place-items-center bg-surface-soft">
+              <img
+                v-if="product.photo_url"
+                :src="product.photo_url"
+                :alt="product.title"
+                class="size-full object-cover"
+              />
+              <Store v-else class="size-8 text-ink-faint" aria-hidden="true" />
+            </span>
+            <span class="flex flex-1 flex-col gap-1 p-3">
+              <span class="line-clamp-2 text-[13px] font-semibold text-ink">{{
+                product.title
+              }}</span>
+              <span class="mt-auto font-display text-[15px] font-bold text-ink">
+                {{ formatPrice(product.price_amount, product.currency) }}
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="-mx-4 mt-auto">

@@ -56,13 +56,19 @@ async function decide(shelterId: string, approve: boolean): Promise<void> {
       <div
         v-for="shelter in shelters"
         :key="shelter.id"
-        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4 lg:flex-row lg:items-center lg:gap-6"
       >
-        <span class="text-sm font-semibold text-ink">{{ shelter.legal_name }}</span>
-        <p v-if="shelter.inn" class="text-xs text-ink-faint">ИНН: {{ shelter.inn }}</p>
-        <p v-if="shelter.description" class="text-sm text-ink-soft">{{ shelter.description }}</p>
+        <!-- Обёртка намеренно span, а не div: тесты ищут кнопку внутри самого глубокого
+        div с названием приюта, и лишний div между ними ломал бы поиск. -->
+        <span class="flex min-w-0 flex-1 flex-col gap-1">
+          <span class="text-sm font-semibold text-ink">{{ shelter.legal_name }}</span>
+          <span v-if="shelter.inn" class="text-xs text-ink-faint">ИНН: {{ shelter.inn }}</span>
+          <span v-if="shelter.description" class="text-sm text-ink-soft">{{
+            shelter.description
+          }}</span>
+        </span>
 
-        <div class="flex gap-2">
+        <div class="flex shrink-0 gap-2">
           <BaseButton @click="decide(shelter.id, true)">Подтвердить</BaseButton>
           <BaseButton variant="outline" @click="decide(shelter.id, false)">Отклонить</BaseButton>
         </div>

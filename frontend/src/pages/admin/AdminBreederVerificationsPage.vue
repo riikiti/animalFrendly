@@ -56,11 +56,13 @@ async function decide(breederId: string, approve: boolean): Promise<void> {
       <div
         v-for="breeder in breeders"
         :key="breeder.id"
-        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4"
+        class="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4 lg:flex-row lg:items-center lg:gap-6"
       >
-        <span class="text-sm font-semibold text-ink">Пользователь {{ breeder.owner_user_id }}</span>
+        <span class="min-w-0 flex-1 truncate text-sm font-semibold text-ink"
+          >Пользователь {{ breeder.owner_user_id }}</span
+        >
 
-        <div class="flex gap-2">
+        <div class="flex shrink-0 gap-2">
           <BaseButton @click="decide(breeder.id, true)">Подтвердить</BaseButton>
           <BaseButton variant="outline" @click="decide(breeder.id, false)">Отклонить</BaseButton>
         </div>
