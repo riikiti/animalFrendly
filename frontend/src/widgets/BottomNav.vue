@@ -22,7 +22,7 @@ const isActive = (tab: (typeof tabs)[number]): boolean =>
   остаётся в потоке, поэтому под ней не приходится резервировать отступ на каждом экране.
   flex-1 на вкладке гарантирует, что ряд из пяти пунктов укладывается в ширину даже на
   экранах 320px — раньше «Профиль» уезжал за границу вьюпорта. -->
-  <nav class="sticky bottom-0 z-30 px-4 pt-2 pb-3">
+  <nav class="sticky bottom-0 z-30 px-4 pt-2 pb-3 lg:hidden">
     <div
       class="flex gap-0.5 rounded-[28px] border border-hairline p-1.5 shadow-nav backdrop-blur-[20px]"
       style="background: var(--nav-veil)"

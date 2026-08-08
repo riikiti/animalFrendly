@@ -155,10 +155,10 @@ async function goToChat(): Promise<void> {
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-4xl lg:px-8"
   >
     <div class="flex items-center justify-between gap-2 px-2">
-      <span class="inline-flex shrink-0 items-center gap-2">
+      <span class="inline-flex shrink-0 items-center gap-2 lg:hidden">
         <span class="grid size-7 place-items-center rounded-[10px] bg-accent text-accent-ink">
           <PawPrint class="size-4" aria-hidden="true" />
         </span>
@@ -249,7 +249,7 @@ async function goToChat(): Promise<void> {
     <template v-if="!isLoading">
       <!-- Tinder-карточка остаётся компактной и по центру даже на широком десктопном
       экране — растягивать её до ширины страницы (см. лимиты выше) выглядело бы не по-Tinder'ски. -->
-      <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4">
+      <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4 lg:max-h-[640px]">
         <PetCard
           v-if="candidates.length > 0"
           :key="candidates[0].id"

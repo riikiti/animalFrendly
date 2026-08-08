@@ -30,7 +30,7 @@ test.describe('онбординг: регистрация, анкета пито
 
     await page.getByRole('button', { name: 'Готово' }).click()
     await page.waitForURL('/')
-    await expect(page.getByText('AnimalFriendly')).toBeVisible()
+    await expect(page.getByText('AnimalFriendly').first()).toBeVisible()
 
     await page.goto('/profile')
     await page.getByRole('button', { name: 'Выйти' }).click()
@@ -41,6 +41,6 @@ test.describe('онбординг: регистрация, анкета пито
     await page.getByRole('button', { name: 'Войти', exact: true }).click()
 
     await page.waitForURL('/')
-    await expect(page.getByText('AnimalFriendly')).toBeVisible()
+    await expect(page.getByText('AnimalFriendly').first()).toBeVisible()
   })
 })

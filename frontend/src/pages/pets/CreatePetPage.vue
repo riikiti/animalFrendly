@@ -4,7 +4,7 @@ import CreatePetForm from '@/features/pet/create-pet/CreatePetForm.vue'
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-6 px-6 py-10 md:max-w-lg lg:max-w-2xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-6 px-6 py-10 md:max-w-lg lg:max-w-4xl lg:px-8"
   >
     <div class="flex flex-col gap-1">
       <span class="font-display text-xl text-ink">Анкета питомца</span>

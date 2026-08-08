@@ -33,7 +33,7 @@ async function change(productId: string, quantity: number): Promise<void> {
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 pb-8 md:max-w-lg lg:max-w-2xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 pb-8 md:max-w-lg lg:max-w-4xl lg:px-8"
   >
     <div class="flex items-center gap-2 px-2">
       <button

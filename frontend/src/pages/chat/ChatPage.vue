@@ -99,7 +99,7 @@ async function send(): Promise<void> {
 </script>
 
 <template>
-  <div class="mx-auto flex h-screen max-w-sm flex-col px-4 py-4 md:max-w-lg lg:max-w-2xl lg:px-8">
+  <div class="mx-auto flex h-screen max-w-sm flex-col px-4 py-4 md:max-w-lg lg:max-w-4xl lg:px-8">
     <div class="flex items-center gap-2 pb-3">
       <button
         class="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-soft"

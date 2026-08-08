@@ -49,7 +49,7 @@ const hasShelters = computed(() => shelters.value.length > 0)
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pb-0 pt-6 md:max-w-lg lg:max-w-4xl lg:px-8"
   >
     <div class="flex items-center justify-between px-2">
       <span class="font-display text-xl font-bold text-ink">Приюты</span>

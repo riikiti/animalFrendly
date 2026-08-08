@@ -125,7 +125,7 @@ test('pet photo is visible in the feed, and a match triggers an in-app notificat
 
   // У A должен появиться бейдж непрочитанного уведомления о новом мэтче.
   await pageA.reload()
-  await expect(pageA.getByText('1', { exact: true })).toBeVisible({ timeout: 10_000 })
+  await expect(pageA.getByText('1', { exact: true }).first()).toBeVisible({ timeout: 10_000 })
 
   await pageA.getByRole('button', { name: 'Уведомления' }).click()
   await pageA.waitForURL('/notifications')

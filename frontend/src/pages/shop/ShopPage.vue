@@ -54,7 +54,7 @@ function toggleCategory(slug: string): void {
 
 <template>
   <div
-    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-2xl lg:px-8"
+    class="mx-auto flex min-h-screen max-w-sm flex-col gap-4 px-4 pt-6 md:max-w-lg lg:max-w-4xl lg:px-8"
   >
     <div class="flex items-center justify-between gap-2 px-2">
       <h1 class="font-display text-xl font-bold text-ink">Маркет</h1>
@@ -106,7 +106,7 @@ function toggleCategory(slug: string): void {
       </BaseChip>
     </div>
 
-    <div v-if="isLoading" class="grid grid-cols-2 gap-3 px-2">
+    <div v-if="isLoading" class="grid grid-cols-2 gap-3 px-2 md:grid-cols-3 lg:grid-cols-4">
       <div v-for="cell in 4" :key="cell" class="flex flex-col gap-2">
         <BaseSkeleton variant="block" width="full" height="120px" />
         <BaseSkeleton width="80%" />
@@ -124,7 +124,7 @@ function toggleCategory(slug: string): void {
       </BaseEmptyState>
     </div>
 
-    <div v-else class="grid grid-cols-2 gap-3 px-2 pb-4">
+    <div v-else class="grid grid-cols-2 gap-3 px-2 pb-4 md:grid-cols-3 lg:grid-cols-4">
       <button
         v-for="product in products"
         :key="product.id"
