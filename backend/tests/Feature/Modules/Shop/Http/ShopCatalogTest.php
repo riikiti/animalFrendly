@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Modules\Identity\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Modules\Shop\Infrastructure\Persistence\Eloquent\Models\ShopCategory;
 use App\Modules\Shop\Infrastructure\Persistence\Eloquent\Models\ShopProduct;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 function shopCategory(): ShopCategory
 {
@@ -143,6 +145,42 @@ it('lets a seller publish a product and see it among their own', function (): vo
     $mine = $this->actingAs($seller)->getJson('/api/v1/shop/my-products')->assertOk();
 
     expect(array_column($mine->json('data'), 'title'))->toBe(['Лежанка']);
+});
+
+it('attaches a photo to a product and replaces it on re-upload', function (): void {
+    Storage::fake('public');
+
+    $seller = User::factory()->create();
+    $product = shopProduct($seller, shopCategory());
+
+    $first = $this->actingAs($seller)
+        ->postJson("/api/v1/shop/products/{$product->id}/photo", [
+            'photo' => UploadedFile::fake()->image('food.jpg'),
+        ])
+        ->assertOk();
+
+    expect($first->json('data.photo_url'))->not->toBeNull();
+
+    $second = $this->actingAs($seller)
+        ->postJson("/api/v1/shop/products/{$product->id}/photo", [
+            'photo' => UploadedFile::fake()->image('food-2.jpg'),
+        ])
+        ->assertOk();
+
+    // Карточка держит одну картинку: вторая загрузка заменяет первую.
+    expect($second->json('data.photo_url'))->not->toBe($first->json('data.photo_url'));
+});
+
+it('does not let a stranger attach a photo to someone else product', function (): void {
+    Storage::fake('public');
+
+    $product = shopProduct(User::factory()->create(), shopCategory());
+
+    $this->actingAs(User::factory()->create())
+        ->postJson("/api/v1/shop/products/{$product->id}/photo", [
+            'photo' => UploadedFile::fake()->image('food.jpg'),
+        ])
+        ->assertForbidden();
 });
 
 it('does not let one seller edit another seller product', function (): void {

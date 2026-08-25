@@ -63,6 +63,13 @@ export function updateProduct(
   return apiRequest(`/api/v1/shop/products/${id}`, { method: 'PATCH', body: payload })
 }
 
+export function uploadProductPhoto(id: string, file: File): Promise<{ data: ShopProduct }> {
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  return apiRequest(`/api/v1/shop/products/${id}/photo`, { method: 'POST', body: formData })
+}
+
 export function archiveProduct(id: string): Promise<{ data: ShopProduct }> {
   return apiRequest(`/api/v1/shop/products/${id}/archive`, { method: 'POST' })
 }

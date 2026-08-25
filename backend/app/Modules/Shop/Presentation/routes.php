@@ -15,6 +15,7 @@ Route::prefix('v1/shop')->group(function (): void {
         Route::get('/my-products', [ShopController::class, 'myProducts']);
         Route::post('/products', [ShopController::class, 'createProduct']);
         Route::patch('/products/{id}', [ShopController::class, 'updateProduct']);
+        Route::post('/products/{id}/photo', [ShopController::class, 'uploadProductPhoto']);
         Route::post('/products/{id}/archive', [ShopController::class, 'archiveProduct']);
 
         Route::get('/delivery-options', [ShopOrderController::class, 'deliveryOptions']);

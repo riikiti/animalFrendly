@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Shop\Presentation\Http\Controllers;
 
+use App\Modules\Shop\Application\Contracts\MediaUploaderInterface;
 use App\Modules\Shop\Application\Services\CartService;
 use App\Modules\Shop\Domain\Entities\Product;
 use App\Modules\Shop\Domain\Exceptions\CannotBuyOwnProductException;
@@ -14,12 +15,14 @@ use App\Modules\Shop\Domain\Repositories\CategoryRepositoryInterface;
 use App\Modules\Shop\Domain\Repositories\ProductRepositoryInterface;
 use App\Modules\Shop\Presentation\Http\Requests\AddToCartRequest;
 use App\Modules\Shop\Presentation\Http\Requests\SaveProductRequest;
+use App\Modules\Shop\Presentation\Http\Requests\UploadProductPhotoRequest;
 use App\Modules\Shop\Presentation\Http\Resources\CategoryResource;
 use App\Modules\Shop\Presentation\Http\Resources\ProductResource;
 use App\Shared\Domain\ValueObjects\Id;
 use App\Shared\Domain\ValueObjects\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 final class ShopController
 {
@@ -105,6 +108,36 @@ final class ShopController
             $request->string('photo_url')->toString() ?: null,
         );
 
+        $this->products->save($product);
+
+        return response()->json(['data' => new ProductResource($product)]);
+    }
+
+    /**
+     * Фото товара: карточка держит одну картинку, повторная загрузка её заменяет.
+     */
+    public function uploadProductPhoto(
+        string $id,
+        UploadProductPhotoRequest $request,
+        MediaUploaderInterface $uploader,
+    ): JsonResponse {
+        $product = $this->ownedProduct($id, $request);
+        $photo = $request->file('photo');
+
+        if (! $photo instanceof UploadedFile) {
+            abort(422, 'Файл не передан.');
+        }
+
+        $uploaded = $uploader->upload($photo, Id::fromString($this->userId($request)));
+
+        $product->update(
+            $product->title(),
+            $product->description(),
+            $product->price(),
+            $product->stock(),
+            $product->categoryId(),
+            $uploaded->url,
+        );
         $this->products->save($product);
 
         return response()->json(['data' => new ProductResource($product)]);

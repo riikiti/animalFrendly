@@ -9,9 +9,11 @@ use App\Modules\Media\Domain\Repositories\MediaRepositoryInterface;
 use App\Modules\Media\Infrastructure\Adapters\IdentityMediaUploader;
 use App\Modules\Media\Infrastructure\Adapters\ProfileMediaUploader;
 use App\Modules\Media\Infrastructure\Adapters\ShelterMediaUploader;
+use App\Modules\Media\Infrastructure\Adapters\ShopMediaUploader;
 use App\Modules\Media\Infrastructure\Persistence\Eloquent\Repositories\EloquentMediaRepository;
 use App\Modules\Profile\Application\Contracts\MediaUploaderInterface;
 use App\Modules\Shelter\Application\Contracts\MediaUploaderInterface as ShelterMediaUploaderInterface;
+use App\Modules\Shop\Application\Contracts\MediaUploaderInterface as ShopMediaUploaderInterface;
 use Illuminate\Support\ServiceProvider;
 
 final class MediaServiceProvider extends ServiceProvider
@@ -25,5 +27,6 @@ final class MediaServiceProvider extends ServiceProvider
         $this->app->bind(MediaUploaderInterface::class, ProfileMediaUploader::class);
         $this->app->bind(IdentityMediaUploaderInterface::class, IdentityMediaUploader::class);
         $this->app->bind(ShelterMediaUploaderInterface::class, ShelterMediaUploader::class);
+        $this->app->bind(ShopMediaUploaderInterface::class, ShopMediaUploader::class);
     }
 }

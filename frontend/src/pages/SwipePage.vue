@@ -11,6 +11,7 @@ import { useNotificationStore } from '@/entities/notification/model'
 import { usePetStore } from '@/entities/pet/model'
 import type { Pet } from '@/entities/pet/types'
 import { ApiError } from '@/shared/api/http'
+import BaseButton from '@/shared/ui/components/BaseButton.vue'
 import BaseChip from '@/shared/ui/components/BaseChip.vue'
 import BaseCounter from '@/shared/ui/components/BaseCounter.vue'
 import BaseEmptyState from '@/shared/ui/components/BaseEmptyState.vue'
@@ -234,7 +235,7 @@ async function goToChat(): Promise<void> {
       </div>
     </div>
 
-    <div v-if="petStore.myPets.length > 1" class="flex flex-wrap gap-2 px-2">
+    <div v-if="petStore.myPets.length > 1" class="flex flex-wrap gap-2 px-2 lg:hidden">
       <BaseChip
         v-for="pet in petStore.myPets"
         :key="pet.id"
@@ -247,44 +248,82 @@ async function goToChat(): Promise<void> {
     </div>
 
     <template v-if="!isLoading">
-      <!-- Tinder-карточка остаётся компактной и по центру даже на широком десктопном
+      <!-- На десктопе рядом с карточкой появляется колонка: там переключатель своих анкет
+      и буст, которые на телефоне висят над карточкой и отъедают у неё высоту. -->
+      <div class="lg:grid lg:grid-cols-[1fr_260px] lg:items-start lg:gap-6">
+        <!-- Tinder-карточка остаётся компактной и по центру даже на широком десктопном
       экране — растягивать её до ширины страницы (см. лимиты выше) выглядело бы не по-Tinder'ски. -->
-      <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4 lg:max-h-[640px]">
-        <PetCard
-          v-if="candidates.length > 0"
-          :key="candidates[0].id"
-          :pet="candidates[0]"
-          @swipe="onSwipe"
-        />
-        <BaseEmptyState
-          v-else
-          class="min-h-[420px] flex-1"
-          title="Пока новых анкет рядом нет"
-          description="Загляните позже — мы покажем питомцев, которые появятся поблизости."
-        >
-          <template #icon><PawPrint class="size-8" /></template>
-        </BaseEmptyState>
+        <div class="mx-auto flex w-full max-w-sm flex-1 flex-col gap-4 lg:max-h-[640px]">
+          <PetCard
+            v-if="candidates.length > 0"
+            :key="candidates[0].id"
+            :pet="candidates[0]"
+            @swipe="onSwipe"
+          />
+          <BaseEmptyState
+            v-else
+            class="min-h-[420px] flex-1"
+            title="Пока новых анкет рядом нет"
+            description="Загляните позже — мы покажем питомцев, которые появятся поблизости."
+          >
+            <template #icon><PawPrint class="size-8" /></template>
+          </BaseEmptyState>
 
-        <button
-          class="inline-flex items-center gap-1.5 self-center text-[13px] font-bold text-accent-text disabled:opacity-50"
-          :disabled="isBoosting"
-          @click="onBoost"
-        >
-          <Sparkles class="size-4" aria-hidden="true" />
-          {{ isBoosting ? 'Бустим…' : 'Забустить анкету' }}
-        </button>
+          <button
+            class="inline-flex items-center gap-1.5 self-center text-[13px] font-bold text-accent-text disabled:opacity-50 lg:hidden"
+            :disabled="isBoosting"
+            @click="onBoost"
+          >
+            <Sparkles class="size-4" aria-hidden="true" />
+            {{ isBoosting ? 'Бустим…' : 'Забустить анкету' }}
+          </button>
 
-        <div class="flex items-center justify-center gap-4 py-2">
-          <BaseIconButton label="Пропустить" elevated @click="onSwipe('dislike')">
-            <X class="size-6" />
-          </BaseIconButton>
-          <BaseIconButton label="Суперлайк" tone="success" elevated @click="onSwipe('super_like')">
-            <Star class="size-5 fill-current" />
-          </BaseIconButton>
-          <BaseIconButton label="Лайк" tone="active" size="lg" elevated @click="onSwipe('like')">
-            <Heart class="size-7 fill-current" />
-          </BaseIconButton>
+          <div class="flex items-center justify-center gap-4 py-2">
+            <BaseIconButton label="Пропустить" elevated @click="onSwipe('dislike')">
+              <X class="size-6" />
+            </BaseIconButton>
+            <BaseIconButton
+              label="Суперлайк"
+              tone="success"
+              elevated
+              @click="onSwipe('super_like')"
+            >
+              <Star class="size-5 fill-current" />
+            </BaseIconButton>
+            <BaseIconButton label="Лайк" tone="active" size="lg" elevated @click="onSwipe('like')">
+              <Heart class="size-7 fill-current" />
+            </BaseIconButton>
+          </div>
         </div>
+
+        <aside class="hidden flex-col gap-4 lg:flex">
+          <div
+            v-if="petStore.myPets.length > 1"
+            class="flex flex-col gap-2.5 rounded-card border border-hairline bg-surface p-4"
+          >
+            <span class="text-sm font-semibold text-ink-soft">Ваши анкеты</span>
+            <div class="flex flex-wrap gap-2">
+              <BaseChip
+                v-for="pet in petStore.myPets"
+                :key="pet.id"
+                interactive
+                :tone="myPet?.id === pet.id ? 'accent' : 'neutral'"
+                @click="switchPet(pet)"
+              >
+                {{ pet.name }}
+              </BaseChip>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2.5 rounded-card border border-hairline bg-surface p-4">
+            <span class="text-sm font-semibold text-ink-soft">Продвижение</span>
+            <p class="text-xs text-ink-faint">Буст поднимает анкету в ленте у тех, кто рядом.</p>
+            <BaseButton variant="outline" :loading="isBoosting" @click="onBoost">
+              <Sparkles class="size-4" aria-hidden="true" />
+              Забустить анкету
+            </BaseButton>
+          </div>
+        </aside>
       </div>
     </template>
 
