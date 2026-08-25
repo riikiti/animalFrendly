@@ -103,7 +103,7 @@ it('refuses to buy your own product', function (): void {
         ->assertStatus(422);
 });
 
-it('keeps the cart to a single seller', function (): void {
+it('keeps products of different sellers in one cart, grouped by seller', function (): void {
     $category = shopCategory();
     $buyer = User::factory()->create();
     $first = shopProduct(User::factory()->create(), $category);
@@ -111,9 +111,14 @@ it('keeps the cart to a single seller', function (): void {
 
     $this->actingAs($buyer)->postJson('/api/v1/shop/cart', ['product_id' => $first->id])->assertOk();
 
-    $this->actingAs($buyer)
+    $response = $this->actingAs($buyer)
         ->postJson('/api/v1/shop/cart', ['product_id' => $second->id])
-        ->assertStatus(422);
+        ->assertOk();
+
+    // Оба товара лежат в корзине, но разложены по продавцам — на них уйдут разные заказы.
+    expect($response->json('data.items'))->toHaveCount(2)
+        ->and($response->json('data.groups'))->toHaveCount(2)
+        ->and($response->json('data.total_amount'))->toBe(258000);
 });
 
 it('drops a cart line when the product is gone', function (): void {

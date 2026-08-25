@@ -8,7 +8,7 @@ import type { Cart } from './types'
  * а не только на самой странице корзины.
  */
 export const useCartStore = defineStore('shop-cart', () => {
-  const cart = ref<Cart>({ items: [], seller_id: null, total_amount: 0, currency: 'RUB' })
+  const cart = ref<Cart>({ items: [], groups: [], total_amount: 0, currency: 'RUB' })
   const isLoading = ref(false)
 
   const count = computed(() => cart.value.items.reduce((sum, line) => sum + line.quantity, 0))
@@ -36,7 +36,7 @@ export const useCartStore = defineStore('shop-cart', () => {
   }
 
   function clearLocally(): void {
-    cart.value = { items: [], seller_id: null, total_amount: 0, currency: 'RUB' }
+    cart.value = { items: [], groups: [], total_amount: 0, currency: 'RUB' }
   }
 
   return { cart, isLoading, count, isEmpty, fetch, add, setQuantity, remove, clearLocally }

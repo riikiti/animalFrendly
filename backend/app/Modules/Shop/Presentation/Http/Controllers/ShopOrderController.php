@@ -55,7 +55,10 @@ final class ShopOrderController
         }
 
         return response()->json([
-            'data' => new ShopOrderResource($result['order']),
+            'data' => ShopOrderResource::collection($result['orders']),
+            'checkout_id' => $result['checkout_id']->toString(),
+            'amount' => $result['amount']->minorUnits,
+            'currency' => $result['amount']->currency,
             'confirmation_url' => $result['confirmation_url'],
         ], 201);
     }

@@ -12,7 +12,11 @@ use App\Shared\Domain\ValueObjects\Money;
 
 function checkoutCategory(): ShopCategory
 {
-    return ShopCategory::query()->create(['slug' => 'food', 'name' => 'Корма', 'position' => 10]);
+    // firstOrCreate: в тестах на нескольких продавцов помощник вызывается по разу на товар.
+    return ShopCategory::query()->firstOrCreate(
+        ['slug' => 'food'],
+        ['name' => 'Корма', 'position' => 10],
+    );
 }
 
 /**
@@ -45,15 +49,57 @@ it('turns the cart into an order and adds the delivery price', function (): void
         'delivery_address' => 'Москва, Тверская 1',
     ])->assertCreated();
 
-    expect($response->json('data.items_amount'))->toBe(200000)
-        ->and($response->json('data.delivery_amount'))->toBe(20000)
-        ->and($response->json('data.amount'))->toBe(220000)
-        ->and($response->json('data.status'))->toBe('pending_payment');
+    expect($response->json('data'))->toHaveCount(1)
+        ->and($response->json('data.0.items_amount'))->toBe(200000)
+        ->and($response->json('data.0.delivery_amount'))->toBe(20000)
+        ->and($response->json('data.0.amount'))->toBe(220000)
+        ->and($response->json('amount'))->toBe(220000)
+        ->and($response->json('data.0.status'))->toBe('pending_payment');
 
     // Корзина после оформления пуста, остаток списан.
     $cart = $this->actingAs($buyer)->getJson('/api/v1/shop/cart')->assertOk();
     expect($cart->json('data.items'))->toBeEmpty()
         ->and(ShopProduct::query()->find($product->id)->stock)->toBe(3);
+});
+
+it('splits a multi-seller cart into an order per seller under one payment', function (): void {
+    $buyer = User::factory()->create();
+    $firstSeller = User::factory()->create();
+    $secondSeller = User::factory()->create();
+
+    $first = checkoutProduct($firstSeller, ['title' => 'Корм', 'price_amount' => 100000]);
+    $second = checkoutProduct($secondSeller, ['title' => 'Лежанка', 'price_amount' => 250000]);
+
+    foreach ([$first, $second] as $product) {
+        $this->actingAs($buyer)
+            ->postJson('/api/v1/shop/cart', ['product_id' => $product->id])
+            ->assertOk();
+    }
+
+    $created = $this->actingAs($buyer)->postJson('/api/v1/shop/orders', [
+        'delivery_method' => 'pvz',
+        'delivery_address' => 'Москва',
+    ])->assertCreated();
+
+    // Два заказа, у каждого своя доставка: посылки едут от разных продавцов.
+    expect($created->json('data'))->toHaveCount(2)
+        ->and($created->json('amount'))->toBe(100000 + 250000 + 2 * 20000);
+
+    $sellers = array_column($created->json('data'), 'seller_id');
+    expect($sellers)->toContain($firstSeller->id)->toContain($secondSeller->id);
+
+    // Один платёж на оформление переводит на эскроу оба заказа.
+    app(DomainEventDispatcherInterface::class)->dispatch(new PaymentSucceeded(
+        'shop_checkout',
+        Id::fromString($created->json('checkout_id')),
+        Money::fromMinorUnits($created->json('amount')),
+        new DateTimeImmutable,
+        [],
+    ));
+
+    $orders = $this->actingAs($buyer)->getJson('/api/v1/shop/orders')->assertOk();
+
+    expect(array_column($orders->json('data'), 'status'))->toBe(['paid_escrow', 'paid_escrow']);
 });
 
 it('requires an address for delivery but not for pickup', function (): void {
@@ -88,11 +134,11 @@ it('holds the money in escrow and takes commission only from the goods', functio
         'delivery_address' => 'Москва',
     ])->assertCreated();
 
-    $orderId = $created->json('data.id');
+    $orderId = $created->json('data.0.id');
 
     app(DomainEventDispatcherInterface::class)->dispatch(new PaymentSucceeded(
-        'shop_order',
-        Id::fromString($orderId),
+        'shop_checkout',
+        Id::fromString($created->json('checkout_id')),
         Money::fromMinorUnits(120000),
         new DateTimeImmutable,
         [],
@@ -113,13 +159,12 @@ it('completes the order only after both sides confirm', function (): void {
     $product = checkoutProduct($seller);
 
     $this->actingAs($buyer)->postJson('/api/v1/shop/cart', ['product_id' => $product->id])->assertOk();
-    $orderId = $this->actingAs($buyer)
-        ->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup'])
-        ->json('data.id');
+    $created = $this->actingAs($buyer)->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup']);
+    $orderId = $created->json('data.0.id');
 
     app(DomainEventDispatcherInterface::class)->dispatch(new PaymentSucceeded(
-        'shop_order',
-        Id::fromString($orderId),
+        'shop_checkout',
+        Id::fromString($created->json('checkout_id')),
         Money::fromMinorUnits(100000),
         new DateTimeImmutable,
         [],
@@ -142,7 +187,7 @@ it('returns goods to stock when an unpaid order is cancelled', function (): void
 
     $orderId = $this->actingAs($buyer)
         ->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup'])
-        ->json('data.id');
+        ->json('data.0.id');
 
     expect(ShopProduct::query()->find($product->id)->stock)->toBe(1);
 
@@ -158,7 +203,7 @@ it('hides someone else order', function (): void {
     $this->actingAs($buyer)->postJson('/api/v1/shop/cart', ['product_id' => $product->id])->assertOk();
     $orderId = $this->actingAs($buyer)
         ->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup'])
-        ->json('data.id');
+        ->json('data.0.id');
 
     $this->actingAs(User::factory()->create())
         ->getJson("/api/v1/shop/orders/{$orderId}")
@@ -171,13 +216,12 @@ it('lets only the seller mark the order as shipped', function (): void {
     $product = checkoutProduct($seller);
 
     $this->actingAs($buyer)->postJson('/api/v1/shop/cart', ['product_id' => $product->id])->assertOk();
-    $orderId = $this->actingAs($buyer)
-        ->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup'])
-        ->json('data.id');
+    $created = $this->actingAs($buyer)->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup']);
+    $orderId = $created->json('data.0.id');
 
     app(DomainEventDispatcherInterface::class)->dispatch(new PaymentSucceeded(
-        'shop_order',
-        Id::fromString($orderId),
+        'shop_checkout',
+        Id::fromString($created->json('checkout_id')),
         Money::fromMinorUnits(100000),
         new DateTimeImmutable,
         [],
@@ -194,9 +238,8 @@ it('ignores a payment event for another payable type', function (): void {
     $product = checkoutProduct(User::factory()->create());
 
     $this->actingAs($buyer)->postJson('/api/v1/shop/cart', ['product_id' => $product->id])->assertOk();
-    $orderId = $this->actingAs($buyer)
-        ->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup'])
-        ->json('data.id');
+    $created = $this->actingAs($buyer)->postJson('/api/v1/shop/orders', ['delivery_method' => 'pickup']);
+    $orderId = $created->json('data.0.id');
 
     app(DomainEventDispatcherInterface::class)->dispatch(new PaymentSucceeded(
         'order',

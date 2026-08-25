@@ -9,12 +9,13 @@ use App\Modules\Shop\Domain\Entities\ShopOrder;
 use App\Modules\Shop\Domain\Entities\ShopOrderItem;
 use App\Modules\Shop\Domain\Enums\DeliveryMethod;
 use App\Modules\Shop\Domain\Exceptions\EmptyCartException;
-use App\Modules\Shop\Domain\Exceptions\ProductNotAvailableException;
 use App\Modules\Shop\Domain\Repositories\CartRepositoryInterface;
 use App\Modules\Shop\Domain\Repositories\ProductRepositoryInterface;
 use App\Modules\Shop\Domain\Repositories\ShopOrderRepositoryInterface;
 use App\Shared\Domain\ValueObjects\Id;
+use App\Shared\Domain\ValueObjects\Money;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 final class CheckoutService
 {
@@ -27,9 +28,14 @@ final class CheckoutService
     ) {}
 
     /**
-     * Оформляет корзину в заказ и сразу инициирует оплату.
+     * Оформляет корзину и инициирует оплату.
      *
-     * @return array{order: ShopOrder, confirmation_url: string}
+     * Товары разных продавцов разъезжаются на отдельные заказы: комиссия, эскроу и
+     * выплата считаются на конкретного получателя денег. Платёж при этом один — он
+     * покрывает все заказы одного оформления и связан с ними общим checkout_id.
+     * Доставка тоже считается по заказу: посылки едут от разных продавцов.
+     *
+     * @return array{orders: array<int, ShopOrder>, checkout_id: Id, amount: Money, confirmation_url: string}
      */
     public function checkout(
         Id $buyerId,
@@ -43,45 +49,57 @@ final class CheckoutService
         }
 
         return DB::transaction(function () use ($buyerId, $contents, $deliveryMethod, $deliveryAddress): array {
-            $items = [];
-            $sellerId = null;
+            $checkoutId = $this->orders->startCheckout($buyerId);
+            $orders = [];
+            $total = Money::zero();
 
-            foreach ($contents['items'] as $line) {
-                $product = $line['product'];
+            foreach ($contents['groups'] as $group) {
+                $items = [];
 
-                // Остаток мог измениться, пока корзина лежала — списываем здесь,
-                // внутри транзакции, и падаем, если товара уже не хватает.
-                $product->takeFromStock($line['quantity']);
-                $this->products->save($product);
+                foreach ($group['items'] as $line) {
+                    $product = $line['product'];
 
-                $items[] = new ShopOrderItem(
-                    Id::generate(),
-                    $product->id(),
-                    $product->title(),
-                    $product->price(),
-                    $line['quantity'],
+                    // Остаток мог измениться, пока корзина лежала — списываем здесь,
+                    // внутри транзакции, и падаем, если товара уже не хватает.
+                    $product->takeFromStock($line['quantity']);
+                    $this->products->save($product);
+
+                    $items[] = new ShopOrderItem(
+                        Id::generate(),
+                        $product->id(),
+                        $product->title(),
+                        $product->price(),
+                        $line['quantity'],
+                    );
+                }
+
+                $order = ShopOrder::create(
+                    $this->orders->nextIdentity(),
+                    $checkoutId,
+                    $buyerId,
+                    Id::fromString($group['seller_id']),
+                    $items,
+                    $deliveryMethod,
+                    $deliveryAddress,
                 );
 
-                $sellerId ??= $product->sellerId();
+                $this->orders->save($order);
+                $orders[] = $order;
+                $total = $total->add($order->amount());
             }
 
-            $order = ShopOrder::create(
-                $this->orders->nextIdentity(),
-                $buyerId,
-                $sellerId,
-                $items,
-                $deliveryMethod,
-                $deliveryAddress,
-            );
-
-            $this->orders->save($order);
+            $this->orders->setCheckoutAmount($checkoutId, $total);
             $this->cartItems->clear($buyerId);
 
-            $returnUrl = rtrim((string) config('yookassa.frontend_url'), '/')
-                ."/shop/orders/{$order->id()->toString()}";
-            $payment = $this->paymentGateway->initiate($order->id(), $order->amount(), $returnUrl);
+            $returnUrl = rtrim((string) config('yookassa.frontend_url'), '/').'/shop/orders';
+            $payment = $this->paymentGateway->initiate($checkoutId, $total, $returnUrl);
 
-            return ['order' => $order, 'confirmation_url' => $payment->confirmationUrl];
+            return [
+                'orders' => $orders,
+                'checkout_id' => $checkoutId,
+                'amount' => $total,
+                'confirmation_url' => $payment->confirmationUrl,
+            ];
         });
     }
 
@@ -102,13 +120,10 @@ final class CheckoutService
         }
     }
 
-    /**
-     * @throws ProductNotAvailableException
-     */
     public function assertDeliveryAddress(DeliveryMethod $method, ?string $address): void
     {
         if ($method->needsAddress() && ($address === null || trim($address) === '')) {
-            throw new \InvalidArgumentException('Укажите адрес доставки.');
+            throw new InvalidArgumentException('Укажите адрес доставки.');
         }
     }
 }

@@ -10,8 +10,19 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Оформление — то, что покупатель оплачивает одним платежом. Из него вырастает
+        // по заказу на каждого продавца: комиссия, эскроу и выплата считаются на получателя.
+        Schema::create('shop_checkouts', function (Blueprint $table) {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('buyer_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedBigInteger('amount');
+            $table->string('currency', 3)->default('RUB');
+            $table->timestamps();
+        });
+
         Schema::create('shop_orders', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUlid('checkout_id')->constrained('shop_checkouts')->cascadeOnDelete();
             $table->foreignUlid('buyer_id')->constrained('users')->cascadeOnDelete();
             // Заказ всегда к одному продавцу: эскроу и выплата считаются на него.
             $table->foreignUlid('seller_id')->constrained('users')->cascadeOnDelete();
@@ -53,5 +64,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('shop_order_items');
         Schema::dropIfExists('shop_orders');
+        Schema::dropIfExists('shop_checkouts');
     }
 };

@@ -8,7 +8,6 @@ use App\Modules\Shop\Application\Contracts\MediaUploaderInterface;
 use App\Modules\Shop\Application\Services\CartService;
 use App\Modules\Shop\Domain\Entities\Product;
 use App\Modules\Shop\Domain\Exceptions\CannotBuyOwnProductException;
-use App\Modules\Shop\Domain\Exceptions\CartFromSingleSellerException;
 use App\Modules\Shop\Domain\Exceptions\ProductNotAvailableException;
 use App\Modules\Shop\Domain\Exceptions\ProductNotFoundException;
 use App\Modules\Shop\Domain\Repositories\CategoryRepositoryInterface;
@@ -169,7 +168,7 @@ final class ShopController
             );
         } catch (ProductNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
-        } catch (CannotBuyOwnProductException|CartFromSingleSellerException|ProductNotAvailableException $e) {
+        } catch (CannotBuyOwnProductException|ProductNotAvailableException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
@@ -198,22 +197,31 @@ final class ShopController
     }
 
     /**
-     * @return array{data: array{items: array<int, array<string, mixed>>, seller_id: string|null, total_amount: int, currency: string}}
+     * Корзина отдаётся и плоским списком, и группами по продавцам: заказ уходит каждому
+     * продавцу свой, поэтому итог покупатель видит по группам.
+     *
+     * @return array{data: array<string, mixed>}
      */
     private function cartPayload(Id $userId, Request $request): array
     {
         $contents = $this->cart->contents($userId);
 
+        $line = static fn (array $item): array => [
+            'product' => (new ProductResource($item['product']))->toArray($request),
+            'quantity' => $item['quantity'],
+        ];
+
         return [
             'data' => [
-                'items' => array_map(
-                    static fn (array $item): array => [
-                        'product' => (new ProductResource($item['product']))->toArray($request),
-                        'quantity' => $item['quantity'],
+                'items' => array_map($line, $contents['items']),
+                'groups' => array_map(
+                    static fn (array $group): array => [
+                        'seller_id' => $group['seller_id'],
+                        'items' => array_map($line, $group['items']),
+                        'total_amount' => $group['total']->minorUnits,
                     ],
-                    $contents['items'],
+                    $contents['groups'],
                 ),
-                'seller_id' => $contents['seller_id'],
                 'total_amount' => $contents['total']->minorUnits,
                 'currency' => $contents['total']->currency,
             ],

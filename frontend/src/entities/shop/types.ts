@@ -36,10 +36,17 @@ export interface CartLine {
   quantity: number
 }
 
+/** Товары одного продавца: на них уйдёт отдельный заказ. */
+export interface CartGroup {
+  seller_id: string
+  items: CartLine[]
+  total_amount: number
+}
+
 export interface Cart {
   items: CartLine[]
-  /** Корзина держит товары одного продавца; null, когда она пуста. */
-  seller_id: string | null
+  /** Те же позиции, разложенные по продавцам. */
+  groups: CartGroup[]
   total_amount: number
   currency: string
 }
@@ -60,6 +67,8 @@ export interface ShopOrderItem {
 
 export interface ShopOrder {
   id: string
+  /** Заказы одного оформления оплачены одним платежом. */
+  checkout_id: string
   buyer_id: string
   seller_id: string
   status: ShopOrderStatus

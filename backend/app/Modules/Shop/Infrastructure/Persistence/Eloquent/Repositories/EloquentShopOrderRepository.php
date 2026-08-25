@@ -9,6 +9,7 @@ use App\Modules\Shop\Domain\Entities\ShopOrderItem;
 use App\Modules\Shop\Domain\Enums\DeliveryMethod;
 use App\Modules\Shop\Domain\Enums\ShopOrderStatus;
 use App\Modules\Shop\Domain\Repositories\ShopOrderRepositoryInterface;
+use App\Modules\Shop\Infrastructure\Persistence\Eloquent\Models\ShopCheckoutModel;
 use App\Modules\Shop\Infrastructure\Persistence\Eloquent\Models\ShopOrderItemModel;
 use App\Modules\Shop\Infrastructure\Persistence\Eloquent\Models\ShopOrderModel;
 use App\Shared\Domain\ValueObjects\Id;
@@ -24,11 +25,32 @@ final class EloquentShopOrderRepository implements ShopOrderRepositoryInterface
         return Id::generate();
     }
 
+    public function startCheckout(Id $buyerId): Id
+    {
+        $id = Id::generate();
+
+        ShopCheckoutModel::query()->create([
+            'id' => $id->toString(),
+            'buyer_id' => $buyerId->toString(),
+            'amount' => 0,
+        ]);
+
+        return $id;
+    }
+
+    public function setCheckoutAmount(Id $checkoutId, Money $amount): void
+    {
+        ShopCheckoutModel::query()
+            ->whereKey($checkoutId->toString())
+            ->update(['amount' => $amount->minorUnits, 'currency' => $amount->currency]);
+    }
+
     public function save(ShopOrder $order): void
     {
         $model = ShopOrderModel::query()->updateOrCreate(
             ['id' => $order->id()->toString()],
             [
+                'checkout_id' => $order->checkoutId()->toString(),
                 'buyer_id' => $order->buyerId()->toString(),
                 'seller_id' => $order->sellerId()->toString(),
                 'status' => $order->status()->value,
@@ -81,6 +103,16 @@ final class EloquentShopOrderRepository implements ShopOrderRepositoryInterface
             ->all();
     }
 
+    public function listByCheckout(Id $checkoutId): array
+    {
+        return ShopOrderModel::query()
+            ->with('items')
+            ->where('checkout_id', $checkoutId->toString())
+            ->get()
+            ->map(fn (ShopOrderModel $model): ShopOrder => $this->toDomain($model))
+            ->all();
+    }
+
     public function listExpiredEscrow(): array
     {
         return ShopOrderModel::query()
@@ -109,6 +141,7 @@ final class EloquentShopOrderRepository implements ShopOrderRepositoryInterface
 
         return ShopOrder::reconstitute(
             Id::fromString($model->id),
+            Id::fromString($model->checkout_id),
             Id::fromString($model->buyer_id),
             Id::fromString($model->seller_id),
             $items,

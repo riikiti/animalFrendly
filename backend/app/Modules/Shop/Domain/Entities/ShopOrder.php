@@ -23,6 +23,7 @@ final class ShopOrder
      */
     private function __construct(
         private readonly Id $id,
+        private readonly Id $checkoutId,
         private readonly Id $buyerId,
         private readonly Id $sellerId,
         private readonly array $items,
@@ -44,6 +45,7 @@ final class ShopOrder
      */
     public static function create(
         Id $id,
+        Id $checkoutId,
         Id $buyerId,
         Id $sellerId,
         array $items,
@@ -60,6 +62,7 @@ final class ShopOrder
 
         return new self(
             $id,
+            $checkoutId,
             $buyerId,
             $sellerId,
             $items,
@@ -77,6 +80,7 @@ final class ShopOrder
      */
     public static function reconstitute(
         Id $id,
+        Id $checkoutId,
         Id $buyerId,
         Id $sellerId,
         array $items,
@@ -94,6 +98,7 @@ final class ShopOrder
     ): self {
         return new self(
             $id,
+            $checkoutId,
             $buyerId,
             $sellerId,
             $items,
@@ -206,6 +211,12 @@ final class ShopOrder
     public function id(): Id
     {
         return $this->id;
+    }
+
+    /** Общий идентификатор оформления: связывает заказы, оплаченные одним платежом. */
+    public function checkoutId(): Id
+    {
+        return $this->checkoutId;
     }
 
     public function buyerId(): Id

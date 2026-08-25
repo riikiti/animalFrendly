@@ -20,6 +20,7 @@ final class ShopOrderModel extends Model
 
     protected $fillable = [
         'id',
+        'checkout_id',
         'buyer_id',
         'seller_id',
         'status',

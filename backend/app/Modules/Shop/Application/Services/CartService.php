@@ -6,7 +6,6 @@ namespace App\Modules\Shop\Application\Services;
 
 use App\Modules\Shop\Domain\Entities\Product;
 use App\Modules\Shop\Domain\Exceptions\CannotBuyOwnProductException;
-use App\Modules\Shop\Domain\Exceptions\CartFromSingleSellerException;
 use App\Modules\Shop\Domain\Exceptions\ProductNotAvailableException;
 use App\Modules\Shop\Domain\Exceptions\ProductNotFoundException;
 use App\Modules\Shop\Domain\Repositories\CartRepositoryInterface;
@@ -15,8 +14,9 @@ use App\Shared\Domain\ValueObjects\Id;
 use App\Shared\Domain\ValueObjects\Money;
 
 /**
- * Корзина держит товары одного продавца — заказ уходит ему одному, на него считаются
- * комиссия и выплата. Товар другого продавца просим оформить отдельно.
+ * Корзина может держать товары разных продавцов. При оформлении она разъезжается на
+ * отдельные заказы — по одному на продавца, потому что комиссия, эскроу и выплата
+ * считаются на конкретного получателя денег. Оплата при этом одна, см. CheckoutService.
  */
 final class CartService
 {
@@ -26,13 +26,16 @@ final class CartService
     ) {}
 
     /**
-     * @return array{items: array<int, array{product: Product, quantity: int}>, seller_id: ?string, total: Money}
+     * @return array{
+     *     items: array<int, array{product: Product, quantity: int}>,
+     *     groups: array<int, array{seller_id: string, items: array<int, array{product: Product, quantity: int}>, total: Money}>,
+     *     total: Money
+     * }
      */
     public function contents(Id $userId): array
     {
         $items = [];
         $total = Money::zero();
-        $sellerId = null;
 
         foreach ($this->cart->itemsOf($userId) as $row) {
             $product = $this->products->findById(Id::fromString($row['product_id']));
@@ -46,10 +49,30 @@ final class CartService
 
             $items[] = ['product' => $product, 'quantity' => $row['quantity']];
             $total = $total->add(Money::fromMinorUnits($product->price()->minorUnits * $row['quantity']));
-            $sellerId ??= $product->sellerId()->toString();
         }
 
-        return ['items' => $items, 'seller_id' => $sellerId, 'total' => $total];
+        return ['items' => $items, 'groups' => $this->groupBySeller($items), 'total' => $total];
+    }
+
+    /**
+     * @param  array<int, array{product: Product, quantity: int}>  $items
+     * @return array<int, array{seller_id: string, items: array<int, array{product: Product, quantity: int}>, total: Money}>
+     */
+    public function groupBySeller(array $items): array
+    {
+        $groups = [];
+
+        foreach ($items as $item) {
+            $sellerId = $item['product']->sellerId()->toString();
+
+            $groups[$sellerId] ??= ['seller_id' => $sellerId, 'items' => [], 'total' => Money::zero()];
+            $groups[$sellerId]['items'][] = $item;
+            $groups[$sellerId]['total'] = $groups[$sellerId]['total']->add(
+                Money::fromMinorUnits($item['product']->price()->minorUnits * $item['quantity']),
+            );
+        }
+
+        return array_values($groups);
     }
 
     public function add(Id $userId, Id $productId, int $quantity): void
@@ -68,14 +91,8 @@ final class CartService
             throw ProductNotAvailableException::create();
         }
 
-        $contents = $this->contents($userId);
-
-        if ($contents['seller_id'] !== null && $contents['seller_id'] !== $product->sellerId()->toString()) {
-            throw CartFromSingleSellerException::create();
-        }
-
         $already = 0;
-        foreach ($contents['items'] as $item) {
+        foreach ($this->contents($userId)['items'] as $item) {
             if ($item['product']->id()->equals($productId)) {
                 $already = $item['quantity'];
             }

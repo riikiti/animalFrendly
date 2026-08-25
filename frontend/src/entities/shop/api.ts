@@ -97,9 +97,14 @@ export function listDeliveryOptions(): Promise<{ data: DeliveryOption[] }> {
   return apiRequest('/api/v1/shop/delivery-options')
 }
 
-export function checkout(
-  payload: CheckoutPayload,
-): Promise<{ data: ShopOrder; confirmation_url: string }> {
+/** Оформление разъезжается на заказ по каждому продавцу, но платёж один. */
+export function checkout(payload: CheckoutPayload): Promise<{
+  data: ShopOrder[]
+  checkout_id: string
+  amount: number
+  currency: string
+  confirmation_url: string
+}> {
   return apiRequest('/api/v1/shop/orders', { method: 'POST', body: payload })
 }
 

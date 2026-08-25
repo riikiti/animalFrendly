@@ -62,50 +62,68 @@ async function change(productId: string, quantity: number): Promise<void> {
     </div>
 
     <template v-else>
-      <div class="flex flex-col gap-2.5 px-2">
+      <div class="flex flex-col gap-4 px-2">
+        <!-- Товары разложены по продавцам: на каждого уйдёт свой заказ, оплата при этом
+        одна на всё. -->
         <div
-          v-for="line in cartStore.cart.items"
-          :key="line.product.id"
-          class="flex gap-3 rounded-card border border-hairline bg-surface p-3"
+          v-for="(group, index) in cartStore.cart.groups"
+          :key="group.seller_id"
+          class="flex flex-col gap-2.5"
         >
-          <span
-            class="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-soft"
+          <div
+            v-if="cartStore.cart.groups.length > 1"
+            class="flex items-baseline justify-between px-1"
           >
-            <img
-              v-if="line.product.photo_url"
-              :src="line.product.photo_url"
-              :alt="line.product.title"
-              class="size-full object-cover"
-            />
-            <Store v-else class="size-6 text-ink-faint" aria-hidden="true" />
-          </span>
+            <span class="text-sm font-semibold text-ink-soft">Продавец {{ index + 1 }}</span>
+            <span class="text-xs text-ink-faint">отдельный заказ</span>
+          </div>
 
-          <div class="flex min-w-0 flex-1 flex-col gap-2">
-            <div class="flex items-start justify-between gap-2">
-              <span class="line-clamp-2 text-[13px] font-semibold text-ink">{{
-                line.product.title
-              }}</span>
-              <BaseIconButton
-                label="Убрать из корзины"
-                size="sm"
-                tone="danger"
-                @click="cartStore.remove(line.product.id)"
-              >
-                <Trash2 class="size-4" />
-              </BaseIconButton>
-            </div>
-
-            <div class="flex items-center justify-between gap-2">
-              <BaseStepper
-                :model-value="line.quantity"
-                aria-label="Количество"
-                :min="1"
-                :max="line.product.stock"
-                @update:model-value="change(line.product.id, $event)"
+          <div
+            v-for="line in group.items"
+            :key="line.product.id"
+            class="flex gap-3 rounded-card border border-hairline bg-surface p-3"
+          >
+            <span
+              class="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-soft"
+            >
+              <img
+                v-if="line.product.photo_url"
+                :src="line.product.photo_url"
+                :alt="line.product.title"
+                class="size-full object-cover"
               />
-              <span class="font-display text-[15px] font-bold text-ink">
-                {{ formatPrice(line.product.price_amount * line.quantity, line.product.currency) }}
-              </span>
+              <Store v-else class="size-6 text-ink-faint" aria-hidden="true" />
+            </span>
+
+            <div class="flex min-w-0 flex-1 flex-col gap-2">
+              <div class="flex items-start justify-between gap-2">
+                <span class="line-clamp-2 text-[13px] font-semibold text-ink">{{
+                  line.product.title
+                }}</span>
+                <BaseIconButton
+                  label="Убрать из корзины"
+                  size="sm"
+                  tone="danger"
+                  @click="cartStore.remove(line.product.id)"
+                >
+                  <Trash2 class="size-4" />
+                </BaseIconButton>
+              </div>
+
+              <div class="flex items-center justify-between gap-2">
+                <BaseStepper
+                  :model-value="line.quantity"
+                  aria-label="Количество"
+                  :min="1"
+                  :max="line.product.stock"
+                  @update:model-value="change(line.product.id, $event)"
+                />
+                <span class="font-display text-[15px] font-bold text-ink">
+                  {{
+                    formatPrice(line.product.price_amount * line.quantity, cartStore.cart.currency)
+                  }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -118,7 +136,13 @@ async function change(productId: string, quantity: number): Promise<void> {
             :value="formatPrice(cartStore.cart.total_amount, cartStore.cart.currency)"
             variant="total"
           />
-          <p class="mt-2 text-xs text-ink-faint">Доставку посчитаем на следующем шаге.</p>
+          <p class="mt-2 text-xs text-ink-faint">
+            {{
+              cartStore.cart.groups.length > 1
+                ? `Заказов будет ${cartStore.cart.groups.length} — по одному на продавца, оплата одна. Доставку посчитаем на следующем шаге.`
+                : 'Доставку посчитаем на следующем шаге.'
+            }}
+          </p>
         </div>
 
         <BaseButton size="lg" block @click="router.push({ name: 'shop-checkout' })">

@@ -19,24 +19,27 @@ final class MarkShopOrderPaidOnPaymentSucceeded
 
     public function handle(PaymentSucceeded $event): void
     {
-        if ($event->payableType !== 'shop_order') {
+        if ($event->payableType !== 'shop_checkout') {
             return;
         }
 
-        $order = $this->orders->findById($event->payableId);
+        // Один платёж покрывает все заказы оформления — по одному на продавца.
+        $orders = $this->orders->listByCheckout($event->payableId);
 
-        // Вебхук может прийти повторно — идемпотентность по итоговому состоянию,
-        // см. docs/rules/04-payments-escrow.md.
-        if ($order === null || $order->status() !== ShopOrderStatus::PendingPayment) {
-            return;
-        }
+        DB::transaction(function () use ($orders): void {
+            foreach ($orders as $order) {
+                // Вебхук может прийти повторно — идемпотентность по итоговому состоянию,
+                // см. docs/rules/04-payments-escrow.md.
+                if ($order->status() !== ShopOrderStatus::PendingPayment) {
+                    continue;
+                }
 
-        DB::transaction(function () use ($order): void {
-            $order->markPaid(
-                $this->commissionRates->basisPointsFor($order->sellerId()),
-                (int) config('yookassa.escrow_hold_days'),
-            );
-            $this->orders->save($order);
+                $order->markPaid(
+                    $this->commissionRates->basisPointsFor($order->sellerId()),
+                    (int) config('yookassa.escrow_hold_days'),
+                );
+                $this->orders->save($order);
+            }
         });
     }
 }

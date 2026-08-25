@@ -32,6 +32,20 @@ async function register(context: BrowserContext, petName: string): Promise<Page>
   return page
 }
 
+/** Заказы покупателя через API: после оплаты страница уходит на редирект, и тело ответа теряется. */
+async function fetchOrders(page: Page): Promise<Array<Record<string, string>>> {
+  return page.evaluate(async (api) => {
+    const response = await fetch(`${api}/api/v1/shop/orders`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('af_token')}`,
+      },
+    })
+
+    return (await response.json()).data
+  }, API_URL)
+}
+
 test('товар → корзина → заказ с доставкой → эскроу → подтверждение обеими сторонами', async ({
   browser,
 }) => {
@@ -76,23 +90,24 @@ test('товар → корзина → заказ с доставкой → э�
   await expect(buyerPage.getByText('1 490 ₽')).toBeVisible()
 
   await buyerPage.getByRole('button', { name: 'Перейти к оплате' }).click()
-  await buyerPage.waitForURL(/\/shop\/orders\//)
+  await buyerPage.waitForURL('/shop/orders')
 
-  const orderId = buyerPage.url().split('/shop/orders/')[1]
-  expect(orderId).toBeTruthy()
+  const [order] = await fetchOrders(buyerPage)
+  const orderId = order.id
 
-  // Эмулируем успешный вебхук — заказ переходит на эскроу.
+  // Эмулируем успешный вебхук — платёж привязан к оформлению, а не к отдельному заказу.
   const webhookResponse = await buyerPage.request.post(
     `${API_URL}/api/v1/payments/webhooks/yookassa`,
     {
       data: {
         event: 'payment.succeeded',
-        object: { id: `local-${orderId}:create`, status: 'succeeded' },
+        object: { id: `local-${order.checkout_id}:create`, status: 'succeeded' },
       },
     },
   )
   expect(webhookResponse.ok()).toBeTruthy()
 
+  await buyerPage.goto(`/shop/orders/${orderId}`)
   await expect(buyerPage.getByText('Оплачен, деньги на удержании')).toBeVisible({ timeout: 15_000 })
 
   // Продавец отправляет заказ и подтверждает, покупатель тоже — заказ завершается.
@@ -111,7 +126,9 @@ test('товар → корзина → заказ с доставкой → э�
   await buyerContext.close()
 })
 
-test('корзина держит товары одного продавца', async ({ browser }) => {
+test('корзина с двумя продавцами разъезжается на два заказа под одной оплатой', async ({
+  browser,
+}) => {
   test.setTimeout(120_000)
 
   const firstTitle = `Игрушка${Date.now()}`
@@ -139,21 +156,53 @@ test('корзина держит товары одного продавца', a
   const buyerContext = await browser.newContext()
   const buyerPage = await register(buyerContext, `Покупатель${Date.now()}`)
 
-  for (const [index, title] of [firstTitle, secondTitle].entries()) {
+  for (const title of [firstTitle, secondTitle]) {
     await buyerPage.goto('/shop')
     await buyerPage.getByPlaceholder('Корм, игрушка, лежанка').fill(title)
     await buyerPage.getByText(title).click()
     await buyerPage.waitForURL(/\/shop\/products\//)
     await buyerPage.getByRole('button', { name: 'В корзину' }).click()
-
-    if (index === 0) {
-      await expect(buyerPage.getByText('Добавлено в корзину')).toBeVisible()
-      continue
-    }
-
-    // Второй товар — от другого продавца, его класть нельзя.
-    await expect(buyerPage.getByText('другого продавца')).toBeVisible()
+    await expect(buyerPage.getByText('Добавлено в корзину')).toBeVisible()
   }
+
+  // В корзине товары обоих продавцов, и она предупреждает о двух заказах.
+  await buyerPage.goto('/shop/cart')
+  await expect(buyerPage.getByText('Заказов будет 2')).toBeVisible()
+
+  await buyerPage.getByRole('button', { name: 'Оформить заказ' }).click()
+  await buyerPage.waitForURL('/shop/checkout')
+
+  await buyerPage.getByRole('radio', { name: 'Самовывоз' }).click()
+  await buyerPage.getByRole('button', { name: 'Перейти к оплате' }).click()
+  await buyerPage.waitForURL('/shop/orders')
+
+  // Два заказа под одним оформлением: самовывоз бесплатный, значит ровно сумма товаров.
+  const orders = await fetchOrders(buyerPage)
+  expect(orders).toHaveLength(2)
+  expect(new Set(orders.map((order) => order.checkout_id)).size).toBe(1)
+
+  const webhookResponse = await buyerPage.request.post(
+    `${API_URL}/api/v1/payments/webhooks/yookassa`,
+    {
+      data: {
+        event: 'payment.succeeded',
+        object: { id: `local-${orders[0].checkout_id}:create`, status: 'succeeded' },
+      },
+    },
+  )
+  expect(webhookResponse.ok()).toBeTruthy()
+
+  // Один платёж перевёл на эскроу оба заказа. Вебхук обрабатывается очередью, а список
+  // заказов не опрашивает сервер — поэтому сначала дожидаемся статуса в API, потом
+  // перезагружаем страницу и проверяем, что он виден.
+  await expect
+    .poll(async () => (await fetchOrders(buyerPage)).map((order) => order.status).sort(), {
+      timeout: 15_000,
+    })
+    .toEqual(['paid_escrow', 'paid_escrow'])
+
+  await buyerPage.reload()
+  await expect(buyerPage.getByText('На удержании')).toHaveCount(2)
 
   await buyerContext.close()
 })

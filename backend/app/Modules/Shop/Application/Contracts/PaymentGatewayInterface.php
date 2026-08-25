@@ -14,5 +14,5 @@ use App\Shared\Domain\ValueObjects\Money;
  */
 interface PaymentGatewayInterface
 {
-    public function initiate(Id $orderId, Money $amount, string $returnUrl): PaymentInitiationResult;
+    public function initiate(Id $checkoutId, Money $amount, string $returnUrl): PaymentInitiationResult;
 }

@@ -24,6 +24,8 @@ final class ShopOrderResource extends JsonResource
 
         return [
             'id' => $order->id()->toString(),
+            // Заказы одного оформления оплачены вместе — по нему их можно сгруппировать.
+            'checkout_id' => $order->checkoutId()->toString(),
             'buyer_id' => $order->buyerId()->toString(),
             'seller_id' => $order->sellerId()->toString(),
             'status' => $order->status()->value,

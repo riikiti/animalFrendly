@@ -23,7 +23,9 @@ const isSubmitting = ref(false)
 const error = ref('')
 
 const selected = computed(() => options.value.find((option) => option.value === method.value))
-const deliveryPrice = computed(() => selected.value?.price_amount ?? 0)
+const orderCount = computed(() => Math.max(cartStore.cart.groups.length, 1))
+// Доставка платится за каждый заказ: посылки едут от разных продавцов.
+const deliveryPrice = computed(() => (selected.value?.price_amount ?? 0) * orderCount.value)
 const total = computed(() => cartStore.cart.total_amount + deliveryPrice.value)
 
 // Комиссию площадки платит продавец, покупатель видит только товары и доставку —
@@ -107,7 +109,7 @@ async function submit(): Promise<void> {
         :value="formatPrice(cartStore.cart.total_amount, cartStore.cart.currency)"
       />
       <BaseMoneyRow
-        label="Доставка"
+        :label="orderCount > 1 ? `Доставка · ${orderCount} посылки` : 'Доставка'"
         :value="deliveryPrice === 0 ? 'бесплатно' : formatPrice(deliveryPrice, 'RUB')"
       />
       <div class="border-t border-hairline pt-2.5">
@@ -126,7 +128,11 @@ async function submit(): Promise<void> {
         >Перейти к оплате</BaseButton
       >
       <p class="mt-2 text-center text-xs text-ink-faint">
-        Деньги придержим до подтверждения получения
+        {{
+          orderCount > 1
+            ? `Оплата одна, заказов будет ${orderCount} — по одному на продавца. Деньги придержим до подтверждения получения`
+            : 'Деньги придержим до подтверждения получения'
+        }}
       </p>
     </div>
   </div>
